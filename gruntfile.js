@@ -37,7 +37,7 @@ module.exports = function(grunt){
         dev:'<%= dev_dir %>/<%= pkg.name %>.js',
 
         dev_banner: ['/**\n',
-                ' * <%= pkg.name %> <%= pkg.devversion %>-dev, <%= grunt.template.today("yyyy-mm-dd") %>\n',
+                ' * <%= pkg.name %> v<%= pkg.devversion %>-dev, <%= grunt.template.today("yyyy-mm-dd") %>\n',
                 ' * <%= pkg.description %>\n',
                 ' *\n',
                 ' * Copyright (c) <%= grunt.template.today("yyyy") %> <%= pkg.author %>\n',
@@ -49,7 +49,7 @@ module.exports = function(grunt){
         build_min:'<%= build_dir %>/<%= pkg.name %>-<%= pkg.version %>.min.js',
 
         build_banner: ['/**\n',
-                ' * <%= pkg.name %> <%= pkg.version %>, <%= grunt.template.today("yyyy-mm-dd") %>\n',
+                ' * <%= pkg.name %> v<%= pkg.version %>, <%= grunt.template.today("yyyy-mm-dd") %>\n',
                 ' * <%= pkg.description %>\n',
                 ' *\n',
                 ' * Copyright (c) <%= grunt.template.today("yyyy") %> <%= pkg.author %>\n',
@@ -97,7 +97,7 @@ module.exports = function(grunt){
 
         uglify: {
             options: {
-                banner: '<%= banner %>',
+                banner: '<%= build_banner %>',
                 mangle:true
             },
             build: {

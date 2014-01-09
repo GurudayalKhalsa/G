@@ -1,3 +1,7 @@
+
+//Ticker Module
+//-------------
+
 G.Ticker = G.Class.extend(
 {
     //arguments can be a callback and interval, in any order

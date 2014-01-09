@@ -1,3 +1,8 @@
+
+//Stage Module
+//-------------
+
+
 ;(function(G){
 
 function createStats(offset)

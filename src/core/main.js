@@ -1,3 +1,5 @@
+//G Main / initialize
+
 //add event methods to G
 Emit.mixin(G);
 Emit.mixin(G.Class);

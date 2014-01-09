@@ -1,3 +1,8 @@
+
+//Shape Module
+//-------------
+
+
 var Shape = G.Shape = G.Object.extend
 ({
     mergeValues:function(obj, defaults)

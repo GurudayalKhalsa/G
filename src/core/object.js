@@ -1,3 +1,8 @@
+
+//Object Module
+//-------------
+
+
 G.Object = G.Class.extend({
 
     initialize:function(obj, defaults)

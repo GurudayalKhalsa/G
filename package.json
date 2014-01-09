@@ -1,7 +1,7 @@
 {
   "name": "G",
-  "version": "0.1.0",
-  "devversion": "0.1.0",
+  "version": "0.5",
+  "devversion": "0.5",
   "author": "Gurudayal Khalsa, gurudayalkhalsa@gmail.com",
   "description": "A lightweight, modular, extendable HTML5 Canvas renderer and library",
   "private" : true,
@@ -12,7 +12,7 @@
       "email": "gurudayalkhalsa@gmail.com"
     }
   ],
-  "main": "./dist/G-0.1.0.js",
+  "main": "./dist/G-0.5.js",
   "repository": {
     "type": "git",
     "url": "git@github.com:GurudayalKhalsa/G.git"

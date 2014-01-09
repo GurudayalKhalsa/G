@@ -1,3 +1,8 @@
+
+//Stage Shortcut
+//--------------
+
+
 G.animate = function(time)
 {
     G.stage.animate(time);

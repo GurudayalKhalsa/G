@@ -1,3 +1,4 @@
+//shortcut to configure root stage
 G.config = function(obj)
 {
     if(typeof obj !== "object") return false;

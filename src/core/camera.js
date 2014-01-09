@@ -1,3 +1,7 @@
+
+//Camera Module
+//-------------
+
 G.Camera=G.Class.extend
 ({
     initialize:function(obj)

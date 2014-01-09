@@ -1,3 +1,7 @@
+
+//Collection Module
+//-----------------
+
 G.Collection = G.Class.extend({
     initialize:function(addToCollections, addToObjectCollections, addPhysics)
     {
