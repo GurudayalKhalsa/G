@@ -1,1 +1,0 @@
-var Physics = G.Physics = {};
