@@ -15,7 +15,7 @@
     "type": "git",
     "url": "git@github.com:GurudayalKhalsa/G.git"
   },
-  "keywords": ["canvas", "game libary", "renderer"],
+  "keywords": ["html5", "html5 game engine", "javascript game engine", "game engine", "canvas"],
   "devDependencies": {
     "grunt": "~0.4.0",
     "matchdep": "*",
