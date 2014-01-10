@@ -1,6 +1,6 @@
 /**
  * G v0.5.0, 2014-01-10
- * A lightweight, modular, extendable HTML5 Canvas renderer and library
+ * A fast, powerful and extendable HTML5 game engine
  *
  * Copyright (c) 2014 Gurudayal Khalsa, gurudayalkhalsa@gmail.com
  * Licensed MIT
