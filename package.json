@@ -4,7 +4,6 @@
   "devversion": "0.5.0",
   "author": "Gurudayal Khalsa, gurudayalkhalsa@gmail.com",
   "description": "A lightweight, modular, extendable HTML5 Canvas renderer and library",
-  "private" : true,
   "license": "MIT",
   "contributors": [
     {
