@@ -99,7 +99,9 @@ module.exports = function(grunt){
         uglify: {
             options: {
                 banner: '<%= build_banner %>',
-                mangle:true
+                mangle:{
+                    except:["Class"]
+                }
             },
             build: {
                 files: {
