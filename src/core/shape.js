@@ -5,6 +5,12 @@
 
 var Shape = G.Shape = G.Object.extend
 ({
+    initialize:function(type)
+    {
+        if(["bounds", "circle", "rect", "polygon", "image", "sprite", "text", "line"].indexOf("type") === -1) throw new Error("Type must be one of bounds, circle, rect, polygon, image, sprite, text, line");
+        return new G[ type[0].toUpperCase()+type.substr(1) ](Array.prototype.slice.call(arguments, 1));
+    },
+
     mergeValues:function(obj, defaults)
     {        
         var defaults = _.extend({pos:new G.Vector(),vel:new G.Vector(),width:0,height:0,rotation:0,color:"#000",fill:true,hidden:false,_bounds:{top:1,left:1,right:1,bottom:1}}, defaults||{});

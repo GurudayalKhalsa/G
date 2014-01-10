@@ -47,7 +47,7 @@ var collections = {
 //configure physics to not detect collisions for two moving objects
 _.each(collections, function(collection)
 {
-    var walls = collection.walls = new G.Bounds(0, 0, G.stage.width, G.stage.height, 0.2, 1);
+    var walls = collection.walls = new G.Bounds(0, 0, G.stage.width, G.stage.height, 1, 0.2);
     walls.each(function(wall){collection.add(wall)});
 
     collection.world.config

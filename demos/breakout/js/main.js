@@ -28,7 +28,7 @@ G.event.on("resize", window, function()
     
 });
 
-var walls = new G.Bounds(10);
+var walls = new G.Bounds(1,0,10);
 
 var player = new (G.Rect.extend
 ({

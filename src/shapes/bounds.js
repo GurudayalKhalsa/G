@@ -2,7 +2,7 @@ G.Bounds = (function(){
 
 return G.Collection.extend
 ({
-    initialize:function(x1,y1,x2,y2,friction,restitution,thickness)
+    initialize:function(x1,y1,x2,y2,restitution,friction,thickness)
     {
         this._super(false, true);
 
@@ -16,9 +16,9 @@ return G.Collection.extend
         if(arguments.length < 4)
         {
             //set if no defaults
-            if(arguments[0]) this.thickness = arguments[0] || this.thickness;
+            if(arguments[2]) this.thickness = arguments[2] || this.thickness;
             if(arguments[1]) this.friction = arguments[1] || this.friction;
-            if(arguments[2]) this.restitution = arguments[2] || this.restitution;
+            if(arguments[0]) this.restitution = arguments[0] || this.restitution;
 
 
             x1 = 0;

@@ -6,7 +6,7 @@ var d = new G.Stage({physics:true}).setCanvas("#d");
 _.each(G.stages, function(stage, i)
 {
     stage.backgroundColor = G.random.color();
-    stage.add(new G.Bounds(0,0,stage.width,stage.height, 0, 1));
+    stage.add(new G.Bounds(0,0,stage.width,stage.height, 1, 0));
     stage.add(new G.Circle(stage.width/2,stage.height/2,10,G.random.color(), G.random.choice(G.random.float(5,0.5),G.random.float(-0.5,-5)),  G.random.choice(G.random.float(5,2),G.random.float(-2,-5))));
 
     stage.world.config({ collisions:{ dynamicdynamic:false } })

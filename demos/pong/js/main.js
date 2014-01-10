@@ -27,7 +27,7 @@ G.event.on("resize", window, function()
 });
 
 var maxScore = 11;
-var walls = new G.Bounds(10);
+var walls = new G.Bounds(1,0,10);
 
 var Player = G.Collection.extend
 ({

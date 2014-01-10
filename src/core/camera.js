@@ -1,6 +1,8 @@
-
-//Camera Module
-//-------------
+/**
+ * [poop description]
+ * @param  {[type]} arg
+ * @return {[type]}
+ */
 
 G.Camera=G.Class.extend
 ({

@@ -16,7 +16,7 @@ var mouse = G.event.mouse;
 mouse.on('contextmenu', function(e){ e.preventDefault() });
 
 //top,left,bottom,right  wall boundaries
-var bounds = new G.Bounds(0, 0, G.stage.width, G.stage.height, 0.5, 0.8);
+var bounds = new G.Bounds(0, 0, G.stage.width, G.stage.height, 0.8, 0.5);
 
 //resize boundaries on window resize
 G.event.on("resize", window, function()
