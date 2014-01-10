@@ -117,8 +117,8 @@ G.animate(function()
     G.ctx.font = "13px Helvetica Neue";
 
     //display amount of shapes in top left
-    G.ctx.fillText(collections[type].query({pos:{x:"range:0:"+G.stage.width, y:"range:0:"+G.stage.height}}).length() + " objects", 5, 40);
-    // G.ctx.fillText(collections[type].length() + " objects", 5, 40);
+    // G.ctx.fillText(collections[type].query({pos:{x:"range:0:"+G.stage.width, y:"range:0:"+G.stage.height}}).length() + " objects", 5, 40);
+    G.ctx.fillText(collections[type].length() + " objects", 5, 40);
 
     //display amount of collision checks
     G.ctx.fillText(checks[type] + " collision checks", 5, 60);
