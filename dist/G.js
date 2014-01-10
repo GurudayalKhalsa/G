@@ -1,5 +1,5 @@
 /**
- * G 1.0, 2014-01-10
+ * G 0.2, 2014-01-10
  * A fast, powerful and extendable HTML5 game engine
  *
  * Copyright (c) 2014 Gurudayal Khalsa, gurudayalkhalsa@gmail.com
@@ -1404,9 +1404,11 @@ G.Object = G.Class.extend({
 });
 
 
-
-//Camera Module
-//-------------
+/**
+ * [poop description]
+ * @param  {[type]} arg
+ * @return {[type]}
+ */
 
 G.Camera=G.Class.extend
 ({
@@ -1463,6 +1465,7 @@ G.Collection = G.Class.extend({
         this.objects = [];
         this._currentId = 0;
         this._length = 0;
+        this._visibleHashEnabled = false;
 
         this.addToCollections = typeof addToCollections === "boolean" ? addToCollections : ((typeof addToCollections === "object" && typeof addToCollections.addToCollections === "boolean") ? addToCollections.addToCollections : true);
         this.addToObjectCollections = typeof addToObjectCollections === "boolean" ? addToObjectCollections : ((typeof addToSCollections === "object" && typeof addToCollections.addToObjectCollections === "boolean") ? addToCollections.addToObjectCollections : true);
@@ -1567,13 +1570,14 @@ G.Collection = G.Class.extend({
         if(self.events) self.trigger("render");
 
         //retrieve all visible shapes, very efficient if thousands of static shapes
-        if(this.visible && this.renderHash)
+        //only enabled if stage._visibleHashEnabled is set to true
+        if(this.visibleHash && this._visibleHashEnabled)
         {
-            this.visible.moving.clear().insert(this.visible.moving.shapes);
+            this.visibleHash.moving.clear().insert(this.visibleHash.moving.shapes);
             var obj = {};
-            if(this.visible.stage.camera) 
+            if(this.visibleHash.stage.camera) 
             {
-                var camera = this.visible.stage.camera;
+                var camera = this.visibleHash.stage.camera;
                 obj.bounds = function(){
                 return {
                     top:camera.pos.y-camera.frame.top,
@@ -1588,40 +1592,40 @@ G.Collection = G.Class.extend({
                 return {
                     top:0,
                     left:0,
-                    bottom:self.visible.stage.height,
-                    right:self.visible.stage.width
+                    bottom:self.visibleHash.stage.height,
+                    right:self.visibleHash.stage.width
                 }};
             }
 
-            _.each(this.visible.static.retrieve(obj), function(shape)
+            _.each(this.visibleHash.static.retrieve(obj), function(shape)
             {
                 if(!shape) return;
                 if(shape.type !== "static") 
                 {
-                    _.each(self.visible.static.retrieve(), function(shape)
+                    _.each(self.visibleHash.static.retrieve(), function(shape)
                     {
                         if(shape.type === "static") return;
-                        self.visible.static.remove(shape);
-                        self.visible.moving.insert(shape); 
-                        self.visible.moving.shapes.push(shape);
+                        self.visibleHash.static.remove(shape);
+                        self.visibleHash.moving.insert(shape); 
+                        self.visibleHash.moving.shapes.push(shape);
                     });
                 }
                 if(self.events) self.trigger("renderShape", [shape]);
                 shape.render();
             });
 
-            _.each(this.visible.moving.retrieve(obj), function(shape)
+            _.each(this.visibleHash.moving.retrieve(obj), function(shape)
             {
                 if(!shape) return;
                 if(shape.type === "static") 
                 {
-                    _.each(self.visible.moving.retrieve(), function(shape)
+                    _.each(self.visibleHash.moving.retrieve(), function(shape)
                     {
                         if(shape.type !== "static") return;
-                        self.visible.moving.remove(shape); 
-                        var index = self.visible.moving.shapes.indexOf(shape);
-                        if(index !== -1) self.visible.moving.shapes.splice(index, 1);
-                        self.visible.static.insert(shape);
+                        self.visibleHash.moving.remove(shape); 
+                        var index = self.visibleHash.moving.shapes.indexOf(shape);
+                        if(index !== -1) self.visibleHash.moving.shapes.splice(index, 1);
+                        self.visibleHash.static.insert(shape);
                     });
                 }
                 if(self.events) self.trigger("renderShape", [shape]);
@@ -1683,27 +1687,10 @@ G.Collection = G.Class.extend({
             this._currentId++;
             this._length = this._length+1;  
 
-            //add to visible hash
-            if((this.canvas || (this.get(0) && this.get(0).stage && this.get(0).stage.canvas)) && object instanceof G.Shape)
+            //add to visible visibleHash
+            if(this._visibleHashEnabled && (this.canvas || (this.get(0) && this.get(0).stage && this.get(0).stage.canvas)) && object instanceof G.Shape)
             {
-                var stage = this.canvas ? this : this.get(0).stage;
-                var canvas = stage.canvas;
-
-                //determine if visible hases required
-                var b = object.bounds();
-                if(b.right < 0 || b.left > stage.width || b.bottom < 0 || b.top > stage.height && this.renderHash !== false) this.renderHash = true;
-
-                if(!this.visible) 
-                {
-                    this.visible = {stage:stage,static:new SpatialHash().setCellSize(stage.width, stage.height), moving:new SpatialHash().setCellSize(stage.width, stage.height)};
-                    this.visible.moving.shapes = [];
-                }
-                if(object.type === "static") this.visible.static.insert(object); 
-                else 
-                {
-                    this.visible.moving.insert(object); 
-                    this.visible.moving.shapes.push(object);
-                }
+                this.addToVisibleHash(object);
             }
 
             //add to object's collections if necessary
@@ -1754,17 +1741,10 @@ G.Collection = G.Class.extend({
         delete this.objects[index];
         this._length = this._length-1;
 
-        //remove from visible hash
-        if(object instanceof G.Shape && this.visible)
+        //remove from visible visibleHash
+        if(this.enableVisibleHash && object instanceof G.Shape && this.visibleHash)
         {
-            if(object.type === "static") this.visible.static.remove(object); 
-            else 
-            {
-                this.visible.static.remove(object); 
-                this.visible.moving.remove(object); 
-                var index = this.visible.moving.shapes.indexOf(object);
-                if(index !== -1) this.visible.moving.shapes.splice(index, 1);
-            }
+            this.removeFromVisibleHash(object);
         }
 
         //handle collections and stage removal if necessary
@@ -1781,6 +1761,59 @@ G.Collection = G.Class.extend({
         if(this === G.stage || this.queryParent === G.stage) object.remove();
 
         return object;
+    },
+
+    addToVisibleHash:function(object)
+    {
+        var stage = this.canvas ? this : this.get(0).stage;
+        var canvas = stage.canvas;
+
+        //determine if visible hases required
+        var b = object.bounds();
+
+        if(!this.visibleHash) 
+        {
+            this.visibleHash = {stage:stage,static:new SpatialHash().setCellSize(stage.width, stage.height), moving:new SpatialHash().setCellSize(stage.width, stage.height)};
+            this.visibleHash.moving.shapes = [];
+        }
+        if(object.type === "static") this.visibleHash.static.insert(object); 
+        else 
+        {
+            this.visibleHash.moving.insert(object); 
+            this.visibleHash.moving.shapes.push(object);
+        }
+    },
+
+    removeFromVisibleHash:function(object)
+    {
+        if(object.type === "static") this.visibleHash.static.remove(object); 
+        else 
+        {
+            this.visibleHash.static.remove(object); 
+            this.visibleHash.moving.remove(object); 
+            var index = this.visibleHash.moving.shapes.indexOf(object);
+            if(index !== -1) this.visibleHash.moving.shapes.splice(index, 1);
+        }
+    },
+
+    enableVisibleHash:function()
+    {
+        this._visibleHashEnabled = true;
+        var self = this;
+        this.each(function(shape)
+        {
+            self.addToVisibleHash(shape);
+        });
+    },
+
+    disableVisibleHash:function()
+    {
+        this._visibleHashEnabled = false;
+        var self = this;
+        this.each(function(shape)
+        {
+            self.removeFromVisibleHash(shape);
+        });
     },
 
     has:function(obj)
@@ -1981,6 +2014,17 @@ G.config = function(obj)
 
 var Shape = G.Shape = G.Object.extend
 ({
+    initialize:function(type)
+    {
+        //if creating shape from G.Shape(shape, obj);
+        if(typeof type === "string" && ["bounds", "circle", "rect", "polygon", "image", "sprite", "text", "line"].indexOf("type") !== -1)
+        {
+            return new G[ type[0].toUpperCase()+type.substr(1) ](Array.prototype.slice.call(arguments, 1));
+        }
+
+        this._super.apply(this, arguments);
+    },
+
     mergeValues:function(obj, defaults)
     {        
         var defaults = _.extend({pos:new G.Vector(),vel:new G.Vector(),width:0,height:0,rotation:0,color:"#000",fill:true,hidden:false,_bounds:{top:1,left:1,right:1,bottom:1}}, defaults||{});
@@ -2413,6 +2457,8 @@ G.Stage = G.Collection.extend({
         this.addToCollections = false;
         this.addToObjectCollections = false;
         this.events = true;
+        this._visibleHashEnabled = false;
+
         if(obj && typeof obj.events !== "undefined" && !obj.events) this.events = false;
 
         //mouse/key events
@@ -2952,7 +2998,7 @@ G.Bounds = (function(){
 
 return G.Collection.extend
 ({
-    initialize:function(x1,y1,x2,y2,friction,restitution,thickness)
+    initialize:function(x1,y1,x2,y2,restitution,friction,thickness)
     {
         this._super(false, true);
 
@@ -2966,9 +3012,10 @@ return G.Collection.extend
         if(arguments.length < 4)
         {
             //set if no defaults
-            if(arguments[0]) this.thickness = arguments[0] || this.thickness;
+            if(arguments[2]) this.thickness = arguments[2] || this.thickness;
             if(arguments[1]) this.friction = arguments[1] || this.friction;
-            if(arguments[2]) this.restitution = arguments[2] || this.restitution;
+            if(arguments[0]) this.restitution = arguments[0] || this.restitution;
+
 
             x1 = 0;
             x2 = G.stage.canvas ? G.stage.width : 0;
