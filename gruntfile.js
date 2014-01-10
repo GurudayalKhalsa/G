@@ -133,7 +133,7 @@ module.exports = function(grunt){
 
     // Default tasks
     grunt.registerTask('build',[
-        'clean:dev',
+        'clean:build',
         'concat:build',
         // 'jshint:build',
         'uglify:build'
