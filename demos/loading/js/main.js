@@ -12,7 +12,7 @@ loadingText.align = "left";
 
 assets.on("loading", function(loading, loaded, assets) 
 {
-    loadingText.text = "Loading " + loaded.length() + " of " + assets.length() + " assets.";
+    loadingText.text = "Loaded " + loaded.length() + " of " + assets.length() + " assets.";
 });
 
 assets.on("load", function(assets) 
