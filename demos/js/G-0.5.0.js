@@ -1,5 +1,5 @@
 /**
- * G v0.5.0, 2014-01-09
+ * G v0.5, 2014-01-10
  * A lightweight, modular, extendable HTML5 Canvas renderer and library
  *
  * Copyright (c) 2014 Gurudayal Khalsa, gurudayalkhalsa@gmail.com
@@ -2147,7 +2147,6 @@ var Shape = G.Shape = G.Object.extend
 //Sound Module
 //-------------
 
-
 (function(G)
 {
     var AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -2170,14 +2169,14 @@ var Shape = G.Shape = G.Object.extend
 
     G.Sound = G.Object.extend
     ({
-        initialize: function(src, extensions)
+        initialize: function(src, extensions, multi)
         {
             this._super();
             var self = this;
             if (typeof src !== "string") return console.warn("Warning: A sound must have a source... ", this);
 
             //get a playable source
-            for (var i = 0; i < extensions.length; i++) if (playable(extensions[i], audio)) { this.src = src+"."+extensions[i]; break; }
+            for (var i = 0; i < extensions.length; i++) if (playable(extensions[i])) { this.src = src+"."+extensions[i]; break; }
 
             //create audio
             function createAudio(){
@@ -2186,74 +2185,88 @@ var Shape = G.Shape = G.Object.extend
                 return audio;
             }
 
-            var audio = this.audio = createAudio();
+            if(multi === false) var channels = [createAudio];
+            else var channels = [createAudio(), createAudio(), createAudio(), createAudio()];
+            this.channels = channels;
+            var currentChannel = 0;
 
-            var channels = [];
+            //some mobile browsers require a mouse event in order to start loading Audio
+            //currently only one channel
+            if(G.isMobile)
+            {
+                channels.splice(1);
+                var e = G.event ? G.event : (G.stages[0] ? G.stages[0].event : false);
+                if(e)
+                {
+                    e.one("touchstart", function()
+                    {
+                        channels[0].mute = true;
+                        channels[0].play();
+                        channels[0].mute = false;
+                    });
+                }
+            }
+
+            var i = 1;
             
             //trigger when loaded
             this.loaded = false;
-            audio.addEventListener("canplaythrough", function(){ self.trigger("load"); });
+            _.each(channels, function(channel){channel.addEventListener("canplaythrough", function(){ i++; if(i === channels.length) self.trigger("load"); })});
             this.on("load", function(){ self.loaded = true; });
 
-            //BUG - Safari Mac (only tested on 7) has a major delay in playing sounds through solely html5 Audio
+            //BUG - Safari (only tested on 7) has a major delay in playing sounds through solely html5 Audio
             //second method is much better in Safari, but not perfect (still delay)
-            if(!context || (navigator.userAgent.match("Safari") === null || navigator.userAgent.match("Chrome") !== null))
+            if(G.isMobile || !context || (navigator.userAgent.match("Safari") === null || navigator.userAgent.match("Chrome") !== null))
             {
-                //trigger playing
-                audio.addEventListener("play", function() { self.playing = true; });
-                audio.addEventListener("ended", function() { self.playing = false; });
-
-                //mobile browsers must have an input event happen to load audio
-                if(G.isMobile && G.stages[0]) G.stages[0].event.one("touchstart", window, function(){ audio.muted = true; audio.play(); audio.muted = false; }) 
+                //trigger playing and ended
+                channels[0].addEventListener("play", function() { self.playing = true; });
+                channels[channels.length-1].addEventListener("ended", function() { self.playing = false; });
 
                 this.play = function()
                 {
-                    //if currently playing, play new channel simultaneously
-                    if (this.playing) 
-                    {
-                        var n = new Audio;
-                        n.src = this.src;
-                        channels.push(n);
-                        n.play();
-                        return;
-                    }
-                    else channels = [];
-                    if (!this.loaded) return this.on("load", function() { self.play(); });
-                    channels.push(audio);
-                    return audio.play();
+                    // //if currently playing, play new sound simultaneously
+                    // if (self.playing && channels.length > 1)
+                    // {
+                    //     if(currentChannel > channels.length-1) currentChannel = 0;
+                    //     currentChannel++;
+                    //     return channels[currentChannel-1].play();
+                    // }
+                    // if (!self.loaded) return self.on("load", function(){self.play()});
+                    currentChannel = 0;
+                    currentChannel++;
+                    self.playing = true;
+                    return channels[0].play();
                 };
                 //stops all
                 this.stop = function()
                 {
-                    if (!this.loaded && !this.playing) return false;
+                    if (!self.loaded && !self.playing) return false;
                     for(var i in channels) channels[i].pause();
                 };
             }
 
-            else
+            else if(!G.isMobile && context)
             {
                 this.context = context;
-                var source = self.source = context.createMediaElementSource(audio);
+                for(var i in channels) channels[i] = context.createMediaElementSource(channels[i]);
                 this.playing = false;
-                source.mediaElement.addEventListener("play", function(){self.playing = true;});
-                source.mediaElement.addEventListener("ended", function(){self.playing = false;});
-
-                //mobile browsers must have an input event happen to load audio
-                if(G.isMobile && G.stages[0]) G.stages[0].event.one("touchstart", window, function(){ source.mediaElement.muted = true; source.mediaElement.play(); source.mediaElement.muted = false; }) 
+                channels[0].mediaElement.addEventListener("play", function(){self.playing = true;});
+                channels[channels.length-1].mediaElement.addEventListener("ended", function(){self.playing = false;});
 
                 this.play = function()
                 {
                     //if currently playing, play new sound simultaneously
-                    if(this.playing) 
+                    if (self.playing && channels.length > 1)
                     {
-                        var newSource = context.createMediaElementSource(createAudio());
-                        channels.push(newSource);
-                        return newSource.mediaElement.play();
+                        if(currentChannel > channels.length-1) currentChannel = 0;
+                        currentChannel++;
+                        return channels[currentChannel-1].mediaElement.play();
                     }
-                    else channels = [];
                     if (!self.loaded) return self.on("load", function(){self.play()});
-                    channels.push(source);
-                    return source.mediaElement.play();
+                    currentChannel = 0;
+                    currentChannel++;
+                    self.playing = true;
+                    return channels[0].mediaElement.play();
                 };
                 this.pause = function()
                 {
@@ -2433,7 +2446,7 @@ G.Stage = G.Collection.extend({
             this.world = new G.Physics.World(obj);
         }
 
-        this.backgroundColor = "";
+        this.backgroundColor = "white";
 
         //add to stage list
         G.stages.push(this);
@@ -2563,7 +2576,24 @@ G.Stage = G.Collection.extend({
 
         if(args.indexOf("lowres") === -1 && devicePixelRatio !== backingStoreRatio)
         {
-            this.setScale(ratio);
+            var canvas = this.canvas, ctx = this.ctx;
+
+            var oldWidth = canvas.width;
+            var oldHeight = canvas.height;
+
+            canvas.width = oldWidth * ratio;
+            canvas.height = oldHeight * ratio;
+
+            canvas.style.width = oldWidth + 'px';
+            canvas.style.height = oldHeight + 'px';
+
+            this.width = oldWidth;
+            this.height = oldHeight;
+
+            // now scale the context to counter
+            // the fact that we've manually scaled
+            // our canvas element
+            ctx.scale(ratio, ratio);
         }
 
         //run mouse event engine, setting root to canvas
@@ -2593,7 +2623,7 @@ G.Stage = G.Collection.extend({
         if(this.canvas && this.ctx) 
         {
             this._canvasCleared = true;
-            if(this.backgroundColor === "") this.ctx.clearRect(0,0,this.canvas.width, this.canvas.height);
+            if(this.backgroundColor === "white") this.ctx.clearRect(0,0,this.canvas.width, this.canvas.height);
             else
             {
                 this.ctx.fillStyle = this.backgroundColor;
@@ -2603,29 +2633,11 @@ G.Stage = G.Collection.extend({
         return this;
     },
 
-    setScale:function(x, y)
+    setScale:function()
     {
-
-        if(this.ctx && typeof x === "number")
+        if(!this.ctx)
         {
-            var canvas = this.canvas, ctx = this.ctx;
-            if(typeof y !== "number") var y = x;
-            var oldWidth = canvas.width;
-            var oldHeight = canvas.height;
 
-            canvas.width = oldWidth * x;
-            canvas.height = oldHeight * y;
-
-            canvas.style.width = oldWidth + 'px';
-            canvas.style.height = oldHeight + 'px';
-
-            this.width = oldWidth;
-            this.height = oldHeight;
-
-            // now scale the context to counter
-            // the fact that we've manually scaled
-            // our canvas element
-            ctx.scale(x, y);
         }
     },
 
@@ -2958,25 +2970,23 @@ return G.Collection.extend
 
         this.thickness = thickness || 2;
 
-        var hidden = typeof hidden === "boolean" ? hidden : true;
-        this.friction = typeof friction === "number" ? friction : 0;
-        this.restitution = typeof restitution === "number" ? restitution : 0;
-        
         //default dimensions
         if(arguments.length < 4)
         {
-            //set if no defaults
-            if(arguments[0]) this.thickness = arguments[0] || this.thickness;
-            if(arguments[1]) this.friction = arguments[1] || this.friction;
-            if(arguments[2]) this.restitution = arguments[2] || this.restitution;
-
+            //set thickness if no defaults
+            if(arguments[0])
+            {
+                this.thickness = arguments[0] || this.thickness;
+            }
 
             x1 = 0;
-            x2 = G.stage.canvas ? G.stage.width : 0;
-            y1 = 0;
+            y1 = 0;            x2 = G.stage.canvas ? G.stage.width : 0;
             y2 = G.stage.canvas ? G.stage.height : 0;
         } 
-        
+
+        var hidden = typeof hidden === "boolean" ? hidden : true;
+        this.friction = typeof friction === "number" ? friction : 0;
+        this.restitution = typeof restitution === "number" ? restitution : 0;
         this.name = "Bounds Shape";
 
         var line = {
@@ -4888,7 +4898,7 @@ G.isMobile = (function()
 G.event = new Event();
 
 //prevent mouse and only allow touch events if on mobile, disable default browser touch events (includes annoying zooming when clicked)
-// if(G.isMobile) G.event.mouse.onlyTouch().on('touchstart,touchend,touchmove', function(e){ e.preventDefault(); })
+if(G.isMobile) G.event.mouse.onlyTouch().on('touchstart,touchend,touchmove', function(e){ e.preventDefault(); })
 
 return G;
 
