@@ -1,6 +1,8 @@
 //add balls
 (function(){
 
+    console.log("ppoo")
+
     if(G.isMobile) return;
 
     G.physics = true;
