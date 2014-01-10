@@ -1,5 +1,5 @@
 /**
- * G 1.0.0, 2014-01-10
+ * G 1.0, 2014-01-10
  * A fast, powerful and extendable HTML5 game engine
  *
  * Copyright (c) 2014 Gurudayal Khalsa, gurudayalkhalsa@gmail.com
