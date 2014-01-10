@@ -2,7 +2,7 @@
   "name": "G",
   "version": "0.5.0",
   "author": "Gurudayal Khalsa, gurudayalkhalsa@gmail.com",
-  "description": "A lightweight, modular, extendable HTML5 Canvas renderer and library",
+  "description": "A fast, powerful and extendable HTML5 game engine",
   "license": "MIT",
   "contributors": [
     {
@@ -10,7 +10,7 @@
       "email": "gurudayalkhalsa@gmail.com"
     }
   ],
-  "main": "./dist/G-0.5.js",
+  "main": "./dist/G.js",
   "repository": {
     "type": "git",
     "url": "git@github.com:GurudayalKhalsa/G.git"
