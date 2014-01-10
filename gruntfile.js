@@ -34,10 +34,11 @@ module.exports = function(grunt){
         ],
 
         dev_dir: 'dev',
-        dev:'<%= dev_dir %>/<%= pkg.name %>.js',
+        dev:'<%= dev_dir %>/<%= pkg.name %>-dev.js',
+        dev_min:'<%= dev_dir %>/<%= pkg.name %>-dev.min.js',
 
         dev_banner: ['/**\n',
-                ' * <%= pkg.name %> v<%= pkg.devversion %>-dev, <%= grunt.template.today("yyyy-mm-dd") %>\n',
+                ' * <%= pkg.name %> v<%= pkg.version %>-dev, <%= grunt.template.today("yyyy-mm-dd") %>\n',
                 ' * <%= pkg.description %>\n',
                 ' *\n',
                 ' * Copyright (c) <%= grunt.template.today("yyyy") %> <%= pkg.author %>\n',
@@ -105,6 +106,11 @@ module.exports = function(grunt){
                     '<%= build_min %>': ['<%= build %>']
                 }
             },
+            dev: {
+                files: {
+                    '<%= dev_min %>': ['<%= dev %>']
+                }
+            },
         },
 
         watch: {
@@ -118,14 +124,16 @@ module.exports = function(grunt){
 
     // Default tasks
     grunt.registerTask('default',[
+        'clean:dev',
         'concat:dev',
         // 'jshint:dev',
+        'uglify:dev',
         'watch'
     ]);
 
     // Default tasks
     grunt.registerTask('build',[
-        'clean:build',
+        'clean:dev',
         'concat:build',
         // 'jshint:build',
         'uglify:build'
