@@ -1,8 +1,6 @@
 //add balls
 (function(){
 
-    console.log("ppoo")
-
     if(G.isMobile) return;
 
     G.physics = true;
@@ -17,7 +15,7 @@
         for(var i = 0; i < 50; i++) new G.Circle(x||G.random(G.stage.width), y||G.random(G.stage.height), 2, G.random.color(), G.random.choice([G.random(-2, -5), G.random(5,2)]), G.random.choice([G.random(-2, -5), G.random(5,2)]));
     }
 
-    new G.Bounds(20, 0, 1);
+    new G.Bounds(1,0,20);
 
     stage.world.config({ collisions:{ dynamicdynamic:false } });
 

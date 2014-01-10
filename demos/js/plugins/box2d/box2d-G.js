@@ -250,7 +250,7 @@ if (typeof G !== "undefined" && (typeof b2 !== "undefined" || typeof Box2D !== "
 
         G.Bounds = G.Collection.extend
         ({
-            initialize:function(x1,y1,x2,y2,friction,restitution)
+            initialize:function(x1,y1,x2,y2,restitution,friction)
             {
                 this._super();
 

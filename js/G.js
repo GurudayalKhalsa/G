@@ -1404,9 +1404,11 @@ G.Object = G.Class.extend({
 });
 
 
-
-//Camera Module
-//-------------
+/**
+ * [poop description]
+ * @param  {[type]} arg
+ * @return {[type]}
+ */
 
 G.Camera=G.Class.extend
 ({
@@ -1981,6 +1983,12 @@ G.config = function(obj)
 
 var Shape = G.Shape = G.Object.extend
 ({
+    initialize:function(type)
+    {
+        if(["bounds", "circle", "rect", "polygon", "image", "sprite", "text", "line"].indexOf("type") === -1) throw new Error("Type must be one of bounds, circle, rect, polygon, image, sprite, text, line");
+        return new G[ type[0].toUpperCase()+type.substr(1) ](Array.prototype.slice.call(arguments, 1));
+    },
+
     mergeValues:function(obj, defaults)
     {        
         var defaults = _.extend({pos:new G.Vector(),vel:new G.Vector(),width:0,height:0,rotation:0,color:"#000",fill:true,hidden:false,_bounds:{top:1,left:1,right:1,bottom:1}}, defaults||{});
@@ -2952,7 +2960,7 @@ G.Bounds = (function(){
 
 return G.Collection.extend
 ({
-    initialize:function(x1,y1,x2,y2,friction,restitution,thickness)
+    initialize:function(x1,y1,x2,y2,restitution,friction,thickness)
     {
         this._super(false, true);
 
@@ -2966,9 +2974,10 @@ return G.Collection.extend
         if(arguments.length < 4)
         {
             //set if no defaults
-            if(arguments[0]) this.thickness = arguments[0] || this.thickness;
+            if(arguments[2]) this.thickness = arguments[2] || this.thickness;
             if(arguments[1]) this.friction = arguments[1] || this.friction;
-            if(arguments[2]) this.restitution = arguments[2] || this.restitution;
+            if(arguments[0]) this.restitution = arguments[0] || this.restitution;
+
 
             x1 = 0;
             x2 = G.stage.canvas ? G.stage.width : 0;
