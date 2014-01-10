@@ -76,7 +76,7 @@ body{
   text-align: center;
 }
 
-.demos h4{
+.demos h4, .demos p{
   text-align: left;
 }
 
