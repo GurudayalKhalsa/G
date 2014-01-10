@@ -42,6 +42,8 @@ G.Stage = G.Collection.extend({
         this.addToCollections = false;
         this.addToObjectCollections = false;
         this.events = true;
+        this._visibleHashEnabled = false;
+
         if(obj && typeof obj.events !== "undefined" && !obj.events) this.events = false;
 
         //mouse/key events
