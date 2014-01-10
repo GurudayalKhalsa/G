@@ -42,7 +42,7 @@ var Player = G.Collection.extend
         var h = G.isMobile ? 60 : G.stage.height/8;
         var paddle = this.paddle = new G.Rect(x,y,w,h);
         paddle.type = "kinematic";
-        paddle.speed = 10;
+        paddle.speed = 12;
         paddle.upKey = upKey;
         paddle.downKey = downKey;
         this.add(this.paddle);
@@ -133,7 +133,7 @@ var ball = new (G.Circle.extend
         this._super(G.stage.width/2, G.stage.height/2, 8);
         var ball = this;
         ball.restitution = 1;
-        ball.maxVelX = G.isMobile ? 5 : 12;
+        ball.maxVelX = G.isMobile ? 5 : 10;
         ball.minVelX = G.isMobile ? 3 : 7;
         ball.maxVelY = G.isMobile ? 4 : 8;
         ball.minVelY = G.isMobile ? 2 : 4;

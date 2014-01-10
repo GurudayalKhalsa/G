@@ -125,6 +125,7 @@ module.exports = function(grunt){
 
     // Default tasks
     grunt.registerTask('build',[
+        'clean:build',
         'concat:build',
         // 'jshint:build',
         'uglify:build'

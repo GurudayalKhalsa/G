@@ -50,13 +50,16 @@
             audio.addEventListener("canplaythrough", function(){ self.trigger("load"); });
             this.on("load", function(){ self.loaded = true; });
 
-            //BUG - Safari (only tested on 7) has a major delay in playing sounds through solely html5 Audio
+            //BUG - Safari Mac (only tested on 7) has a major delay in playing sounds through solely html5 Audio
             //second method is much better in Safari, but not perfect (still delay)
             if(!context || (navigator.userAgent.match("Safari") === null || navigator.userAgent.match("Chrome") !== null))
             {
                 //trigger playing
                 audio.addEventListener("play", function() { self.playing = true; });
                 audio.addEventListener("ended", function() { self.playing = false; });
+
+                //mobile browsers must have an input event happen to load audio
+                if(G.isMobile && G.stages[0]) G.stages[0].event.one("touchstart", window, function(){ audio.muted = true; audio.play(); audio.muted = false; }) 
 
                 this.play = function()
                 {
@@ -89,6 +92,9 @@
                 this.playing = false;
                 source.mediaElement.addEventListener("play", function(){self.playing = true;});
                 source.mediaElement.addEventListener("ended", function(){self.playing = false;});
+
+                //mobile browsers must have an input event happen to load audio
+                if(G.isMobile && G.stages[0]) G.stages[0].event.one("touchstart", window, function(){ source.mediaElement.muted = true; source.mediaElement.play(); source.mediaElement.muted = false; }) 
 
                 this.play = function()
                 {

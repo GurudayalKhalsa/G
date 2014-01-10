@@ -8,23 +8,25 @@ return G.Collection.extend
 
         this.thickness = thickness || 2;
 
-        //default dimensions
-        if(arguments.length < 4)
-        {
-            //set thickness if no defaults
-            if(arguments[0])
-            {
-                this.thickness = arguments[0] || this.thickness;
-            }
-
-            x1 = 0;
-            y1 = 0;            x2 = G.stage.canvas ? G.stage.width : 0;
-            y2 = G.stage.canvas ? G.stage.height : 0;
-        } 
-
         var hidden = typeof hidden === "boolean" ? hidden : true;
         this.friction = typeof friction === "number" ? friction : 0;
         this.restitution = typeof restitution === "number" ? restitution : 0;
+        
+        //default dimensions
+        if(arguments.length < 4)
+        {
+            //set if no defaults
+            if(arguments[0]) this.thickness = arguments[0] || this.thickness;
+            if(arguments[1]) this.friction = arguments[1] || this.friction;
+            if(arguments[2]) this.restitution = arguments[2] || this.restitution;
+
+
+            x1 = 0;
+            x2 = G.stage.canvas ? G.stage.width : 0;
+            y1 = 0;
+            y2 = G.stage.canvas ? G.stage.height : 0;
+        } 
+        
         this.name = "Bounds Shape";
 
         var line = {

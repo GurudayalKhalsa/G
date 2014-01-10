@@ -27,6 +27,6 @@ G.isMobile = (function()
 G.event = new Event();
 
 //prevent mouse and only allow touch events if on mobile, disable default browser touch events (includes annoying zooming when clicked)
-if(G.isMobile) G.event.mouse.onlyTouch().on('touchstart,touchend,touchmove', function(e){ e.preventDefault(); })
+// if(G.isMobile) G.event.mouse.onlyTouch().on('touchstart,touchend,touchmove', function(e){ e.preventDefault(); })
 
 return G;

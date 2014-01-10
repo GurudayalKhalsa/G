@@ -43,7 +43,7 @@ var player = new (G.Rect.extend
         if(typeof reset !== "number")
         {
             this.score = 0;
-            this.scoreText = new G.Text(function(){return "Score: " + self.score;}, 20, 20, "15px", "Helvetica Neue", "normal", "black", "left", "top");
+            this.scoreText = new G.Text(function(){return "Score: " + self.score;}, 10, 10, "15px", "Helvetica Neue", "normal", "black", "left", "top");
 
             //when collided with ball, change ball speed to reflect angle of rebound
             this.on('collision', function(shape, mtv)
@@ -85,7 +85,7 @@ var Ball = G.Circle.extend
 ({
     initialize:function(reset)
     {
-        this._super(G.stage.width/2, G.isMobile ? player.pos.y - 150 : player.pos.y-250, G.isMobile ? 5 : 8);
+        this._super(G.stage.width/2, G.isMobile ? player.pos.y - 50 : player.pos.y-250, G.isMobile ? 5 : 8);
         var ball = this;
         ball.restitution = 1;
         ball.maxVelX = G.isMobile ? 3 : 7;
@@ -182,7 +182,7 @@ var sound = new G.Sound("assets/bounce", ["mp3", "wav", "ogg"]);
 function gameover(win)
 {
     G.clearCanvas();
-    new G.Text((win ? "You Win!" : "You Lose :("), G.stage.width/2, G.stage.height/2, "30px", "Helvetica Neue", "normal", G.random.color(), "center").render();
+    new G.Text((win ? "You Win!" : "You Lose :("), G.stage.width/2, G.stage.height/2-30, "30px", "Helvetica Neue", "normal", G.random.color(), "center").render();
     G.pause();
 }
 

@@ -1,7 +1,7 @@
 {
   "name": "G",
-  "version": "0.5",
-  "devversion": "0.5",
+  "version": "0.5.0",
+  "devversion": "0.5.0",
   "author": "Gurudayal Khalsa, gurudayalkhalsa@gmail.com",
   "description": "A lightweight, modular, extendable HTML5 Canvas renderer and library",
   "private" : true,

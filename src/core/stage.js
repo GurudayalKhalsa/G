@@ -62,7 +62,7 @@ G.Stage = G.Collection.extend({
             this.world = new G.Physics.World(obj);
         }
 
-        this.backgroundColor = "white";
+        this.backgroundColor = "";
 
         //add to stage list
         G.stages.push(this);
@@ -192,24 +192,7 @@ G.Stage = G.Collection.extend({
 
         if(args.indexOf("lowres") === -1 && devicePixelRatio !== backingStoreRatio)
         {
-            var canvas = this.canvas, ctx = this.ctx;
-
-            var oldWidth = canvas.width;
-            var oldHeight = canvas.height;
-
-            canvas.width = oldWidth * ratio;
-            canvas.height = oldHeight * ratio;
-
-            canvas.style.width = oldWidth + 'px';
-            canvas.style.height = oldHeight + 'px';
-
-            this.width = oldWidth;
-            this.height = oldHeight;
-
-            // now scale the context to counter
-            // the fact that we've manually scaled
-            // our canvas element
-            ctx.scale(ratio, ratio);
+            this.setScale(ratio);
         }
 
         //run mouse event engine, setting root to canvas
@@ -239,7 +222,7 @@ G.Stage = G.Collection.extend({
         if(this.canvas && this.ctx) 
         {
             this._canvasCleared = true;
-            if(this.backgroundColor === "white") this.ctx.clearRect(0,0,this.canvas.width, this.canvas.height);
+            if(this.backgroundColor === "") this.ctx.clearRect(0,0,this.canvas.width, this.canvas.height);
             else
             {
                 this.ctx.fillStyle = this.backgroundColor;
@@ -249,11 +232,29 @@ G.Stage = G.Collection.extend({
         return this;
     },
 
-    setScale:function()
+    setScale:function(x, y)
     {
-        if(!this.ctx)
-        {
 
+        if(this.ctx && typeof x === "number")
+        {
+            var canvas = this.canvas, ctx = this.ctx;
+            if(typeof y !== "number") var y = x;
+            var oldWidth = canvas.width;
+            var oldHeight = canvas.height;
+
+            canvas.width = oldWidth * x;
+            canvas.height = oldHeight * y;
+
+            canvas.style.width = oldWidth + 'px';
+            canvas.style.height = oldHeight + 'px';
+
+            this.width = oldWidth;
+            this.height = oldHeight;
+
+            // now scale the context to counter
+            // the fact that we've manually scaled
+            // our canvas element
+            ctx.scale(x, y);
         }
     },
 
