@@ -1985,8 +1985,13 @@ var Shape = G.Shape = G.Object.extend
 ({
     initialize:function(type)
     {
-        if(["bounds", "circle", "rect", "polygon", "image", "sprite", "text", "line"].indexOf("type") === -1) throw new Error("Type must be one of bounds, circle, rect, polygon, image, sprite, text, line");
-        return new G[ type[0].toUpperCase()+type.substr(1) ](Array.prototype.slice.call(arguments, 1));
+        //if creating shape from G.Shape(shape, obj);
+        if(typeof type === "string" && ["bounds", "circle", "rect", "polygon", "image", "sprite", "text", "line"].indexOf("type") !== -1)
+        {
+            return new G[ type[0].toUpperCase()+type.substr(1) ](Array.prototype.slice.call(arguments, 1));
+        }
+
+        this._super.apply(this, arguments);
     },
 
     mergeValues:function(obj, defaults)
