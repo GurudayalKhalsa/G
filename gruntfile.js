@@ -34,8 +34,8 @@ module.exports = function(grunt){
         ],
 
         dev_dir: 'dev',
-        dev:'<%= dev_dir %>/<%= pkg.name %>-dev.js',
-        dev_min:'<%= dev_dir %>/<%= pkg.name %>-dev.min.js',
+        dev:'<%= dev_dir %>/<%= pkg.name %>.js',
+        dev_min:'<%= dev_dir %>/<%= pkg.name %>.min.js',
 
         dev_banner: ['/**\n',
                 ' * <%= pkg.name %> v<%= pkg.version %>-dev, <%= grunt.template.today("yyyy-mm-dd") %>\n',
@@ -46,8 +46,8 @@ module.exports = function(grunt){
                 ' */\n'].join(''),
 
         build_dir:'dist',
-        build:'<%= build_dir %>/<%= pkg.name %>-<%= pkg.version %>.js',
-        build_min:'<%= build_dir %>/<%= pkg.name %>-<%= pkg.version %>.min.js',
+        build:'<%= build_dir %>/<%= pkg.name %>.js',
+        build_min:'<%= build_dir %>/<%= pkg.name %>.min.js',
 
         build_banner: ['/**\n',
                 ' * <%= pkg.name %> v<%= pkg.version %>, <%= grunt.template.today("yyyy-mm-dd") %>\n',
