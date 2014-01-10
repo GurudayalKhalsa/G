@@ -38,7 +38,7 @@ module.exports = function(grunt){
         dev_min:'<%= dev_dir %>/<%= pkg.name %>.min.js',
 
         dev_banner: ['/**\n',
-                ' * <%= pkg.name %> v<%= pkg.version %>-dev, <%= grunt.template.today("yyyy-mm-dd") %>\n',
+                ' * <%= pkg.name %> <%= pkg.version %>-dev, <%= grunt.template.today("yyyy-mm-dd") %>\n',
                 ' * <%= pkg.description %>\n',
                 ' *\n',
                 ' * Copyright (c) <%= grunt.template.today("yyyy") %> <%= pkg.author %>\n',
@@ -50,7 +50,7 @@ module.exports = function(grunt){
         build_min:'<%= build_dir %>/<%= pkg.name %>.min.js',
 
         build_banner: ['/**\n',
-                ' * <%= pkg.name %> v<%= pkg.version %>, <%= grunt.template.today("yyyy-mm-dd") %>\n',
+                ' * <%= pkg.name %> <%= pkg.version %>, <%= grunt.template.today("yyyy-mm-dd") %>\n',
                 ' * <%= pkg.description %>\n',
                 ' *\n',
                 ' * Copyright (c) <%= grunt.template.today("yyyy") %> <%= pkg.author %>\n',
