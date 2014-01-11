@@ -30,7 +30,7 @@ You can grab the code from either the dist repo or one of the latest [releases](
 
 The best way to start learning is to view the source of existing demos. See either the demos folder in this repo or view online [here](http://gurudayalkhalsa.github.io/G/demos/).
 
-Here is an example of a simple hello-world ball bounce demo. This assumes there is an HTML file that includes G.js and this below code afterwards. For more examples, see the demos folder in this repository, or view online [here](http://gurudayalkhalsa.github.io/G/demos/).
+Here is an example of a simple hello-world ball bounce demo. This assumes there is an HTML file that includes G.js and this below code afterwards. You can find the demo for the below code [here](http://gurudayalkhalsa.github.io/G/demos/bounce).
 
     //Create stage and canvas, append canvas to dom, by default canvas fills whole window, also creates a physics world at stage.world
     var stage = new G.Stage({physics:true}).setCanvas(960, 540);
