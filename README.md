@@ -1,7 +1,7 @@
 G.js
 =============
 
-G is a fast, powerful and extendable javascript-based 2D game and graphics library for use with the HTML5 Canvas element.
+G is a fast, powerful and extendable javascript-based 2D game and graphics framework for use with the HTML5 Canvas element.
 
 **Website:** http://gurudayalkhalsa.github.io/G
 
