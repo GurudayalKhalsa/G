@@ -50,7 +50,7 @@ Here is an example of a simple hello-world ball bounce demo. This assumes there 
             var x = x||G.random.float(stage.width),
                 y = y||G.random.float(stage.height),
                 radius = 10,
-                color: G.random.color(),
+                color = G.random.color(),
                 vx = G.random.float(5,-5),
                 vy = G.random.float(5,-5);
 
