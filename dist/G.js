@@ -2486,6 +2486,7 @@ G.Stage = G.Collection.extend({
         G.stages.push(this);
     },
 
+
     config:function(obj)
     {
         if(typeof obj !== "object") return false;
