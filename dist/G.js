@@ -1,6 +1,6 @@
 /**
  * G 0.2, 2014-01-10
- * A fast, powerful and extendable HTML5 game engine
+ * A fast, powerful and extendable HTML5 game framework
  *
  * Copyright (c) 2014 Gurudayal Khalsa, gurudayalkhalsa@gmail.com
  * Licensed MIT
@@ -2475,6 +2475,7 @@ G.Stage = G.Collection.extend({
         //physics 
         if((obj && obj.physics) || (G.stages.length === 0 && G.physics))
         {
+            if(this === G.stage) G.physics = true;
             this.physics = true;
             this.world = new G.Physics.World(obj);
         }
