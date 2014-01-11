@@ -60,6 +60,7 @@ G.Stage = G.Collection.extend({
         //physics 
         if((obj && obj.physics) || (G.stages.length === 0 && G.physics))
         {
+            if(this === G.stage) G.physics = true;
             this.physics = true;
             this.world = new G.Physics.World(obj);
         }
