@@ -46,6 +46,10 @@ body{
   background-color: rgba(223, 255, 242, 0.9);
 }
 
+.content h2{
+  color: #009168;
+}
+
 .content h1, .content h3, .content h4, .content a{
   color: #07A77A;
 }
