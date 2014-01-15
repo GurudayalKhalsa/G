@@ -32,7 +32,7 @@ The best way to start learning is to view the source of existing demos. See eith
 
 Here is an example of a simple hello-world ball bounce demo. This assumes there is an HTML file that includes G.js and this below code afterwards. You can find the demo for the below code [here](http://gurudayalkhalsa.github.io/G/demos/bounce).
 
-    //Create stage and canvas, append canvas to dom, by default canvas fills whole window, also creates a physics world at stage.world
+    //Create stage and canvas, also creates a physics world at stage.world
     var stage = new G.Stage({physics:true}).setCanvas(960, 540);
 
     //set balls not to collide into eachother
@@ -75,10 +75,10 @@ Here is an example of a simple hello-world ball bounce demo. This assumes there 
 See [here](http://gurudayalkhalsa.github.io/G/getting-started) for more info on getting started.
 
 
-Road Map
+Todo
 --------
 
-- Add support for fast WebGL rendering - currently only Canvas
+- [ ] Add support for fast WebGL rendering - currently only Canvas
 
 Contributing
 ------------
@@ -92,4 +92,4 @@ If you would like to add a demo to the list of demos, or want to show something 
 License
 -------
 
-G is released under the [MIT License](http://opensource.org/licenses/MIT).
+G is released under the [MIT License](http://opensource.org/licenses/MIT).under the [MIT License](http://opensource.org/licenses/MIT).
