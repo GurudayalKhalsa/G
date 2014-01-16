@@ -1,5 +1,5 @@
 /**
- * G 0.2, 2014-01-10
+ * G 0.2, 2014-01-16
  * A fast, powerful and extendable HTML5 game framework
  *
  * Copyright (c) 2014 Gurudayal Khalsa, gurudayalkhalsa@gmail.com
@@ -1480,10 +1480,10 @@ G.Collection = G.Class.extend({
         var obj = this.addToCollections;
         if(obj && typeof obj.events !== "undefined" && !obj.events) this.events = false;
 
-        if(addPhysics || typeof this.addToCollections === "object" && this.addToCollections.physics)
+        if(addPhysics || (typeof arguments[0] === "object" && arguments[0].physics))
         {
             this.physics = true;
-            this.world = new G.Physics.World(addToCollections);
+            this.world = new G.Physics.World(arguments[0].physics||addPhysics);
         }
     },
 
@@ -2477,7 +2477,7 @@ G.Stage = G.Collection.extend({
         {
             if(this === G.stage) G.physics = true;
             this.physics = true;
-            this.world = new G.Physics.World(obj);
+            this.world = new G.Physics.World(obj.physics);
         }
 
         this.backgroundColor = "";
