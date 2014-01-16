@@ -23,10 +23,10 @@ G.Collection = G.Class.extend({
         var obj = this.addToCollections;
         if(obj && typeof obj.events !== "undefined" && !obj.events) this.events = false;
 
-        if(addPhysics || typeof this.addToCollections === "object" && this.addToCollections.physics)
+        if(addPhysics || (typeof arguments[0] === "object" && arguments[0].physics))
         {
             this.physics = true;
-            this.world = new G.Physics.World(addToCollections);
+            this.world = new G.Physics.World(arguments[0].physics||addPhysics);
         }
     },
 

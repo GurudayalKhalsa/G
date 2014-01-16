@@ -32,8 +32,9 @@ The best way to start learning is to view the source of existing demos. See eith
 
 Here is an example of a simple hello-world ball bounce demo. This assumes there is an HTML file that includes G.js and this below code afterwards. You can find the demo for the below code [here](http://gurudayalkhalsa.github.io/G/demos/bounce).
 
-    //Create stage and canvas, also creates a physics world at stage.world
-    var stage = new G.Stage({physics:true}).setCanvas(960, 540);
+    //Create stage and physics world at stage.world, create canvas with width 960px and height 540px
+    var stage = new G.Stage({physics:true});
+    stage.setCanvas(960, 540);
 
     //set balls not to collide into eachother
     stage.world.config({collisions:{ dynamicdynamic:false }});
