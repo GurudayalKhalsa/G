@@ -129,6 +129,8 @@ G.Object = G.Class.extend({
         var current = this[key];
         if((typeof val !== "object" && val !== current) || (typeof val === "object" && !_.isEqual(current, val)) )
         {
+            console.log(key, val);
+            
             if(typeof val === "object") this[key] = _.extend(current, val);
             else this[key] = val;
 
