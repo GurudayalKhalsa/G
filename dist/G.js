@@ -1366,6 +1366,8 @@ G.Object = G.Class.extend({
 
     set:function(key, val)
     {
+        console.log(key, val);
+
         var self = this;
         //handle of object passed in, set all keys in that object
         if(typeof key === "object") { _.each(arguments[0], function(val, key){ self.set(key, val) }); return; }
@@ -1373,9 +1375,8 @@ G.Object = G.Class.extend({
         var current = this[key];
         if((typeof val !== "object" && val !== current) || (typeof val === "object" && !_.isEqual(current, val)) )
         {
-            console.log(key, val);
-            
-            if(typeof val === "object") this[key] = _.extend(current, val);
+
+            if(typeof val === "object" && !(val instanceof G.Object)) this[key] = _.extend(current, val);
             else this[key] = val;
 
             if(this.events)
