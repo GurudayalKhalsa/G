@@ -32,7 +32,7 @@ module.exports = function(grunt){
             'src/outro.js'
         ],
 
-        dev_dir: 'dev',
+        dev_dir: 'dist',
         dev:'<%= dev_dir %>/<%= pkg.name %>.js',
         dev_min:'<%= dev_dir %>/<%= pkg.name %>.min.js',
 
