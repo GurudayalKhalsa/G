@@ -136,7 +136,7 @@ G.Object = G.Class.extend({
             {
                 this.trigger("change", [current, key]);
                 this.trigger("change:"+key, [current, key]);
-                for(var i = 0; i < this.colections.length; i++) 
+                for(var i = 0; i < this.collections.length; i++) 
                 { 
                     if(this.collections[i].events)
                     {
