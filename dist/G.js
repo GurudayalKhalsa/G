@@ -80,12 +80,14 @@ var G = {};
             this._events = this._events || {};
             this._events[event] = this._events[event] || [];
             this._events[event].push(fct);
+            return this;
         },
         one:function(event, fct)
         {
             this._events = this._events || {};
             this._events[event] = this._events[event] || [];
             this._events[event].push(["one", fct]);
+            return this;
         },
         off: function(event, fct)
         {
@@ -102,6 +104,7 @@ var G = {};
                     this._events[event].splice(this._events[event][i], 1);
                 }
             }
+            return this;
         },
         trigger: function(event /* , args... */ )
         {
