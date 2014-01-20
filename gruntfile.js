@@ -124,7 +124,7 @@ module.exports = function(grunt){
     });
 
     // Default tasks
-    grunt.registerTask('default',[
+    grunt.registerTask('dev',[
         'clean:dev',
         'concat:dev',
         // 'jshint:dev',
@@ -133,7 +133,7 @@ module.exports = function(grunt){
     ]);
 
     // Default tasks
-    grunt.registerTask('build',[
+    grunt.registerTask('default',[
         'clean:build',
         'concat:build',
         // 'jshint:build',
