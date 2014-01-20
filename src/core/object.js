@@ -122,8 +122,6 @@ G.Object = G.Class.extend({
 
     set:function(key, val)
     {
-        console.log(key, val);
-
         var self = this;
         //handle of object passed in, set all keys in that object
         if(typeof key === "object") { _.each(arguments[0], function(val, key){ self.set(key, val) }); return; }
