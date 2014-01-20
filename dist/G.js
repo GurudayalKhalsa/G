@@ -1,5 +1,5 @@
 /**
- * G 0.2, 2014-01-16
+ * G 0.2-dev, 2014-01-20
  * A fast, powerful and extendable HTML5 game framework
  *
  * Copyright (c) 2014 Gurudayal Khalsa, gurudayalkhalsa@gmail.com
@@ -1380,7 +1380,7 @@ G.Object = G.Class.extend({
             {
                 this.trigger("change", [current, key]);
                 this.trigger("change:"+key, [current, key]);
-                for(var i = 0; i < this.colections.length; i++) 
+                for(var i = 0; i < this.collections.length; i++) 
                 { 
                     if(this.collections[i].events)
                     {
