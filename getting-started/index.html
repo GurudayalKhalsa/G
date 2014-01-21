@@ -13,9 +13,8 @@
 
     <link href="../assets/css/base.css" rel="stylesheet">
     <link href="../assets/css/main.css" rel="stylesheet">
-    <link href="../assets/css/code-theme.css" rel="stylesheet">
-    <script src="../assets/js/highlight.pack.js"></script>
-    <script>hljs.initHighlightingOnLoad();</script>
+    <link href="../assets/css/syntax.css" rel="stylesheet">
+    <script src="../assets/js/syntax.js"></script>
 </head>
 
 <body>
@@ -64,7 +63,7 @@
                     <h4>Setup:</h4>
                     <p>The next thing to do is setup an html file with <b>G.js</b> (for development) or <b>G.min.js</b> (for production) included. You can see many examples of how to do this <a href="https://github.com/GurudayalKhalsa/G/tree/master/demos">here</a>, or view the below code:</p>
 
-<pre><code>&lt;!DOCTYPE html&gt;
+<pre><code class="language-markup">&lt;!DOCTYPE html&gt;
 &lt;html&gt;
   &lt;head&gt;
     &lt;meta charset="utf-8"&gt;
@@ -78,7 +77,7 @@
 &lt;/html&gt;
 </code></pre>
                     <p>The file directory structure looks like this:</p>
-<pre><code>breakout/
+<pre><code class="language-none">breakout/
 ├── assets/
 │   ├── bounce.mp3
 │   ├── bounce.wav
@@ -94,7 +93,7 @@
 
                     <p>The first thing to do when making a game with G is to create a stage. Stages are the container for all game objects, the physics world if defined, and the HTML5 Canvas element to render to. Stages have many built-in functions to help you work with them.</p>
 
-<pre><code>//create stage, physics and canvas
+<pre><code class="language-javascript">//create stage, physics and canvas
 var stage = new G.Stage({ physics:true });
 stage.setCanvas(640, 480);
 </code></pre>
@@ -103,7 +102,7 @@ stage.setCanvas(640, 480);
                     <p>The next thing we will do is create the game objects. That is the walls, bricks, ball and player. </p>
                     <p>Now, let's create the walls for the stage, so the ball can bounce off of them.</p>
 
-<pre><code>//create walls
+<pre><code class="language-javascript">//create walls
 var walls = new G.Bounds(0,0,stage.width,stage.height,1);</code></pre>
 
                     <p>The above code creates left, top, right and bottom bounds, setting to the outer dimensions of the stage. We also set the restitution for the stage to be 1. This allows the balls to bounce off of the wall instead of staying stuck to the wall on collision.</p>
@@ -112,7 +111,7 @@ var walls = new G.Bounds(0,0,stage.width,stage.height,1);</code></pre>
 
                     <p>We will now create the bricks for the stage.</p>
 
-<pre><code>//set brick properties
+<pre><code class="language-javascript">//set brick properties
 var bricks = new G.Collection(),
     rows = 8,
     columns = 10,
@@ -153,7 +152,7 @@ for(var i = 0; i < rows; i++)
 
                     <p>Now, on to the creation of the ball.</p>
 
-<pre><code>//Create ball
+<pre><code class="language-javascript">//Create ball
 var Ball = G.Circle.extend
 ({
     initialize:function(reset)
@@ -195,7 +194,7 @@ var Ball = G.Circle.extend
 
                     <p>The last game object we will create is the player. This will include the paddle and the score text.</p>
 
-<code><pre>//Create player
+<pre><code class="language-javascript">//Create player
 var player = new G.Rect(G.stage.width/2, G.stage.height-20, 100, 15)
 .set
 ({
@@ -228,7 +227,7 @@ stage.event.mouse.on('move', function(e)
 
                     <p>Now that we have all of the game objects created, it is time to start the game and game loop.</p>
 
-<code><pre>//Show introductory text, initialize ball on click
+<pre><code class="language-javascript">//Show introductory text, initialize ball on click
 var ball;
 var clicktext = new G.Text("Click to Start", stage.width/2, stage.height/2-30, "30px", "Helvetica Neue", "normal", G.random.color(), "center");
 stage.event.mouse.on("up", function()
