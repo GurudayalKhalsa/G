@@ -1,5 +1,5 @@
 /**
- * G 0.2-dev, 2014-01-20
+ * G 0.2, 2014-01-21
  * A fast, powerful and extendable HTML5 game framework
  *
  * Copyright (c) 2014 Gurudayal Khalsa, gurudayalkhalsa@gmail.com
@@ -80,12 +80,14 @@ var G = {};
             this._events = this._events || {};
             this._events[event] = this._events[event] || [];
             this._events[event].push(fct);
+            return this;
         },
         one:function(event, fct)
         {
             this._events = this._events || {};
             this._events[event] = this._events[event] || [];
             this._events[event].push(["one", fct]);
+            return this;
         },
         off: function(event, fct)
         {
@@ -102,6 +104,7 @@ var G = {};
                     this._events[event].splice(this._events[event][i], 1);
                 }
             }
+            return this;
         },
         trigger: function(event /* , args... */ )
         {
@@ -1368,12 +1371,13 @@ G.Object = G.Class.extend({
     {
         var self = this;
         //handle of object passed in, set all keys in that object
-        if(typeof key === "object") { _.each(arguments[0], function(val, key){ self.set(key, val) }); return; }
+        if(typeof key === "object") { _.each(arguments[0], function(val, key){ self.set(key, val) }); return self; }
 
         var current = this[key];
         if((typeof val !== "object" && val !== current) || (typeof val === "object" && !_.isEqual(current, val)) )
         {
-            if(typeof val === "object") this[key] = _.extend(current, val);
+
+            if(typeof val === "object" && !(val instanceof G.Object)) this[key] = _.extend(current, val);
             else this[key] = val;
 
             if(this.events)
@@ -1389,10 +1393,8 @@ G.Object = G.Class.extend({
                     }
                 };
             }
-
-            return current;
         }
-        return false;
+        return self;
     },
 
     get:function(name)
@@ -2230,9 +2232,11 @@ var Shape = G.Shape = G.Object.extend
                 return audio;
             }
 
-            var audio = this.audio = createAudio();
-
+            //create channels
             var channels = [];
+            for(var i = 0; i < 4; i++) channels.push(createAudio());
+            var currentChannel = 0;
+            var audio = this.audio = channels[0];
             
             //trigger when loaded
             this.loaded = false;
@@ -2240,71 +2244,42 @@ var Shape = G.Shape = G.Object.extend
             this.on("load", function(){ self.loaded = true; });
 
             //BUG - Safari Mac (only tested on 7) has a major delay in playing sounds through solely html5 Audio
-            //second method is much better in Safari, but not perfect (still delay)
-            if(!context || (navigator.userAgent.match("Safari") === null || navigator.userAgent.match("Chrome") !== null))
-            {
-                //trigger playing
-                audio.addEventListener("play", function() { self.playing = true; });
-                audio.addEventListener("ended", function() { self.playing = false; });
-
-                //mobile browsers must have an input event happen to load audio
-                if(G.isMobile && G.stages[0]) G.stages[0].event.one("touchstart", window, function(){ audio.muted = true; audio.play(); audio.muted = false; }) 
-
-                this.play = function()
-                {
-                    //if currently playing, play new channel simultaneously
-                    if (this.playing) 
-                    {
-                        var n = new Audio;
-                        n.src = this.src;
-                        channels.push(n);
-                        n.play();
-                        return;
-                    }
-                    else channels = [];
-                    if (!this.loaded) return this.on("load", function() { self.play(); });
-                    channels.push(audio);
-                    return audio.play();
-                };
-                //stops all
-                this.stop = function()
-                {
-                    if (!this.loaded && !this.playing) return false;
-                    for(var i in channels) channels[i].pause();
-                };
-            }
-
-            else
+            //this method is much better in Safari than withoud using WebAudio, but not perfect (still delay)
+            if(context && (navigator.userAgent.match("Safari") !== null || navigator.userAgent.match("Chrome") === null))
             {
                 this.context = context;
-                var source = self.source = context.createMediaElementSource(audio);
-                this.playing = false;
-                source.mediaElement.addEventListener("play", function(){self.playing = true;});
-                source.mediaElement.addEventListener("ended", function(){self.playing = false;});
-
-                //mobile browsers must have an input event happen to load audio
-                if(G.isMobile && G.stages[0]) G.stages[0].event.one("touchstart", window, function(){ source.mediaElement.muted = true; source.mediaElement.play(); source.mediaElement.muted = false; }) 
-
-                this.play = function()
+                for(var i in channels)
                 {
-                    //if currently playing, play new sound simultaneously
-                    if(this.playing) 
-                    {
-                        var newSource = context.createMediaElementSource(createAudio());
-                        channels.push(newSource);
-                        return newSource.mediaElement.play();
-                    }
-                    else channels = [];
-                    if (!self.loaded) return self.on("load", function(){self.play()});
-                    channels.push(source);
-                    return source.mediaElement.play();
-                };
-                this.pause = function()
+                    channels[i] = context.createMediaElementSource(channels[i]).mediaElement;
+                }
+            }      
+
+            //trigger playing
+            this.playing = false;
+            audio.addEventListener("play", function() { self.playing = true; });
+            audio.addEventListener("ended", function() { self.playing = false; });
+
+            //mobile browsers must have an input event happen to load audio
+            if(G.isMobile && G.stages[0]) G.stages[0].event.one("touchstart", window, function(){ audio.muted = true; audio.play(); audio.muted = false; }) 
+
+            this.play = function()
+            {
+                //if currently playing, play new channel simultaneously
+                if (this.playing) 
                 {
-                    if (!self.loaded) return false;
-                    for(var i in channels) channels[i].mediaElement.pause();
-                };
-            }            
+                    currentChannel++;
+                    if(currentChannel > 3) currentChannel = 0;
+                    return channels[currentChannel].play();
+                }
+                if (!this.loaded) return this.on("load", function() { self.play(); });
+                return audio.play();
+            };
+            //stops all
+            this.stop = function()
+            {
+                if (!this.loaded && !this.playing) return false;
+                for(var i in channels) channels[i].pause();
+            };      
         }
     })
 })(G);
@@ -2477,7 +2452,7 @@ G.Stage = G.Collection.extend({
         {
             if(this === G.stage) G.physics = true;
             this.physics = true;
-            this.world = new G.Physics.World(obj.physics);
+            this.world = new G.Physics.World(obj?obj.physics:G.physics);
         }
 
         this.backgroundColor = "";
