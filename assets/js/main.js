@@ -29,3 +29,37 @@
     })
 
 })();
+
+//get latest release
+(function()
+{
+    window.emit = new Emit;
+
+    window.getJSONP = function(e,t){if(typeof e==="undefined")return;if(typeof t==="function")window.getJSONP.prototype.callback=t;if(typeof e==="string"){var i=document.createElement("script");i.getJSONPid="getJSONP";var n="&";if(e.indexOf("?")===-1)n="?";i.src=e+n+"callback=getJSONP";document.body.appendChild(i)}else{var o=document.getElementsByTagName("script");for(var d in o){var i=o[d];if(typeof i.getJSONPid!=="undefined"&&i.getJSONPid==="getJSONP")document.body.removeChild(i)}if(typeof window.getJSONP.prototype.callback!=="undefined")window.getJSONP.prototype.callback(e);}}
+
+    //get releases
+    getJSONP('https://api.github.com/repos/GurudayalKhalsa/G/tags', function(data)
+    {
+        var tags = data.data;
+        var latest = tags[tags.length-1];
+        var name = latest.name;
+        var url = 'https://github.com/GurudayalKhalsa/G/releases/download/' + name + '/';
+        latest.production_url = url + 'G.min.js';
+        latest.development_url = url + 'G.js';
+
+        emit.trigger("load:releases", [latest, tags]);
+    });
+
+    //insert into html
+    emit.on("load:releases", function(latest, tags)
+    {
+        document.querySelector(".download").innerHTML = ' ' +
+        '<h4>Download:</h4>' +
+        '<p>Latest version: ' + latest.name + '</p>' +
+        '<a class="button button-blue" href="' + latest.production_url + '">Production Build</a>\n' +
+        '<a class="button button-blue" href="' + latest.development_url + '">Development Build</a>\n' +
+        '<a class="button button-blue" href="' + latest.zipball_url + '">Full Source</a>';
+    });
+
+})();
+
