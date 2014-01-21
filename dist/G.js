@@ -1,5 +1,5 @@
 /**
- * G 0.2, 2014-01-10
+ * G 0.2-dev, 2014-01-21
  * A fast, powerful and extendable HTML5 game framework
  *
  * Copyright (c) 2014 Gurudayal Khalsa, gurudayalkhalsa@gmail.com
@@ -80,12 +80,14 @@ var G = {};
             this._events = this._events || {};
             this._events[event] = this._events[event] || [];
             this._events[event].push(fct);
+            return this;
         },
         one:function(event, fct)
         {
             this._events = this._events || {};
             this._events[event] = this._events[event] || [];
             this._events[event].push(["one", fct]);
+            return this;
         },
         off: function(event, fct)
         {
@@ -102,6 +104,7 @@ var G = {};
                     this._events[event].splice(this._events[event][i], 1);
                 }
             }
+            return this;
         },
         trigger: function(event /* , args... */ )
         {
@@ -1368,19 +1371,20 @@ G.Object = G.Class.extend({
     {
         var self = this;
         //handle of object passed in, set all keys in that object
-        if(typeof key === "object") { _.each(arguments[0], function(val, key){ self.set(key, val) }); return; }
+        if(typeof key === "object") { _.each(arguments[0], function(val, key){ self.set(key, val) }); return self; }
 
         var current = this[key];
         if((typeof val !== "object" && val !== current) || (typeof val === "object" && !_.isEqual(current, val)) )
         {
-            if(typeof val === "object") this[key] = _.extend(current, val);
+
+            if(typeof val === "object" && !(val instanceof G.Object)) this[key] = _.extend(current, val);
             else this[key] = val;
 
             if(this.events)
             {
                 this.trigger("change", [current, key]);
                 this.trigger("change:"+key, [current, key]);
-                for(var i = 0; i < this.colections.length; i++) 
+                for(var i = 0; i < this.collections.length; i++) 
                 { 
                     if(this.collections[i].events)
                     {
@@ -1389,10 +1393,8 @@ G.Object = G.Class.extend({
                     }
                 };
             }
-
-            return current;
         }
-        return false;
+        return self;
     },
 
     get:function(name)
@@ -1480,10 +1482,10 @@ G.Collection = G.Class.extend({
         var obj = this.addToCollections;
         if(obj && typeof obj.events !== "undefined" && !obj.events) this.events = false;
 
-        if(addPhysics || typeof this.addToCollections === "object" && this.addToCollections.physics)
+        if(addPhysics || (typeof arguments[0] === "object" && arguments[0].physics))
         {
             this.physics = true;
-            this.world = new G.Physics.World(addToCollections);
+            this.world = new G.Physics.World(arguments[0].physics||addPhysics);
         }
     },
 
@@ -2477,7 +2479,7 @@ G.Stage = G.Collection.extend({
         {
             if(this === G.stage) G.physics = true;
             this.physics = true;
-            this.world = new G.Physics.World(obj);
+            this.world = new G.Physics.World(obj?obj.physics:G.physics);
         }
 
         this.backgroundColor = "";
@@ -2485,7 +2487,6 @@ G.Stage = G.Collection.extend({
         //add to stage list
         G.stages.push(this);
     },
-
 
     config:function(obj)
     {

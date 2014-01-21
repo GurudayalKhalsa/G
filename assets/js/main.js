@@ -53,7 +53,7 @@
     //insert into html
     emit.on("load:releases", function(latest, tags)
     {
-        document.querySelector(".download").innerHTML = ' ' +
+        document.querySelector(".download").innerHTML = '' +
         '<h4>Download:</h4>' +
         '<p>Latest version: ' + latest.name + '</p>' +
         '<a class="button button-blue" href="' + latest.production_url + '">Production Build</a>\n' +
