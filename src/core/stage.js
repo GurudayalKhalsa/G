@@ -62,7 +62,7 @@ G.Stage = G.Collection.extend({
         {
             if(this === G.stage) G.physics = true;
             this.physics = true;
-            this.world = new G.Physics.World(obj.physics);
+            this.world = new G.Physics.World(obj?obj.physics:G.physics);
         }
 
         this.backgroundColor = "";

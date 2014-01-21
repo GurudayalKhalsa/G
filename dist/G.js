@@ -1,5 +1,5 @@
 /**
- * G 0.2-dev, 2014-01-20
+ * G 0.2-dev, 2014-01-21
  * A fast, powerful and extendable HTML5 game framework
  *
  * Copyright (c) 2014 Gurudayal Khalsa, gurudayalkhalsa@gmail.com
@@ -2479,7 +2479,7 @@ G.Stage = G.Collection.extend({
         {
             if(this === G.stage) G.physics = true;
             this.physics = true;
-            this.world = new G.Physics.World(obj.physics);
+            this.world = new G.Physics.World(obj?obj.physics:G.physics);
         }
 
         this.backgroundColor = "";
