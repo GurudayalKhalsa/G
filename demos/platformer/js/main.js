@@ -2,6 +2,7 @@ G.physics = true;
 G.gravity = new G.Vector(0,0.2);
 G.showFramerate = true;
 G.setCanvas();
+G.stage.enableVisibleHash();
 
 var key = G.event.key;
 

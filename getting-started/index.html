@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+
+<head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,50 +9,270 @@
     <meta name="author" content="">
     <link rel="shortcut icon" href="../assets/favicon.jpg">
 
-    <title>G - HTML5 Game Framework</title>
+    <title>G - Getting Started</title>
 
     <link href="../assets/css/base.css" rel="stylesheet">
     <link href="../assets/css/main.css" rel="stylesheet">
-  </head>
+    <link href="../assets/css/code-theme.css" rel="stylesheet">
+    <script src="../assets/js/highlight.pack.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+</head>
 
-  <body>
+<body>
     <div class="header">
-      <div class="container">
-        <div class="inner">
-          <a href="../" class="logo"><h3>G.js</h3></a>
-          <ul class="nav">
-              <li><a href="../getting-started"><h5>Getting Started</h5></a></li>
-              <li><a href="../demos"><h5>Demos</h5></a></li>
-              <li><a href="../docs"><h5>Docs</h5></a></li>
-              <li><a href="https://github.com/GurudayalKhalsa/G"><h5>Github</h5></a></li>
-          </ul>
+        <div class="container">
+            <div class="inner">
+                <a href="../" class="logo">
+                    <h3>G.js</h3>
+                </a>
+                <ul class="nav">
+                    <li>
+                        <a href="../getting-started">
+                            <h5>Getting Started</h5>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="../demos">
+                            <h5>Demos</h5>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="../docs">
+                            <h5>Docs</h5>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://github.com/GurudayalKhalsa/G">
+                            <h5>Github</h5>
+                        </a>
+                    </li>
+                </ul>
+            </div>
         </div>
-      </div>
-    </div>   
-    <div class="content">
-      <div class="container">   
-        <div class="inner">              
-                <h2>Getting Started</h2>
-
-                <p>For starters, choose one of the below options based on what you need. The full source is the contents of the Github repository.</p>
-
-                <div class="download">
-                  <h4>Download:</h4>
-                  <p>Latest version: 0.2</p>
-                  <a class="button button-blue" href="https://github.com/GurudayalKhalsa/G/releases/download/v0.2/G.min.js">Production Build</a>
-                  <a class="button button-blue" href="https://github.com/GurudayalKhalsa/G/releases/download/v0.2/G.js">Development Build</a>
-                  <a class="button button-blue" href="https://github.com/GurudayalKhalsa/G/archive/v0.2.zip">Full Source</a>
-                </div>
-                <p>Have a little looksies at the demos, <a href="https://github.com/GurudayalKhalsa/G/tree/master/demos">here</a>'s the source and <a href="http://gurudayalkhalsa.github.io/G/demos">here</a>'s where you can view them online. Browsing the source for these demos may help you understand G a bit better as they all use G in different ways. Also, feel free to also browse the source code <a href="https://github.com/GurudayalKhalsa/G/tree/master/src">here</a> to get a better understanding of G.</p>
-                <div class="description">
-                  
-                </div>
-        </div>
-      </div>
     </div>
-  <canvas id="canvas"></canvas>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-  <script src="../dist/G.js"></script>
-  <script src="../assets/js/main.js"></script>
-  </body>
+    <div class="content">
+        <div class="container">
+            <div class="inner">
+                <h2>Getting Started</h2>
+                <p>This page will show you how to create a simple one-level game of Breakout / Brick Breaker with G, from scratch.</p>
+                <div class="download">
+                    <h4>Download G:</h4>
+                    <p>For starters, choose one of the below download options based on what you need. The full source is the contents of the Github repository, including demos and plugins.</p>
+                    <p>Latest version: 0.2</p>
+                    <a class="button button-blue" href="https://github.com/GurudayalKhalsa/G/releases/download/v0.2/G.min.js">G.min.js</a>
+                    <a class="button button-blue" href="https://github.com/GurudayalKhalsa/G/releases/download/v0.2/G.js">G.js</a>
+                    <a class="button button-blue" href="https://github.com/GurudayalKhalsa/G/archive/v0.2.zip">Full Source</a>
+                </div>
+
+                <div class="install">
+                    <h4>Setup:</h4>
+                    <p>The next thing to do is setup an html file with <b>G.js</b> (for development) or <b>G.min.js</b> (for production) included. You can see many examples of how to do this <a href="https://github.com/GurudayalKhalsa/G/tree/master/demos">here</a>, or view the below code:</p>
+
+<pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;meta charset="utf-8"&gt;
+    &lt;title&gt;G - A Game&lt;/title&gt;
+    &lt;link rel="stylesheet" href="css/main.css"&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;script src="js/G.js"&gt;&lt;/script&gt;
+    &lt;script src="js/game.js"&gt;&lt;/script&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+                    <p>The file directory structure looks like this:</p>
+<pre><code>game/
+├── assets/
+│   ├── bounce.mp3
+│   ├── bounce.wav
+│   ├── bounce.ogg
+├── css/
+│   ├── main.css
+└── js/
+    ├── G.js
+    └── game.js
+</code></pre>
+                    <h4>Code</h4>
+                    <p>Now, let's open up the <b>game.js</b> file and start coding! Please feel free to go to the <a href="../docs">docs</a> for more information.</p>
+
+                    <p>The first thing to do when making a game with G is to create a stage. Stages are the container for all game objects, the physics world if defined, and the HTML5 Canvas element to render to. Stages have many built-in functions to help you work with them.</p>
+
+<pre><code>//create stage, physics and canvas
+var stage = new G.Stage({ physics:true });
+stage.setCanvas(640, 480);
+</code></pre>
+
+                    <p>In the above code, we create a stage with a physics world, and then create a canvas for that stage of width 640px and height 480px. The canvas is automatically appended to the DOM body. If no arguments were present in the <b><i>setCanvas</b></i> function, the default dimensions of the canvas would be the dimensions of the window.</p>
+
+                    <p>The next thing we will do is create the game objects. That is the walls, bricks, ball and player. </p>
+                    <p>Now, let's create the walls for the stage, so the ball can bounce off of them.</p>
+
+<pre><code>//create walls
+var walls = new G.Bounds(0,0,stage.width,stage.height,1);</code></pre>
+
+                    <p>The above code creates left, top, right and bottom bounds, setting to the outer dimensions of the stage. We also set the restitution for the stage to be 1. This allows the balls to bounce off of the wall instead of staying stuck to the wall on collision.</p>
+
+                    <p>By default, all shapes created are automatically added to the main stage after creation (if only one stage is defined). If you would not like to add a shape to a stage on initialization, put false as the last argument when creating the new shape, and to add later on call <b><i>stage.add(shape)</i></b> to add to the stage. Shapes in G are <b><i>G.Bounds</b></i>, <b><i>G.Circle</b></i>, <b><i>G.Rect</b></i>, <b><i>G.Image</b></i>, <b><i>G.Line</b></i>, <b><i>G.Polygon</b></i>, <b><i>G.Sprite</b></i> and <b><i>G.Text</b></i>.</p>
+
+                    <p>We will now create the bricks for the stage.</p>
+
+<pre><code>//set brick properties
+var bricks = new G.Collection(),
+    rows = 8,
+    columns = 10,
+    padding = 30, 
+    cellWidth = 58,
+    cellHeight = 25,
+    width = cellWidth-4,
+    height = cellHeight-4;
+
+//create a brick for every column in every row, add to brick collection
+for(var i = 0; i < rows; i++)
+{
+    for(var j = 0; j < columns; j++)
+    {
+        var currentX = padding+((j*cellWidth)+(cellWidth/2));
+        var currentY = padding+((i*cellHeight)+(cellHeight/2));
+        var brick = new G.Rect(currentX, currentY, width, height, G.random.color());
+        brick.type = "static";
+        brick.on("collision", function()
+        {
+            brick.remove();
+            player.score++;
+        });
+        bricks.add(brick);
+    }
+}
+</code></pre>
+                    <p>In the above code, we create all of the bricks in the game. We iterate through the number of rows and columns we defined, creating a brick for that specified place, and adding that brick to the collection of bricks. We also add an event listener for when the ball is colliding with the brick, to remove the brick and increase the player's score.</p>
+                    <p>A collection in G is simply a collection of objects, with some pretty useful methods. In G, stages are actually enhanced collections.</p>
+                    <p>The parameters for <b><i>G.Rect</i></b> are <b><i>x, y, width, height, (optional) color</i></b>, where <b><i>x</i></b> and <b><i>y</i></b> are the center position of the shape.</p>
+                    <p>G.random is a helper utility for generating random numbers. </p>
+                    <p><b><i>G.random((optional) max, (optional) min)</i></b> will return an integer in between the max and min values, defaulting to 1 and 0.</p>
+                    <p><b><i>G.random.float((optional) max, (optional) min)</i></b> will return a float in between the max and min values, defaulting to 1 and 0.</p>
+                    <p><b><i>G.random.choice(arr)</i></b> will return a random value in the array passed in.</p>
+                    <p><b><i>G.random.color()</i></b> will return a random rgb color string, e.g. <b>"rgb(201,221,72)"</b>.</p>
+
+                    <p>Setting the brick type to "static" means the brick will not move in the game. If it were "kinetic", it could move but would not be affected by outside forces, and if it were "dynamic", outside forces such as gravity would affect it if defined.</p>
+
+                    <p>Now, on to the creation of the ball.</p>
+
+<pre><code>//Create ball
+var Ball = G.Circle.extend
+({
+    initialize:function(reset)
+    {
+        //create ball in middle of screen, above player paddle, with radius of 5
+        this._super(G.stage.width/2, stage.height-150, 5);
+
+        //set ball values
+        this.set
+        ({
+            restitution: 1,
+            maxVelX: 5,
+            minVelX: 3,
+            maxVelY: 6,
+            minVelY: 3
+        });
+
+        //set pos to center, pause for 2 seconds, and then start movement
+        setTimeout(function()
+        {
+            this.vel.x = G.random(this.maxVelX,-this.minVelX);
+            this.vel.y = G.random(this.maxVelY,this.minVelY);
+        }.bind(this), 2000);
+
+        //play bounce sound on collision
+        this.sound = new G.Sound("assets/bounce", ["mp3", "wav", "ogg"]);
+        this.on("collision", function(){ this.sound.play(); });
+    }
+});
+</code></pre>                    
+                    <p>The above code creates a new Ball class, extending and inheriting from G.Circle.</p>
+
+                    <p>In G, the initialize method of a class is the constructor, or the function called when creating an instance of that class. </p>
+                    <p>The first thing we did in the <b><i>Ball</i></b> constructor method is create a new <b><i>G.Circle</i></b> in the middle of the screen, above the player paddle (we will define later), with a radius of 5. The parameters for <b><i>G.Circle</i></b> are <b><i>x, y, radius, (optional) color</i></b>.</p>
+                    <p>In every method in G Classes, there is a <b><i>this._super</i></b> variable. This variable is the parent class's method of the current method if defined. For example, in <b><i>Ball.initialize</i></b>, the <b><i>this._super</i></b> variable is the <b><i>G.Circle.initialize</i></b> method, so in this case calling <b><i>this._super</i></b> in <b><i>Ball.initialize</i></b> actually creates a circle. This would do the exact same thing as calling <b><i>new G.Circle()</i></b> if using the same arguments.</p>
+                    <p>After creating the circle, we set some values, then set a timeout to wait 2 seconds until starting ball movement with a random velocity.</p>
+                    <p>We then created a <b><i>G.Sound</i></b>. The parameters in <b><i>G.Sound</i></b> are <b><i>src, extensions</i></b>. The <b><i>src</i></b> is the file location without extension relative to the index.html file, and <b><i>extensions</i></b> is an array of the file extensions that exist as that file. For example, when creating the <b><i>G.Sound</i></b> above, G assumes that there are valid files at location assets/bounce.mp3, assets/bounce.wav and assets/bounce.ogg.</p>
+                    <p>Finally, we add an event listener to the ball so that every time it is colliding with another shape (the physics world triggers this), the bounce sound is played.</p>
+
+                    <p>The last game object we will create is the player. This will include the paddle and the score text.</p>
+
+<code><pre>//Create player
+var player = new G.Rect(G.stage.width/2, G.stage.height-20, 100, 15)
+.set
+({
+    type: "kinematic",
+    score: 0,
+    scoreText: new G.Text(function(){ return "Score: " + player.score }, 10, 10, "15px", "Helvetica Neue", "normal", "black", "left", "top")
+})
+//rebound angle on collision with ball
+.on('collision', function(shape, mtv)
+{
+    if(mtv.y < 0)
+    {
+        ball.vel.x = (ball.pos.x-player.pos.x)/5;  
+        if(ball.vel.x < -ball.maxVelX) ball.vel.x = -ball.maxVelX;
+        else if(ball.vel.x > ball.maxVelX) ball.vel.x = ball.maxVelX; 
+    }
+});
+
+//keep paddle x pos at mouse x pos
+stage.event.mouse.on('move', function(e)
+{
+    player.pos.x = stage.event.mouse.state.pos.x;
+});
+</code></pre>
+                    <p>The above code creates the player. We make a paddle in the middle of the stage, at almost the bottom, add a score and score text to that paddle object created, and set a specific rebound angle when the ball hits the paddle. We then add an event listener for when the mouse is moving, and set the paddle x position to always be the mouse's x position.</p>
+
+                    <p>We could have created this player by extending <b><i>G.Rect</i></b> or another shape, but I wanted to show a different way. As you can see, shapes and objects in G support daisy-chaining (famous in jQuery).</p>
+
+                    <p><b><i>G.Text</i></b> is a simple text object. It's parameters are <b><i>text, x, y, (optional) size, (optional) fontFamily, (optional) weight, (optional) color, (optional) textAlign, (optional) baseline / verticalAlign.</i></b> Text can be either a string or a function. Having it be a function is useful for data that changes, as you do not have to manually update the text value.</p>
+
+                    <p>Now that we have all of the game objects created, it is time to start the game loop.</p>
+
+<code><pre>//Show introductory text, initialize ball on click
+var ball;
+var clicktext = new G.Text("Click to Start", stage.width/2, stage.height/2-30, "30px", "Helvetica Neue", "normal", G.random.color(), "center");
+stage.event.mouse.on("up", function()
+{
+    clicktext.remove();
+    //create ball instance
+    var ball = new Ball();
+});
+
+//Create and run game loop
+stage.animate(function()
+{
+    stage.update();
+    stage.render();
+
+    //set gameover when either ball touches ground or all bricks gone.
+    if(walls.bottom.colliding || !bricks.length())
+    {
+        stage.clearCanvas();
+        stage.pause();
+        new G.Text((!bricks.length() ? "You Win!" : "You Lose :("), stage.width/2, stage.height/2-30, "30px", "Helvetica Neue", "normal", G.random.color(), "center").render();
+    }
+});
+</code></pre>
+                    <p>In the above code, we create text that tells the player to click in order to start the game, and remove that text and create the ball on click. We also create the game loop that, on every frame (defaults to a target of 60 FPS) updates all shapes and physics, renders all shapes, and checks if the game should be over or not.</p>
+                    <p>To set the game to be over, we clear the canvas of all shapes, pause the stage's game loop, and render gameover text.</p>
+
+
+                    <p>Here is a Codepen of the final game.</p>
+                    <p data-height="530" data-theme-id="0" data-slug-hash="qpdHm" data-default-tab="result" class='codepen'>See the Pen <a href='http://codepen.io/GurudayalKhalsa/pen/qpdHm'>qpdHm</a> by guru1206 (<a href='http://codepen.io/GurudayalKhalsa'>@GurudayalKhalsa</a>) on <a href='http://codepen.io'>CodePen</a>.</p>
+                    <script async src="//codepen.io/assets/embed/ei.js"></script>
+                </div> 
+            </div>
+        </div>
+    </div>
+    <canvas id="canvas"></canvas>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script src="../dist/G.js"></script>
+    <script src="../assets/js/main.js"></script>
+</body>
+
 </html>
