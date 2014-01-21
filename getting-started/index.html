@@ -54,7 +54,7 @@
         <div class="container">
             <div class="inner">
                 <h2>Getting Started</h2>
-                <p>This page will show you how to create a simple one-level game of Breakout / Brick Breaker with G, from scratch.</p>
+                <p>This page will show you how to create a simple one-level game of Breakout / Brick Breaker with G, from scratch. A reasonable level of knowledge of Javascript is required.</p>
                 <p>For starters, choose one of the below download options based on what you need. The full source is the contents of the Github repository, including demos and plugins.</p>
                 <div class="download">
                   <h4>Download:</h4>
@@ -90,7 +90,7 @@
     └── game.js
 </code></pre>
                     <h4>Code</h4>
-                    <p>Now, let's open up the <b>game.js</b> file and start coding! Please feel free to go to the <a href="../docs">docs</a> for more information.</p>
+                    <p>Now, let's open up the <b>game.js</b> file and start coding! <b>Please refer to the <a href="../docs">docs</a> for more information.</b></p>
 
                     <p>The first thing to do when making a game with G is to create a stage. Stages are the container for all game objects, the physics world if defined, and the HTML5 Canvas element to render to. Stages have many built-in functions to help you work with them.</p>
 
@@ -109,7 +109,7 @@ var walls = new G.Bounds(0,0,stage.width,stage.height,1);</code></pre>
 
                     <p>The above code creates left, top, right and bottom bounds, setting to the outer dimensions of the stage. We also set the restitution for the stage to be 1. This allows the balls to bounce off of the wall instead of staying stuck to the wall on collision.</p>
 
-                    <p>By default, all shapes created are automatically added to the main stage after creation (if only one stage is defined). If you would not like to add a shape to a stage on initialization, put false as the last argument when creating the new shape, and to add later on call <b><i>stage.add(shape)</i></b> to add to the stage. Shapes in G are <b><i>G.Bounds</b></i>, <b><i>G.Circle</b></i>, <b><i>G.Rect</b></i>, <b><i>G.Image</b></i>, <b><i>G.Line</b></i>, <b><i>G.Polygon</b></i>, <b><i>G.Sprite</b></i> and <b><i>G.Text</b></i>.</p>
+                    <p>By default, all shapes created are automatically added to the stage after creation (if only one stage is defined). If you would not like to add a shape to the stage on initialization, put <b><i>false</i></b> as the last argument when creating the new shape, and to add later, on call <b><i>stage.add(shape)</i></b>. These are all the different shapes in G: <b><i>G.Bounds</b></i>, <b><i>G.Circle</b></i>, <b><i>G.Rect</b></i>, <b><i>G.Image</b></i>, <b><i>G.Line</b></i>, <b><i>G.Polygon</b></i>, <b><i>G.Sprite</b></i> and <b><i>G.Text</b></i>.</p>
 
                     <p>We will now create the bricks for the stage.</p>
 
@@ -144,9 +144,9 @@ for(var i = 0; i < rows; i++)
                     <p>In the above code, we create all of the bricks in the game. We iterate through the number of rows and columns we defined, creating a brick for that specified place, and adding that brick to the collection of bricks. We also add an event listener for when the ball is colliding with the brick, to remove the brick and increase the player's score.</p>
                     <p>A collection in G is simply a collection of objects, with some pretty useful methods. In G, stages are actually enhanced collections.</p>
                     <p>The parameters for <b><i>G.Rect</i></b> are <b><i>x, y, width, height, (optional) color</i></b>, where <b><i>x</i></b> and <b><i>y</i></b> are the center position of the shape.</p>
-                    <p>G.random is a helper utility for generating random numbers. </p>
-                    <p><b><i>G.random((optional) max, (optional) min)</i></b> will return an integer in between the max and min values, defaulting to 1 and 0.</p>
-                    <p><b><i>G.random.float((optional) max, (optional) min)</i></b> will return a float in between the max and min values, defaulting to 1 and 0.</p>
+                    <p><b><i>G.random</i></b> is a helper utility for generating random numbers. </p>
+                    <p><b><i>G.random((optional) max, (optional) min)</i></b> will return an integer in-between the max and min values, defaulting to 1 and 0.</p>
+                    <p><b><i>G.random.float((optional) max, (optional) min)</i></b> will return a float in-between the max and min values, defaulting to 1 and 0.</p>
                     <p><b><i>G.random.choice(arr)</i></b> will return a random value in the array passed in.</p>
                     <p><b><i>G.random.color()</i></b> will return a random rgb color string, e.g. <b>"rgb(201,221,72)"</b>.</p>
 
@@ -191,7 +191,7 @@ var Ball = G.Circle.extend
                     <p>The first thing we did in the <b><i>Ball</i></b> constructor method is create a new <b><i>G.Circle</i></b> in the middle of the screen, above the player paddle (we will define later), with a radius of 5. The parameters for <b><i>G.Circle</i></b> are <b><i>x, y, radius, (optional) color</i></b>.</p>
                     <p>In every method in G Classes, there is a <b><i>this._super</i></b> variable. This variable is the parent class's method of the current method if defined. For example, in <b><i>Ball.initialize</i></b>, the <b><i>this._super</i></b> variable is the <b><i>G.Circle.initialize</i></b> method, so in this case calling <b><i>this._super</i></b> in <b><i>Ball.initialize</i></b> actually creates a circle. This would do the exact same thing as calling <b><i>new G.Circle()</i></b> if using the same arguments.</p>
                     <p>After creating the circle, we set some values, then set a timeout to wait 2 seconds until starting ball movement with a random velocity.</p>
-                    <p>We then created a <b><i>G.Sound</i></b>. The parameters in <b><i>G.Sound</i></b> are <b><i>src, extensions</i></b>. The <b><i>src</i></b> is the file location without extension relative to the index.html file, and <b><i>extensions</i></b> is an array of the file extensions that exist as that file. For example, when creating the <b><i>G.Sound</i></b> above, G assumes that there are valid files at location assets/bounce.mp3, assets/bounce.wav and assets/bounce.ogg.</p>
+                    <p>We then created a <b><i>G.Sound</i></b>. The parameters in <b><i>G.Sound</i></b> are <b><i>src, extensions</i></b>. The <b><i>src</i></b> is the file location without extension relative to the index.html file, and <b><i>extensions</i></b> is an array of the file extensions that exist as that file. For example, when creating the <b><i>G.Sound</i></b> above, G assumes that there are valid files at location <b><i>assets/bounce.mp3</i></b>, <b><i>assets/bounce.wav</i></b> and <b><i>assets/bounce.ogg</i></b>.</p>
                     <p>Finally, we add an event listener to the ball so that every time it is colliding with another shape (the physics world triggers this), the bounce sound is played.</p>
 
                     <p>The last game object we will create is the player. This will include the paddle and the score text.</p>
@@ -221,7 +221,7 @@ stage.event.mouse.on('move', function(e)
     player.pos.x = stage.event.mouse.state.pos.x;
 });
 </code></pre>
-                    <p>The above code creates the player. We make a paddle in the middle of the stage, at almost the bottom, add a score and score text to that paddle object created, and set a specific rebound angle when the ball hits the paddle. We then add an event listener for when the mouse is moving, and set the paddle x position to always be the mouse's x position.</p>
+                    <p>The above code creates the player. We make a paddle in the middle and almost bottom of the stage, add a score and score text to that paddle object created, and set a specific rebound angle when the ball hits the paddle. We then add an event listener for when the mouse is moving, and set the paddle x position to always be the mouse's x position.</p>
 
                     <p>We could have created this player by extending <b><i>G.Rect</i></b> or another shape, but I wanted to show a different way. As you can see, shapes and objects in G support daisy-chaining (famous in jQuery).</p>
 
