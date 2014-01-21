@@ -222,11 +222,11 @@ stage.event.mouse.on('move', function(e)
 </code></pre>
                     <p>The above code creates the player. We make a paddle in the middle and almost bottom of the stage, add a score and score text to that paddle object created, and set a specific rebound angle when the ball hits the paddle. We then add an event listener for when the mouse is moving, and set the paddle x position to always be the mouse's x position.</p>
 
-                    <p>We could have created this player by extending <b><i>G.Rect</i></b> or another shape, but I wanted to show a different way. As you can see, shapes and objects in G support daisy-chaining (famous in jQuery).</p>
+                    <p>We could have created this player by extending <b><i>G.Rect</i></b> or another shape, but I wanted to show a different way. As you can see, shapes and objects in G support daisy-chaining (famous in <a href="https://jquery.com">jQuery</a>).</p>
 
                     <p><b><i>G.Text</i></b> is a simple text object. It's parameters are <b><i>text, x, y, (optional) size, (optional) fontFamily, (optional) weight, (optional) color, (optional) textAlign, (optional) baseline / verticalAlign.</i></b> Text can be either a string or a function. Having it be a function is useful for data that changes, as you do not have to manually update the text value.</p>
 
-                    <p>Now that we have all of the game objects created, it is time to start the game loop.</p>
+                    <p>Now that we have all of the game objects created, it is time to start the game and game loop.</p>
 
 <code><pre>//Show introductory text, initialize ball on click
 var ball;
