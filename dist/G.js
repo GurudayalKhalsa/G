@@ -1,5 +1,5 @@
 /**
- * G 0.2, 2014-01-21
+ * G 0.2-dev, 2014-01-21
  * A fast, powerful and extendable HTML5 game framework
  *
  * Copyright (c) 2014 Gurudayal Khalsa, gurudayalkhalsa@gmail.com
@@ -4326,6 +4326,8 @@ Physics.World = (function(){
 
             if(shape1.type !== "dynamic")
             {
+                if(!shape2.pos || !shape2.pos.add) console.log(shape2, shape2.pos);
+
                 if(shape2.vel.y > 0 && mtv.y > 0 || shape2.vel.y < 0 && mtv.y < 0) return;
                 //push shape2's position to be outside of shape1
                 shape2.pos.add(mtv);
