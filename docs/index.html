@@ -3,9 +3,9 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="">
-    <meta name="author" content="">
+    <meta id="viewport" content="width=device-width, initial-scale=1.0">
+    <meta id="description" content="">
+    <meta id="author" content="">
     <link rel="shortcut icon" href="../assets/favicon.jpg">
 
     <title>G - HTML5 Game Framework</title>
@@ -15,7 +15,7 @@
     <link href="../assets/css/main.css" rel="stylesheet">
   </head>
 
-  <body>
+  <body class="docs">
     <div class="header">
       <div class="container">
         <div class="inner">
@@ -31,21 +31,62 @@
     </div>   
     <div class="content">
       <div class="container">   
-        <div class="inner docs">   
+        <div class="inner">   
               <div class="sidebar">
                 <h4>API Reference</h4>
                 <ul>
                   <li>
-                    <h5>Core</h5>
+                    <h5><a href="#core">Core</a></h5>
                     <ul>
-                      <li><a href="">Class</a></li>
-                      <li><a href="">Collection</a></li>
-                      <li><a href="">Stage</a></li>
-                      <li><a href="">Object</a></li>
-                      <li><a href="">Shape</a></li>
-                      <li><a href="">Physics</a></li>
-                      <li><a href="">Sound</a></li>
-                      <li><a href="">Ticker</a></li>
+                      <li><a href="#core-class">Class</a></li>
+                      <li><a href="#core-collection">Collection</a></li>
+                      <li><a href="#core-stage">Stage</a></li>
+                      <li><a href="#core-object">Object</a></li>
+                      <li><a href="#core-shape">Shape</a></li>
+                      <li><a href="#core-sound">Sound</a></li>
+                      <li><a href="#core-ticker">Ticker</a></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <h5><a href="#graphics">Graphics</a></h5>
+                    <ul>
+                      <li><a href="#graphics-circle">Circle</a></li>
+                      <li><a href="#graphics-rect">Rect</a></li>
+                      <li><a href="#graphics-bounds">Bounds</a></li>
+                      <li><a href="#graphics-line">Line</a></li>
+                      <li><a href="#graphics-polygon">Polygon</a></li>
+                      <li><a href="#graphics-image">Image</a></li>
+                      <li><a href="#graphics-sprite">Sprite</a></li>
+                      <li><a href="#graphics-text">Text</a></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <h5><a href="#physics">Physics</a></h5>
+                    <ul>
+                      <li><a href="#physics-world">World</a></li>
+                      <li><a href="#physics-spatial-hash">Spatial Hash</a></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <h5><a href="#utility">Utility</a></h5>
+                    <ul>
+                      <li><a href="#utility-vector">Vector</a></li>
+                      <li><a href="">intersecting</a></li>
+                      <li><a href="">random</a></li>
+                      <li><a href="">isMobile</a></li>
+                      <li><a href="">intersecting</a></li>
+                      <li><a href="">random</a></li>
+                      <li><a href="">Vector</a></li>
+                      <li><a href="">intersecting</a></li>
+                      <li><a href="">random</a></li>
+                      <li><a href="">Vector</a></li>
+                      <li><a href="">intersecting</a></li>
+                      <li><a href="">random</a></li>
+                      <li><a href="">intersecting</a></li>
+                      <li><a href="">random</a></li>
+                      <li><a href="">Vector</a></li>
+                      <li><a href="">intersecting</a></li>
+                      <li><a href="">random</a></li>
                       <li><a href="">Vector</a></li>
                       <li><a href="">intersecting</a></li>
                       <li><a href="">random</a></li>
@@ -65,40 +106,140 @@
                       <li><a href=""></a></li>
                     </ul>
                   </li>
-                  <li>
-                    <ul>
-                      <li><a href=""></a></li>
-                      <li><a href=""></a></li>
-                      <li><a href=""></a></li>
-                      <li><a href=""></a></li>
-                      <li><a href=""></a></li>
-                      <li><a href=""></a></li>
-                      <li><a href=""></a></li>
-                      <li><a href=""></a></li>
-                      <li><a href=""></a></li>
-                      <li><a href=""></a></li>
-                    </ul>
-                  </li>
-                  <li>
-                    <ul>
-                      <li><a href=""></a></li>
-                      <li><a href=""></a></li>
-                      <li><a href=""></a></li>
-                      <li><a href=""></a></li>
-                      <li><a href=""></a></li>
-                      <li><a href=""></a></li>
-                      <li><a href=""></a></li>
-                      <li><a href=""></a></li>
-                      <li><a href=""></a></li>
-                      <li><a href=""></a></li>
-                    </ul>
-                  </li>
                 </ul>
               </div>           
               <div class="main">
-                <h4>Demos</h4>
-                <p><b>Here are a few demos of G in action.</b></p>
-                
+                <div class="section">
+                  <div class="anchor" id="core"></div>
+                  <h4>Core</h4>
+                  <div class="subsection">
+                    <div class="anchor" id="core-class"></div>
+                    <h5>Class</h5>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                  </div>
+                  <div class="subsection">
+                    <div class="anchor" id="core-collection"></div>
+                    <h5>Collection</h5>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                  </div>
+                  <div class="subsection">
+                    <div class="anchor" id="core-stage"></div>
+                    <h5>Stage</h5>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                  </div>
+                  <div class="subsection">
+                    <div class="anchor" id="core-object"></div>
+                    <h5>Object</h5>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                  </div>
+                  <div class="subsection">
+                    <div class="anchor" id="core-shape"></div>
+                    <h5>Shape</h5>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                  </div>
+                  <div class="subsection">
+                    <div class="anchor" id="core-sound"></div>
+                    <h5>Sound</h5>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                  </div>
+                  <div class="subsection">
+                    <div class="anchor" id="core-ticker"></div>
+                    <h5>Ticker</h5>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                  </div>
+                </div>
+                <div class="section">
+                  <div class="anchor" id="graphics"></div>
+                  <h4>Graphics</h4>
+                  <div class="subsection">
+                    <div class="anchor" id="graphics-circle"></div>
+                    <h5>Circle</h5>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                  </div>
+                  <div class="subsection">
+                    <div class="anchor" id="graphics-rect"></div>
+                    <h5>Rect</h5>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                  </div>
+                  <div class="subsection">
+                    <div class="anchor" id="graphics-bounds"></div>
+                    <h5>Bounds</h5>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                  </div>
+                  <div class="subsection">
+                    <div class="anchor" id="graphics-line"></div>
+                    <h5>Line</h5>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                  </div>
+                  <div class="subsection">
+                    <div class="anchor" id="graphics-polygon"></div>
+                    <h5>Polygon</h5>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                  </div>
+                  <div class="subsection">
+                    <div class="anchor" id="graphics-image"></div>
+                    <h5>Image</h5>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                  </div>
+                  <div class="subsection">
+                    <div class="anchor" id="graphics-sprite"></div>
+                    <h5>Sprite</h5>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                  </div>
+                  <div class="subsection">
+                    <div class="anchor" id="graphics-text"></div>
+                    <h5>Text</h5>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                  </div>
+                </div>
+                <div class="section">
+                  <div class="anchor" id="physics"></div>
+                  <h4>Physics</h4>
+                  <div class="subsection">
+                    <div class="anchor" id="physics-spatial-hash"></div>
+                    <h5>Circle</h5>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                  </div>
+                  <div class="subsection">
+                    <div class="anchor" id="physics-world"></div>
+                    <h5>Rect</h5>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, deleniti, fugiat, aperiam, maiores dolorem officia harum ut aliquam numquam minus expedita quos perferendis ad delectus hic. Molestiae labore magnam minima.</p>
+                  </div>
+                </div>
               </div>
         </div>
       </div>
