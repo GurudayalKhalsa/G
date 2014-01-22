@@ -4909,6 +4909,7 @@ G.isMobile = (function()
         } 
 })();
 
+
 //add root stage events
 G.event = new Event();
 
