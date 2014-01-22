@@ -200,6 +200,8 @@ G.Stage = G.Collection.extend({
 
         //run mouse event engine, setting root to canvas
         this.event.mouse.setRoot(this.canvas).run();
+        //prevent mouse and only allow touch events if on mobile, disable default browser touch events (includes annoying zooming when clicked)
+        if(G.isMobile) this.event.mouse.onlyTouch().on('touchstart,touchend,touchmove', function(e){ e.preventDefault(); })
 
         this.clearCanvas();
 

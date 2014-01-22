@@ -1,5 +1,5 @@
 /**
- * G 0.2, 2014-01-21
+ * G 0.2, 2014-01-22
  * A fast, powerful and extendable HTML5 game framework
  *
  * Copyright (c) 2014 Gurudayal Khalsa, gurudayalkhalsa@gmail.com
@@ -2590,6 +2590,8 @@ G.Stage = G.Collection.extend({
 
         //run mouse event engine, setting root to canvas
         this.event.mouse.setRoot(this.canvas).run();
+        //prevent mouse and only allow touch events if on mobile, disable default browser touch events (includes annoying zooming when clicked)
+        if(G.isMobile) this.event.mouse.onlyTouch().on('touchstart,touchend,touchmove', function(e){ e.preventDefault(); })
 
         this.clearCanvas();
 
