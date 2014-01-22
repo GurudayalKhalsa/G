@@ -3,7 +3,7 @@
  * A fast, powerful and extendable HTML5 game framework
  *
  * Copyright (c) 2014 Gurudayal Khalsa, gurudayalkhalsa@gmail.com
- * Licensed MIT
+ * Licensed under MIT
  */
 ! function(name, root, factory) {
     //expose module to either Node/CommonJS or AMD if available, and root object of choosing (e.g. Window)
@@ -2199,7 +2199,7 @@ var Shape = G.Shape = G.Object.extend
     var AudioContext = window.AudioContext || window.webkitAudioContext;
 
     //use WebAudio API if available
-    var context = new AudioContext();
+    var context = AudioContext ? new AudioContext() : {};
 
     var test = new Audio;
 
