@@ -28,7 +28,6 @@ body{
 
 .header{
   background-color: #029F76;
-  box-shadow: inset 0 0 3px #888;
   z-index:  1;
 }
 
@@ -129,14 +128,16 @@ body.docs .header{
 .docs .sidebar{
   position: fixed;
   float: left;
-  width: 150px;
+  width: 155px;
   display: inline-block;
   overflow: auto;
   height: 85%;
 }
 
 .docs .main{
-  margin-left: 160px;
+  position: relative;
+  left: 165px;
+  margin-right: 154px;
   margin-top: 35px;
   float: left;
   overflow-y: auto;
@@ -177,14 +178,16 @@ body.docs .header{
 }
 
 @media all and (max-width: 400px){
-  
-  body.docs{
-    margin-top: 120px;
+
+  .header h5, .header h3{
+    font-size: 0.7em;
   }
 
   .docs .sidebar, .docs .main{
     display: block;
     width: 100%;
+    left: 0;
+    margin-right: 0;
     float: none;
     margin: 0px;
     position: relative;

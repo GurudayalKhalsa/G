@@ -37,7 +37,7 @@ var player = new (G.Rect.extend
         
         var self = this;
 
-        this._super(G.stage.width/2, G.isMobile ? G.stage.height-25 : G.stage.height-40, G.isMobile ? 70 : 100, G.isMobile ? 10 : 20);
+        this._super(G.stage.width/2, G.stage.width < 400 || G.stage.height < 400 ? G.stage.height-25 : G.stage.height-40, G.stage.width < 400 || G.stage.height < 400 ? 70 : 100, G.stage.width < 400 || G.stage.height < 400 ? 10 : 20);
 
         this.type = "kinematic";
         if(typeof reset !== "number")
@@ -85,13 +85,13 @@ var Ball = G.Circle.extend
 ({
     initialize:function(reset)
     {
-        this._super(G.stage.width/2, G.isMobile ? player.pos.y - 50 : player.pos.y-250, G.isMobile ? 5 : 8);
+        this._super(G.stage.width/2, G.stage.width < 400 || G.stage.height < 400 ? player.pos.y - 50 : player.pos.y-250, G.stage.width < 400 || G.stage.height < 400 ? 5 : 8);
         var ball = this;
         ball.restitution = 1;
-        ball.maxVelX = G.isMobile ? 3 : 7;
-        ball.minVelX = G.isMobile ? 2 : 4;
-        ball.maxVelY = G.isMobile ? 3 : 6;
-        ball.minVelY = G.isMobile ? 1 : 3;
+        ball.maxVelX = G.stage.width < 400 || G.stage.height < 400 ? 3 : 7;
+        ball.minVelX = G.stage.width < 400 || G.stage.height < 400 ? 2 : 4;
+        ball.maxVelY = G.stage.width < 400 || G.stage.height < 400 ? 3 : 6;
+        ball.minVelY = G.stage.width < 400 || G.stage.height < 400 ? 1 : 3;
         if(reset) clearTimeout(this._timeoutId);
         this._timeoutId = setTimeout(function()
         {
@@ -122,11 +122,11 @@ var bricks = new (G.Collection.extend
     {
         if(!reset) this._super();
 
-        var padding = G.isMobile ? G.stage.width/10 : G.stage.width/20,
-            cellWidth = G.isMobile ? G.stage.width/10 : G.stage.width/20,
-            cellHeight = G.isMobile ? G.stage.height/12.5 : G.stage.height/25,
-            rows = G.isMobile ? 7 : 10,
-            columns = G.isMobile ? 8 : 18,
+        var padding = G.stage.width < 400 || G.stage.height < 400 ? G.stage.width/10 : G.stage.width/20,
+            cellWidth = G.stage.width < 400 || G.stage.height < 400 ? G.stage.width/10 : G.stage.width/20,
+            cellHeight = G.stage.width < 400 || G.stage.height < 400 ? G.stage.height/12.5 : G.stage.height/25,
+            rows = G.stage.width < 400 || G.stage.height < 400 ? 7 : 10,
+            columns = G.stage.width < 400 || G.stage.height < 400 ? 8 : 18,
             width = cellWidth-4,
             height = cellHeight-4;
 
