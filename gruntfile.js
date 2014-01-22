@@ -41,7 +41,7 @@ module.exports = function(grunt){
                 ' * <%= pkg.description %>\n',
                 ' *\n',
                 ' * Copyright (c) <%= grunt.template.today("yyyy") %> <%= pkg.author %>\n',
-                ' * Licensed <%= pkg.license %>\n',
+                ' * Licensed under <%= pkg.license %>\n',
                 ' */\n'].join(''),
 
         build_dir:'dist',
@@ -53,7 +53,7 @@ module.exports = function(grunt){
                 ' * <%= pkg.description %>\n',
                 ' *\n',
                 ' * Copyright (c) <%= grunt.template.today("yyyy") %> <%= pkg.author %>\n',
-                ' * Licensed <%= pkg.license %>\n',
+                ' * Licensed under <%= pkg.license %>\n',
                 ' */\n'].join(''),
 
         clean: {
