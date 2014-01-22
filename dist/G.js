@@ -5,6 +5,9 @@
  * Copyright (c) 2014 Gurudayal Khalsa, gurudayalkhalsa@gmail.com
  * Licensed MIT
  */
+
+console.log(window);
+
 ! function(name, root, factory) {
     //expose module to either Node/CommonJS or AMD if available, and root object of choosing (e.g. Window)
     (typeof define === "function" && define.amd) ? define(function(){ return root.call(factory) }) : (typeof module === "object" && typeof module.exports === "object") ? module.exports = factory.call(root) : root[name] = factory.call(root)
@@ -4911,6 +4914,8 @@ G.event = new Event();
 
 //prevent mouse and only allow touch events if on mobile, disable default browser touch events (includes annoying zooming when clicked)
 // if(G.isMobile) G.event.mouse.onlyTouch().on('touchstart,touchend,touchmove', function(e){ e.preventDefault(); })
+
+console.log(G);
 
 return G;
 
