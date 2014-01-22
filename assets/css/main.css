@@ -162,7 +162,7 @@ body.docs .header{
   margin-top: -135px;
 }
 
-.docs a:hover{
+.docs .sidebar a:hover{
   text-decoration: underline;
 }
 
