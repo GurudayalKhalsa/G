@@ -89,7 +89,7 @@ var Shape = G.Shape = G.Object.extend
             hidden:true
         });
 
-        return G.intersecting(point, this, reverse);
+        return G.Physics.intersecting(point, this, reverse);
             
     },
 
@@ -108,7 +108,7 @@ var Shape = G.Shape = G.Object.extend
         {
             collection.each(function(shape)
             {
-                var intersection = G.intersecting(shape, self);
+                var intersection = G.Physics.intersecting(shape, self);
                 if(intersection)
                 {
                     cb(intersection, shape);

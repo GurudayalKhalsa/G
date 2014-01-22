@@ -313,7 +313,7 @@ Physics.World = (function(){
             if((res1 instanceof Array && res1.indexOf(false) !== -1) || (res2 instanceof Array && res2.indexOf(false) !== -1)) return true; 
 
             //TODO - add swept collisions
-            var mtv = G.intersecting(shape1, shape2);
+            var mtv = G.Physics.intersecting(shape1, shape2);
             if(!mtv) 
             {
                 return false;

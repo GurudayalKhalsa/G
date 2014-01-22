@@ -54,7 +54,7 @@
 
             //BUG - Safari Mac (only tested on 7) has a major delay in playing sounds through solely html5 Audio
             //this method is much better in Safari than withoud using WebAudio, but not perfect (still delay)
-            if(context && (navigator.userAgent.match("Safari") !== null || navigator.userAgent.match("Chrome") === null))
+            if(context && (navigator.userAgent.match("Safari") !== null && navigator.userAgent.match("Chrome") === null))
             {
                 this.context = context;
                 for(var i in channels)
