@@ -17,7 +17,7 @@ G is a fast, powerful and extendable javascript-based 2D game and graphics frame
 - Sound
 - Physics
 - Cameras
-- Mobile support
+- Mobile and cross-browser support
 - Mouse/touch/keyboard handling
 - And Many More!
 
