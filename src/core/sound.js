@@ -8,7 +8,7 @@
     var AudioContext = window.AudioContext || window.webkitAudioContext;
 
     //use WebAudio API if available
-    var context = new AudioContext();
+    var context = AudioContext ? new AudioContext() : {};
 
     var test = new Audio;
 
