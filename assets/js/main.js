@@ -33,6 +33,8 @@
 //get latest release
 (function()
 {
+    if(!document.querySelector(".download")) return;
+    
     window.emit = new Emit;
 
     window.getJSONP = function(e,t){if(typeof e==="undefined")return;if(typeof t==="function")window.getJSONP.prototype.callback=t;if(typeof e==="string"){var i=document.createElement("script");i.getJSONPid="getJSONP";var n="&";if(e.indexOf("?")===-1)n="?";i.src=e+n+"callback=getJSONP";document.body.appendChild(i)}else{var o=document.getElementsByTagName("script");for(var d in o){var i=o[d];if(typeof i.getJSONPid!=="undefined"&&i.getJSONPid==="getJSONP")document.body.removeChild(i)}if(typeof window.getJSONP.prototype.callback!=="undefined")window.getJSONP.prototype.callback(e);}}
