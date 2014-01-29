@@ -31,9 +31,17 @@
             var self = this;
             if (typeof src !== "string") return console.warn("Warning: A sound must have a source... ", this);
 
-            //get a playable source
-            for (var i = 0; i < extensions.length; i++) if (playable(extensions[i], audio)) { this.src = src+"."+extensions[i]; break; }
+            if(!extensions)
+            {
+                this.src = src;
+            }
 
+            else
+            {
+                //get a playable source
+                for (var i = 0; i < extensions.length; i++) if (playable(extensions[i], audio)) { this.src = src+"."+extensions[i]; break; }
+            }
+            
             //create audio
             function createAudio(){
                 var audio = new Audio;

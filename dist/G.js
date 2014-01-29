@@ -1,5 +1,5 @@
 /**
- * G 0.2, 2014-01-22
+ * G 0.2-dev, 2014-01-29
  * A fast, powerful and extendable HTML5 game framework
  *
  * Copyright (c) 2014 Gurudayal Khalsa, gurudayalkhalsa@gmail.com
@@ -2222,9 +2222,17 @@ var Shape = G.Shape = G.Object.extend
             var self = this;
             if (typeof src !== "string") return console.warn("Warning: A sound must have a source... ", this);
 
-            //get a playable source
-            for (var i = 0; i < extensions.length; i++) if (playable(extensions[i], audio)) { this.src = src+"."+extensions[i]; break; }
+            if(!extensions)
+            {
+                this.src = src;
+            }
 
+            else
+            {
+                //get a playable source
+                for (var i = 0; i < extensions.length; i++) if (playable(extensions[i], audio)) { this.src = src+"."+extensions[i]; break; }
+            }
+            
             //create audio
             function createAudio(){
                 var audio = new Audio;
