@@ -55,7 +55,7 @@
 
             //create channels
             
-            var channels = [];
+            var channels = this.channels = [];
             for(var i = 0; i < 4; i++) channels.push(createAudio());
             var currentChannel = 0;
             var audio = this.audio = channels[0];
@@ -87,6 +87,7 @@
         //plays all
         play: function(t)
         {
+            var audio = this.audio, channels = this.channels;
             //if currently playing, play new channel simultaneously
             if (this.playing && this.multipleChannels !== false) 
             {
@@ -100,6 +101,7 @@
         //pauses all
         pause: function(t)
         {
+            var audio = this.audio, channels = this.channels;
             if (!this.loaded && !this.playing) return false;
             for(var i in channels) channels[i].pause(t);
         }
