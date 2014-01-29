@@ -2216,13 +2216,13 @@ var Shape = G.Shape = G.Object.extend
 
     G.Sound = G.Object.extend
     ({
-        initialize: function(src, extensions, multipleChannels)
+        initialize: function(src, extensions)
         {
             this._super();
             var self = this;
             if (typeof src !== "string") return console.warn("Warning: A sound must have a source... ", this);
 
-            if(!extensions)
+            if(!(extensions instanceof Array))
             {
                 this.src = src;
             }
@@ -2233,7 +2233,9 @@ var Shape = G.Shape = G.Object.extend
                 for (var i = 0; i < extensions.length; i++) if (playable(extensions[i], audio)) { this.src = src+"."+extensions[i]; break; }
             }
 
-            this.multipleChannels = multipleChannels === false ? false : true;
+            this.multipleChannels = true;
+            for (var i = 0; i < arguments.length; i++) if (typeof arguments[i] === "boolean") this.multipleChannels = arguments[i];
+
             
             //create audio
             function createAudio(){
@@ -2271,26 +2273,26 @@ var Shape = G.Shape = G.Object.extend
             audio.addEventListener("ended", function() { self.playing = false; });
 
             //mobile browsers must have an input event happen to load audio
-            if(G.isMobile && G.stages[0]) G.stages[0].event.one("touchstart", window, function(){ audio.muted = true; audio.play(); audio.muted = false; }) 
-
-            this.play = function()
+            if(G.isMobile && G.stages[0]) G.stages[0].event.one("touchstart", window, function(){ audio.muted = true; audio.play(); audio.muted = false; })     
+        },
+        //plays all
+        play: function(t)
+        {
+            //if currently playing, play new channel simultaneously
+            if (this.playing && this.multipleChannels !== false) 
             {
-                //if currently playing, play new channel simultaneously
-                if (this.playing && this.multipleChannels !== false) 
-                {
-                    currentChannel++;
-                    if(currentChannel > 3) currentChannel = 0;
-                    return channels[currentChannel].play();
-                }
-                if (!this.loaded) return this.on("load", function() { self.play(); });
-                return audio.play();
-            };
-            //stops all
-            this.stop = function()
-            {
-                if (!this.loaded && !this.playing) return false;
-                for(var i in channels) channels[i].pause();
-            };      
+                currentChannel++;
+                if(currentChannel > 3) currentChannel = 0;
+                return channels[currentChannel].play(t);
+            }
+            if (!this.loaded) return this.on("load", function() { self.play(t); });
+            return audio.play(t);
+        },
+        //pauses all
+        pause: function(t)
+        {
+            if (!this.loaded && !this.playing) return false;
+            for(var i in channels) channels[i].pause(t);
         }
     })
 })(G);
