@@ -2216,7 +2216,7 @@ var Shape = G.Shape = G.Object.extend
 
     G.Sound = G.Object.extend
     ({
-        initialize: function(src, extensions)
+        initialize: function(src, extensions, multipleChannels)
         {
             this._super();
             var self = this;
@@ -2232,6 +2232,8 @@ var Shape = G.Shape = G.Object.extend
                 //get a playable source
                 for (var i = 0; i < extensions.length; i++) if (playable(extensions[i], audio)) { this.src = src+"."+extensions[i]; break; }
             }
+
+            this.multipleChannels = multipleChannels === false ? false : true;
             
             //create audio
             function createAudio(){
@@ -2241,6 +2243,7 @@ var Shape = G.Shape = G.Object.extend
             }
 
             //create channels
+            
             var channels = [];
             for(var i = 0; i < 4; i++) channels.push(createAudio());
             var currentChannel = 0;
@@ -2273,7 +2276,7 @@ var Shape = G.Shape = G.Object.extend
             this.play = function()
             {
                 //if currently playing, play new channel simultaneously
-                if (this.playing) 
+                if (this.playing && this.multipleChannels !== false) 
                 {
                     currentChannel++;
                     if(currentChannel > 3) currentChannel = 0;
