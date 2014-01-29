@@ -1853,7 +1853,7 @@ G.Collection = G.Class.extend({
         {
             if(typeof this.objects[i] !== "undefined") 
             {
-                var res = callback.call(this, this.objects[i]);
+                var res = callback.call(this, this.objects[i], i);
                 if(res === false) break;
             }
         }
