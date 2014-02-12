@@ -504,25 +504,23 @@ G.Collection = G.Class.extend({
             //handle if string
             if(match) 
             {
-                // console.log(match);
-                // for(var j = 0; j < match.length; j++)
-                // {
-                //     var parent = object,
-                //         key = match[j];
-                //     if(key.indexOf(".") !== -1)
-                //     {
-                //         var depth = key.split(".");
-                //         for(var i = 0; i < depth.length-1; i++)
-                //         {
-                //             parent = parent[depth[i]];   
-                //         }
-                //         key = depth.pop();
-                //     }
-                    
-                    
-                //     if(typeof parent[key] === "undefined") not = true;
-                //     else if(typeof query !== "undefined" && parent[key] !== query) not = true;
-                // }
+                _.each(match, function(key)
+                {
+                   var parent = object;
+                   if(key.indexOf(".") !== -1)
+                   {
+                       var depth = key.split(".");
+                       for(var i = 0; i < depth.length-1; i++)
+                       {
+                           parent = parent[depth[i]];   
+                       }
+                       key = depth.pop();
+                   }
+                   
+                   
+                   if(typeof parent[key] === "undefined") not = true;
+                   else if(typeof query !== "undefined" && parent[key] !== query) not = true; 
+                });
             }
             
 
