@@ -4,7 +4,7 @@ G.Image=G.Rect.extend({
     initialize:function(obj)
     {            
         //if not passing in object literal, assign arguments as src,x,y,width,height,vx,vy,clip
-        if(arguments.length > 2)
+        if(typeof arguments[0] === "string")
         {
             var a = {};
             //necessary
