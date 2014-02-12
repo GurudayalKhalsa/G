@@ -229,6 +229,12 @@ G.Collection = G.Class.extend({
             this.objects[id] = object;
             this._currentId++;
             this._length = this._length+1;  
+            
+            //could be slow
+            if(typeof object.zindex !== "undefined")
+            {
+                this.sortByZindex();
+            }
 
             //add to visible visibleHash
             if(this._visibleHashEnabled && (this.canvas || (this.get(0) && this.get(0).stage && this.get(0).stage.canvas)) && object instanceof G.Shape)
@@ -304,6 +310,11 @@ G.Collection = G.Class.extend({
         if(this === G.stage || this.queryParent === G.stage) object.remove();
 
         return object;
+    },
+    
+    sortByZindex: function()
+    {
+      this.objects.sort(function(cur, next){return cur.zindex > next.zindex});
     },
 
     addToVisibleHash:function(object)
@@ -468,19 +479,18 @@ G.Collection = G.Class.extend({
             {
                 var query = cb;
                 cb = arguments[2];
-                
-                
             }
         }
         if(typeof obj === "function") var custom = obj;
-
+        
         var cb = cb || function(){};
         var collection = new G.Collection(false, false);
         collection.queryParent = this;
         var none = true;
 
+
         for(var i = 0; i < this.objects.length; i++)
-        {
+        {            
             if(!this.objects[i]) continue;
             var object = this.objects[i];
 
@@ -489,12 +499,13 @@ G.Collection = G.Class.extend({
             //handle if string
             if(match) 
             {
-                for(var i = 0; i < match.length; i++)
+                for(var j = 0; j < match.length; j++)
                 {
-                    if(typeof object[match[i]] === "undefined") not = true;
-                    else if(typeof query !== "undefined" && object[match[i]] !== query) not = true;
+                    if(typeof object[match[j]] === "undefined") not = true;
+                    else if(typeof query !== "undefined" && object[match[j]] !== query) not = true;
                 }
             }
+            
 
             //handle if obj
             else if(custom) not = custom(object) ? false : true;
