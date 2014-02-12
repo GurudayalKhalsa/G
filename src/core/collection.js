@@ -461,7 +461,17 @@ G.Collection = G.Class.extend({
     {
         if(typeof obj !== "string" && typeof obj !== "object" && typeof obj !== "function") return false;
 
-        if(typeof obj === "string") var match = obj.split(",");
+        if(typeof obj === "string") 
+        {
+            var match = obj.split(",");
+            if(typeof cb === "string") 
+            {
+                var query = cb;
+                cb = arguments[2];
+                
+                
+            }
+        }
         if(typeof obj === "function") var custom = obj;
 
         var cb = cb || function(){};
@@ -482,6 +492,7 @@ G.Collection = G.Class.extend({
                 for(var i = 0; i < match.length; i++)
                 {
                     if(typeof object[match[i]] === "undefined") not = true;
+                    else if(typeof query !== "undefined" && object[match[i]] !== query) not = true;
                 }
             }
 
