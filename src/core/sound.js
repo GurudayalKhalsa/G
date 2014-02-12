@@ -57,7 +57,7 @@
             
             var channels = this.channels = [];
             for(var i = 0; i < 4; i++) channels.push(createAudio());
-            var currentChannel = 0;
+            this.currentChannel = 0;
             var audio = this.audio = channels[0];
             
             //trigger when loaded
@@ -91,9 +91,9 @@
             //if currently playing, play new channel simultaneously
             if (this.playing && this.multipleChannels !== false) 
             {
-                currentChannel++;
-                if(currentChannel > 3) currentChannel = 0;
-                return channels[currentChannel].play(t);
+                this.currentChannel++;
+                if(this.currentChannel > 3) this.currentChannel = 0;
+                return channels[this.currentChannel].play(t);
             }
             if (!this.loaded) return this.on("load", function() { self.play(t); });
             return audio.play(t);
