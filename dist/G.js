@@ -1407,12 +1407,23 @@ G.Object = G.Class.extend({
         //handle of object passed in, set all keys in that object
         if(typeof key === "object") { _.each(arguments[0], function(val, key){ self.set(key, val) }); return self; }
 
-        var current = this[key];
+        var parent = this;
+        if(key.indexOf(".") !== -1)
+        {
+            var depth = key.split(".");
+            for(var i = 0; i < depth.length-1; i++)
+            {
+                parent = parent[depth[i]];   
+            }
+            key = depth.pop();
+        }
+                
+        var current = parent[key];
         if((typeof val !== "object" && val !== current) || (typeof val === "object" && !_.isEqual(current, val)) )
         {
 
-            if(typeof val === "object" && !(val instanceof G.Object)) this[key] = _.extend(current, val);
-            else this[key] = val;
+            if(typeof val === "object" && !(val instanceof G.Object)) parent[key] = JSON.parse(JSON.stringify(val));
+            else parent[key] = val;
 
             if(this.events)
             {
@@ -2085,8 +2096,8 @@ var Shape = G.Shape = G.Object.extend
 
     mergeValues:function(obj, defaults)
     {        
-        var defaults = _.extend(
-        {
+        var defaults = _.extend
+        ({
           pos: new G.Vector(),
           vel: new G.Vector(),
           width: 0,
@@ -2105,8 +2116,35 @@ var Shape = G.Shape = G.Object.extend
           }
         }, defaults ||
         {});
-        
+                
         this._super(obj, defaults);
+        
+        //define custom properties
+        //------------------------
+        
+        //physics
+        (function(){
+                        
+            var physics = this.physics;
+            
+            Object.defineProperty(this, "physics",
+            {
+                set: function(p)
+                {
+                    physics = p;
+                    if(this.stage && this.stage.world && this.stage.world instanceof G.Physics.World)
+                    {
+                        p ? this.stage.world.add(this) : this.stage.world.remove(this);
+                    }
+                },
+                get: function()
+                {
+                    return physics;
+                }
+            });
+            
+        }.bind(this))();
+        
     },
 
     //top left right bottom bounds
@@ -4364,8 +4402,8 @@ Physics.World = (function(){
 
         setGravity:function(gravity)
         {
-            var x = typeof gravity !== "undefined" ? (typeof gravity.x === "number" ? gravity.x : (typeof arguments[0] === number ? arguments[0] : 0)) : (typeof G.gravity !== "undefined" ? G.gravity.x : 0);
-            var y = typeof gravity !== "undefined" ? (typeof gravity.y === "number" ? gravity.y : (typeof arguments[1] === number ? arguments[1] : 0)) : (typeof G.gravity !== "undefined" ? G.gravity.y : 0);
+            var x = typeof gravity !== "undefined" ? (typeof gravity.x === "number" ? gravity.x : (typeof arguments[0] === "number" ? arguments[0] : 0)) : (typeof G.gravity !== "undefined" ? G.gravity.x : 0);
+            var y = typeof gravity !== "undefined" ? (typeof gravity.y === "number" ? gravity.y : (typeof arguments[1] === "number" ? arguments[1] : 0)) : (typeof G.gravity !== "undefined" ? G.gravity.y : 0);
             this.gravity = new G.Vector(x, y);
         },
 

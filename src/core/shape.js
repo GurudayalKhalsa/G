@@ -18,8 +18,8 @@ var Shape = G.Shape = G.Object.extend
 
     mergeValues:function(obj, defaults)
     {        
-        var defaults = _.extend(
-        {
+        var defaults = _.extend
+        ({
           pos: new G.Vector(),
           vel: new G.Vector(),
           width: 0,
@@ -38,8 +38,35 @@ var Shape = G.Shape = G.Object.extend
           }
         }, defaults ||
         {});
-        
+                
         this._super(obj, defaults);
+        
+        //define custom properties
+        //------------------------
+        
+        //physics
+        (function(){
+                        
+            var physics = this.physics;
+            
+            Object.defineProperty(this, "physics",
+            {
+                set: function(p)
+                {
+                    physics = p;
+                    if(this.stage && this.stage.world && this.stage.world instanceof G.Physics.World)
+                    {
+                        p ? this.stage.world.add(this) : this.stage.world.remove(this);
+                    }
+                },
+                get: function()
+                {
+                    return physics;
+                }
+            });
+            
+        }.bind(this))();
+        
     },
 
     //top left right bottom bounds

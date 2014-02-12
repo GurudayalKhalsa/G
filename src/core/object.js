@@ -153,12 +153,23 @@ G.Object = G.Class.extend({
         //handle of object passed in, set all keys in that object
         if(typeof key === "object") { _.each(arguments[0], function(val, key){ self.set(key, val) }); return self; }
 
-        var current = this[key];
+        var parent = this;
+        if(key.indexOf(".") !== -1)
+        {
+            var depth = key.split(".");
+            for(var i = 0; i < depth.length-1; i++)
+            {
+                parent = parent[depth[i]];   
+            }
+            key = depth.pop();
+        }
+                
+        var current = parent[key];
         if((typeof val !== "object" && val !== current) || (typeof val === "object" && !_.isEqual(current, val)) )
         {
 
-            if(typeof val === "object" && !(val instanceof G.Object)) this[key] = _.extend(current, val);
-            else this[key] = val;
+            if(typeof val === "object" && !(val instanceof G.Object)) parent[key] = JSON.parse(JSON.stringify(val));
+            else parent[key] = val;
 
             if(this.events)
             {

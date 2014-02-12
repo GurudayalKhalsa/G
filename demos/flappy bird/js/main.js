@@ -7,8 +7,10 @@ curl([
         
      ], function(G)
 {
-    var stage = new G.Stage({physics:true}).setCanvas();
+    var stage = new G.Stage({physics:{gravity:{y:0.15}}}).setCanvas();
     stage.backgroundColor = "#4ec0ca";
+    
+    var gameStarted = false;
     
     //load and create assets
     var assets = new G.Collection,
@@ -52,7 +54,7 @@ curl([
     assets.land = new G.Collection;
 
     //create bird sprite
-    assets.bird = new G.Sprite
+    var bird = assets.bird = new G.Sprite
     ({
         name:"bird",
         src:"assets/bird.png",
@@ -65,7 +67,9 @@ curl([
             stillFlap:{range:[0,3], speed:1/6},
             movingFlap:{range:[0,3], speed:1/3}
         },
-        addToStage:false
+        addToStage:false,
+        physics:false,
+        zindex: 1
     });
     assets.add(assets.bird);    
         
@@ -76,17 +80,27 @@ curl([
     assets.one("load", function()
     {
         loadingText.remove();
-        init();
+        splash();
         stage.event.on("resize", window, function()
         {
             stage.setCanvas(window.innerWidth, window.innerHeight);
-            init();
+            if(!gameStarted) splash();
+        });
+        
+        stage.event.mouse.on("up", function()
+        {
+            if(assets.start_button.posInBounds(stage.event.mouse.state.x, stage.event.mouse.state.y) && !gameStarted)
+            {
+                startGame();
+            }
         });
     });
     
-    //initializes game
-    function init()
-    {           
+    //draws splash screen
+    function splash()
+    {        
+        gameStarted = false;
+           
         var w = 320, h = 480;
         
         //Create Splash Screen and Set Images
@@ -120,7 +134,16 @@ curl([
         //add and set start button
         assets.start_button.zindex = 1;
         assets.start_button.add().bounds({top:assets.title.bounds().bottom+50}).pos.x = stage.width/2;
+    }
+    
+    //starts the game
+    function startGame()
+    {
+        gameStarted = true;
+        assets.start_button.remove();
+        assets.title.remove();
         
+        bird.set("")
     }
     
     
@@ -133,5 +156,6 @@ curl([
     
     g.G = G,
     g.stage = stage; 
-    g.assets = assets;   
+    g.assets = assets;  
+    g.bird = bird; 
 });
