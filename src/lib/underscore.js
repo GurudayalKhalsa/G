@@ -212,6 +212,16 @@
     _.isEqual = function(a, b) {
       return eq(a, b, [], []);
     };
+    
+    _.isObj = function(o)
+    {
+      return Object.prototype.toString.call(o) === "[object Object]";
+    }
+    
+    _.isArr = function(o)
+    {
+      return Array.isArray(o);
+    }
 
     // Return a copy of the object without the blacklisted properties.
     _.omit = function(obj) {

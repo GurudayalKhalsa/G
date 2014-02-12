@@ -21,8 +21,28 @@ G.Object = G.Class.extend({
 
         //prevent sub-objects from being modified if obj used again (e.g. if an object is used to create a shape, and that objects's pos is changed afterwards, this shape's ops would normally be that obj's pos. prevent that)
         //this also get's rid of functions... consider changing to allow functions?
-        obj = JSON.parse(JSON.stringify(obj));
-        // defaults = JSON.parse(JSON.stringify(defaults||{}));
+        var tmp = {};
+        for(var i in obj)
+        {
+            if(_.isObj(obj[i]) || _.isArr(obj[i])) 
+            {
+                try {
+                    tmp[i] = JSON.parse(JSON.stringify(obj[i]));
+                }  
+                catch (e) {                    
+                    if(_.isArr(obj[i]))
+                    {
+                        tmp[i] = obj[i].slice(0);
+                    }
+                    else
+                    {
+                        tmp[i] = _.extend({}, obj[i])
+                    }
+                }
+            } 
+            else tmp[i] = obj[i];
+        }
+        obj = tmp;
 
         var rootDefaults = {collections:[],events:true};
         var params = rootDefaults;
@@ -41,7 +61,12 @@ G.Object = G.Class.extend({
                 {
                     for(var key in obj[param]) 
                     {
-                        params[param][key] = obj[param][key]; 
+                        try {
+                            params[param][key] = obj[param][key]; 
+                        }  
+                        catch (e) { 
+
+                        }
                     }
                 }
                 else params[param]=obj[param];

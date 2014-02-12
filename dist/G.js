@@ -1,5 +1,5 @@
 /**
- * G 0.2-dev, 2014-01-29
+ * G 0.2-dev, 2014-02-12
  * A fast, powerful and extendable HTML5 game framework
  *
  * Copyright (c) 2014 Gurudayal Khalsa, gurudayalkhalsa@gmail.com
@@ -7,7 +7,7 @@
  */
 ! function(name, root, factory) {
     //expose module to either Node/CommonJS or AMD if available, and root object of choosing (e.g. Window)
-    (typeof define === "function" && define.amd) ? define(function(){ return root.call(factory) }) : (typeof module === "object" && typeof module.exports === "object") ? module.exports = factory.call(root) : root[name] = factory.call(root)
+    (typeof define === "function" && define.amd) ? define(function(){ return factory.call(root) }) : (typeof module === "object" && typeof module.exports === "object") ? module.exports = factory.call(root) : root[name] = factory(root)
 }
 ("G", this, function() {
 
@@ -64,14 +64,10 @@ var G = {};
 /**
  * Emit.js - to make any js object an event emitter (server or browser)
  * 
- * based on MicroEvent -> https://github.com/jeromeetienne/microevent.js
- * From MicroEvent -> changed bind and unbind events to on and off, added one event
+ * based on Emit -> https://github.com/jeromeetienne/Emit.js
+ * From Emit -> changed bind and unbind events to on and off, added one event
  */
-! function(name, root, factory) {
-    //expose module to either Node/CommonJS or AMD if available, and root object of choosing (e.g. Window)
-    (typeof define === "function" && define.amd) ? define(function(){ return root.call(factory) }) : (typeof module === "object" && typeof module.exports === "object") ? module.exports = factory.call(root) : root[name] = factory.call(root)
-}
-("Emit", this, function() {
+var Emit = G.Emit = (function(){
 
     var Emit = function() {};
     Emit.prototype = {
@@ -115,10 +111,11 @@ var G = {};
             {
                 var res;
                 //if one, remove
-                if(typeof this._events[event][i] === "object") 
+                if(this._events[event][i][0] === "one") 
                 {
-                    res = this._events[event][i][1].apply(this, arguments[1]||undefined);
-                    this._events[event].splice(this._events[event][i], 1);
+                    var fn = this._events[event][i][1];
+                    this._events[event].splice(i, 1);
+                    res = fn.apply(this, arguments[1]||undefined);
                 }
                 else res = this._events[event][i].apply(this, arguments[1]||undefined);
                 responses.push(res);
@@ -128,11 +125,11 @@ var G = {};
     };
 
     /**
-     * mixin will delegate all MicroEvent.js function in the destination object
+     * mixin will delegate all Emit.js function in the destination object
      *
-     * - require('MicroEvent').mixin(Foobar) will make Foobar able to use MicroEvent
+     * - require('Emit').mixin(Foobar) will make Foobar able to use Emit
      *
-     * @param {Object} the object which will support MicroEvent
+     * @param {Object} the object which will support Emit
      */
     Emit.mixin = function(destObject)
     {
@@ -151,9 +148,9 @@ var G = {};
     }
 
     return Emit;
-});
+})(G);
 
- var Event = function(){
+ var Event = G.Event = function(){
 
     var root = this;
     var self = root;
@@ -1232,6 +1229,16 @@ var Stats = function()
     _.isEqual = function(a, b) {
       return eq(a, b, [], []);
     };
+    
+    _.isObj = function(o)
+    {
+      return Object.prototype.toString.call(o) === "[object Object]";
+    }
+    
+    _.isArr = function(o)
+    {
+      return Array.isArray(o);
+    }
 
     // Return a copy of the object without the blacklisted properties.
     _.omit = function(obj) {
@@ -1268,8 +1275,28 @@ G.Object = G.Class.extend({
 
         //prevent sub-objects from being modified if obj used again (e.g. if an object is used to create a shape, and that objects's pos is changed afterwards, this shape's ops would normally be that obj's pos. prevent that)
         //this also get's rid of functions... consider changing to allow functions?
-        obj = JSON.parse(JSON.stringify(obj));
-        // defaults = JSON.parse(JSON.stringify(defaults||{}));
+        var tmp = {};
+        for(var i in obj)
+        {
+            if(_.isObj(obj[i]) || _.isArr(obj[i])) 
+            {
+                try {
+                    tmp[i] = JSON.parse(JSON.stringify(obj[i]));
+                }  
+                catch (e) {                    
+                    if(_.isArr(obj[i]))
+                    {
+                        tmp[i] = obj[i].slice(0);
+                    }
+                    else
+                    {
+                        tmp[i] = _.extend({}, obj[i])
+                    }
+                }
+            } 
+            else tmp[i] = obj[i];
+        }
+        obj = tmp;
 
         var rootDefaults = {collections:[],events:true};
         var params = rootDefaults;
@@ -1288,7 +1315,12 @@ G.Object = G.Class.extend({
                 {
                     for(var key in obj[param]) 
                     {
-                        params[param][key] = obj[param][key]; 
+                        try {
+                            params[param][key] = obj[param][key]; 
+                        }  
+                        catch (e) { 
+
+                        }
                     }
                 }
                 else params[param]=obj[param];
@@ -1334,7 +1366,9 @@ G.Object = G.Class.extend({
                 if(G.stage.addToObjectCollections !== false && this.collections.indexOf(G.stage) === -1) this.collections.push(G.stage);
             }              
             if(typeof id !== "undefined") this.stageId = id; 
-        }            
+        }  
+        
+        return this;          
     },
 
     remove:function(collection)
@@ -1688,6 +1722,12 @@ G.Collection = G.Class.extend({
             this.objects[id] = object;
             this._currentId++;
             this._length = this._length+1;  
+            
+            //could be slow
+            if(typeof object.zindex !== "undefined")
+            {
+                this.sortByZindex();
+            }
 
             //add to visible visibleHash
             if(this._visibleHashEnabled && (this.canvas || (this.get(0) && this.get(0).stage && this.get(0).stage.canvas)) && object instanceof G.Shape)
@@ -1763,6 +1803,11 @@ G.Collection = G.Class.extend({
         if(this === G.stage || this.queryParent === G.stage) object.remove();
 
         return object;
+    },
+    
+    sortByZindex: function()
+    {
+      this.objects.sort(function(cur, next){return cur.zindex > next.zindex});
     },
 
     addToVisibleHash:function(object)
@@ -1920,16 +1965,25 @@ G.Collection = G.Class.extend({
     {
         if(typeof obj !== "string" && typeof obj !== "object" && typeof obj !== "function") return false;
 
-        if(typeof obj === "string") var match = obj.split(",");
+        if(typeof obj === "string") 
+        {
+            var match = obj.split(",");
+            if(typeof cb === "string") 
+            {
+                var query = cb;
+                cb = arguments[2];
+            }
+        }
         if(typeof obj === "function") var custom = obj;
-
+        
         var cb = cb || function(){};
         var collection = new G.Collection(false, false);
         collection.queryParent = this;
         var none = true;
 
+
         for(var i = 0; i < this.objects.length; i++)
-        {
+        {            
             if(!this.objects[i]) continue;
             var object = this.objects[i];
 
@@ -1938,11 +1992,13 @@ G.Collection = G.Class.extend({
             //handle if string
             if(match) 
             {
-                for(var i = 0; i < match.length; i++)
+                for(var j = 0; j < match.length; j++)
                 {
-                    if(typeof object[match[i]] === "undefined") not = true;
+                    if(typeof object[match[j]] === "undefined") not = true;
+                    else if(typeof query !== "undefined" && object[match[j]] !== query) not = true;
                 }
             }
+            
 
             //handle if obj
             else if(custom) not = custom(object) ? false : true;
@@ -2029,8 +2085,27 @@ var Shape = G.Shape = G.Object.extend
 
     mergeValues:function(obj, defaults)
     {        
-        var defaults = _.extend({pos:new G.Vector(),vel:new G.Vector(),width:0,height:0,rotation:0,color:"#000",fill:true,hidden:false,_bounds:{top:1,left:1,right:1,bottom:1}}, defaults||{});
-
+        var defaults = _.extend(
+        {
+          pos: new G.Vector(),
+          vel: new G.Vector(),
+          width: 0,
+          height: 0,
+          rotation: 0,
+          zindex: 0,
+          color: "#000",
+          fill: true,
+          hidden: false,
+          _bounds:
+          {
+            top: 1,
+            left: 1,
+            right: 1,
+            bottom: 1
+          }
+        }, defaults ||
+        {});
+        
         this._super(obj, defaults);
     },
 
@@ -2066,6 +2141,8 @@ var Shape = G.Shape = G.Object.extend
                     this._bounds[key] = bounds[key];                    
                 }
             }
+            
+            return this;
         }
 
         else
@@ -2912,7 +2989,7 @@ G.Image=G.Rect.extend({
     initialize:function(obj)
     {            
         //if not passing in object literal, assign arguments as src,x,y,width,height,vx,vy,clip
-        if(arguments.length > 2)
+        if(typeof arguments[0] === "string")
         {
             var a = {};
             //necessary
@@ -2942,23 +3019,26 @@ G.Image=G.Rect.extend({
         if(this._super) this._super.apply(this, args); 
 
         //set values
-        this.image = new Image();
-        this.image.src = this.src;
-        this.loaded = false;
-
+        if(!obj.image)
+        {
+            this.image = new Image();
+            this.image.src = this.src;
+            this.loaded = false;
+            this.image.addEventListener("load", function(){ onload.call(self); });
+        }
+        
+        else onload(true);
+        
         var self = this;
 
-        function onload()
+        function onload(loaded)
         {
             this.loaded = true;
             if(this.width === 0) this.width = this.image.naturalWidth;
             //make sure if only width provided, to scale height according to aspect ratio
             if(this.height === 0) this.height = this.width / (this.image.naturalWidth / this.image.naturalHeight);
-            self.trigger("load");
+            if(!loaded)self.trigger("load");
         }
-
-        this.image.addEventListener("load", function(){ onload.call(self); });
-
     },
 
     _render:function(x,y,w,h)
@@ -3509,9 +3589,9 @@ G.Sprite = G.Image.extend
     //default: the default frame to use, defaults to 0
     //animations: the animations to use
     
-    initialize:function(obj, addToStage)
+    initialize:function(obj)
     {
-        this._super(obj.src, obj.pos?obj.pos.x:0, obj.pos?obj.pos.y:0, obj.width||undefined, obj.height||undefined, addToStage);
+        this._super.apply(this, arguments);
 
         this.frames = [];
         if(obj[frames]) this.frames = obj[frames];
@@ -3598,7 +3678,7 @@ G.Sprite = G.Image.extend
 
     setAnimation:function(key)
     {
-        if(this.animation === this.animations[key]) return;
+        if(this.animation === this.animations[key]) return this;
         this.animation = this.animations[key];
         this.animation.currentFrame = 0;
         return this;

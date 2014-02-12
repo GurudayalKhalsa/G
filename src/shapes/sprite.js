@@ -102,7 +102,7 @@ G.Sprite = G.Image.extend
 
     setAnimation:function(key)
     {
-        if(this.animation === this.animations[key]) return;
+        if(this.animation === this.animations[key]) return this;
         this.animation = this.animations[key];
         this.animation.currentFrame = 0;
         return this;

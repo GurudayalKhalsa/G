@@ -1,4 +1,4 @@
- var Event = function(){
+ var Event = G.Event = function(){
 
     var root = this;
     var self = root;
