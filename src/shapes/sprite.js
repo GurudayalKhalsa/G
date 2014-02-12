@@ -13,9 +13,9 @@ G.Sprite = G.Image.extend
     //default: the default frame to use, defaults to 0
     //animations: the animations to use
     
-    initialize:function(obj, addToStage)
+    initialize:function(obj)
     {
-        this._super(obj.src, obj.pos?obj.pos.x:0, obj.pos?obj.pos.y:0, obj.width||undefined, obj.height||undefined, addToStage);
+        this._super.apply(this, arguments);
 
         this.frames = [];
         if(obj[frames]) this.frames = obj[frames];
