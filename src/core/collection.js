@@ -92,6 +92,7 @@ G.Collection = G.Class.extend({
 
     update:function()
     {
+        this.trigger("update");
         if((this.world && ((this !== G.stage && this.physics) || (this === G.stage && G.physics && this.physics)))) this.world.update();
         //prevent update from being called more than once
         else if(this.get(0) && !(this.get(0).stage && this.get(0).stage.world))
@@ -190,6 +191,8 @@ G.Collection = G.Class.extend({
 
     add:function(object)
     {
+        if(_.isArr(object)){ for(var i = 0; i < object.length; i++) this.add(object[i]); return this }
+        
         var self = this;
         //if multiple in arguments
         if(arguments.length > 1)
@@ -257,6 +260,8 @@ G.Collection = G.Class.extend({
 
     remove:function(object, fromObject)
     {
+        if(_.isArr(object)){ for(var i = 0; i < object.length; i++) this.remove(object[i]); return this }
+
         if(this.length() === 0) return false;
         //if index, get object
         if(typeof object === "number") object = this.get(object);
@@ -488,7 +493,6 @@ G.Collection = G.Class.extend({
         collection.queryParent = this;
         var none = true;
 
-
         for(var i = 0; i < this.objects.length; i++)
         {            
             if(!this.objects[i]) continue;
@@ -496,14 +500,29 @@ G.Collection = G.Class.extend({
 
             var not = false;
             
+            
             //handle if string
             if(match) 
             {
-                for(var j = 0; j < match.length; j++)
-                {
-                    if(typeof object[match[j]] === "undefined") not = true;
-                    else if(typeof query !== "undefined" && object[match[j]] !== query) not = true;
-                }
+                // console.log(match);
+                // for(var j = 0; j < match.length; j++)
+                // {
+                //     var parent = object,
+                //         key = match[j];
+                //     if(key.indexOf(".") !== -1)
+                //     {
+                //         var depth = key.split(".");
+                //         for(var i = 0; i < depth.length-1; i++)
+                //         {
+                //             parent = parent[depth[i]];   
+                //         }
+                //         key = depth.pop();
+                //     }
+                    
+                    
+                //     if(typeof parent[key] === "undefined") not = true;
+                //     else if(typeof query !== "undefined" && parent[key] !== query) not = true;
+                // }
             }
             
 
@@ -512,8 +531,18 @@ G.Collection = G.Class.extend({
 
             else _.each(obj, function(val, key)
             {
-                if(typeof val === "object") _.each(val, function(val2, key2){ process(val2, key2, object[key]) });
-                else process(val, key, object);
+                var parent = object;
+                if(key.indexOf(".") !== -1)
+                {
+                    var depth = key.split(".");
+                    for(var i = 0; i < depth.length-1; i++)
+                    {
+                        parent = parent[depth[i]];   
+                    }
+                    key = depth.pop();
+                }
+                if(typeof val === "object") _.each(val, function(val2, key2){ process(val2, key2, parent[key]) });
+                else process(val, key, parent);
             });
 
             function process(val, key, parent)

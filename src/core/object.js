@@ -165,7 +165,7 @@ G.Object = G.Class.extend({
         }
                 
         var current = parent[key];
-        if((typeof val !== "object" && val !== current) || (typeof val === "object" && !_.isEqual(current, val)) )
+        if((typeof val !== "object" && val !== current) || (typeof val === "object" && val !== current) )
         {
 
             if(typeof val === "object" && !(val instanceof G.Object)) parent[key] = JSON.parse(JSON.stringify(val));
