@@ -18,8 +18,27 @@ var Shape = G.Shape = G.Object.extend
 
     mergeValues:function(obj, defaults)
     {        
-        var defaults = _.extend({pos:new G.Vector(),vel:new G.Vector(),width:0,height:0,rotation:0,color:"#000",fill:true,hidden:false,_bounds:{top:1,left:1,right:1,bottom:1}}, defaults||{});
-
+        var defaults = _.extend(
+        {
+          pos: new G.Vector(),
+          vel: new G.Vector(),
+          width: 0,
+          height: 0,
+          rotation: 0,
+          zindex: 0,
+          color: "#000",
+          fill: true,
+          hidden: false,
+          _bounds:
+          {
+            top: 1,
+            left: 1,
+            right: 1,
+            bottom: 1
+          }
+        }, defaults ||
+        {});
+        
         this._super(obj, defaults);
     },
 
@@ -55,6 +74,8 @@ var Shape = G.Shape = G.Object.extend
                     this._bounds[key] = bounds[key];                    
                 }
             }
+            
+            return this;
         }
 
         else
