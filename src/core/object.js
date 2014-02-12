@@ -87,7 +87,9 @@ G.Object = G.Class.extend({
                 if(G.stage.addToObjectCollections !== false && this.collections.indexOf(G.stage) === -1) this.collections.push(G.stage);
             }              
             if(typeof id !== "undefined") this.stageId = id; 
-        }            
+        }  
+        
+        return this;          
     },
 
     remove:function(collection)
