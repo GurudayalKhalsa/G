@@ -1,14 +1,10 @@
 /**
  * Emit.js - to make any js object an event emitter (server or browser)
  * 
- * based on MicroEvent -> https://github.com/jeromeetienne/microevent.js
- * From MicroEvent -> changed bind and unbind events to on and off, added one event
+ * based on Emit -> https://github.com/jeromeetienne/Emit.js
+ * From Emit -> changed bind and unbind events to on and off, added one event
  */
-! function(name, root, factory) {
-    //expose module to either Node/CommonJS or AMD if available, and root object of choosing (e.g. Window)
-    (typeof define === "function" && define.amd) ? define(function(){ return root.call(factory) }) : (typeof module === "object" && typeof module.exports === "object") ? module.exports = factory.call(root) : root[name] = factory.call(root)
-}
-("Emit", this, function() {
+var Emit = G.Emit = (function(){
 
     var Emit = function() {};
     Emit.prototype = {
@@ -52,10 +48,11 @@
             {
                 var res;
                 //if one, remove
-                if(typeof this._events[event][i] === "object") 
+                if(this._events[event][i][0] === "one") 
                 {
-                    res = this._events[event][i][1].apply(this, arguments[1]||undefined);
-                    this._events[event].splice(this._events[event][i], 1);
+                    var fn = this._events[event][i][1];
+                    this._events[event].splice(i, 1);
+                    res = fn.apply(this, arguments[1]||undefined);
                 }
                 else res = this._events[event][i].apply(this, arguments[1]||undefined);
                 responses.push(res);
@@ -65,11 +62,11 @@
     };
 
     /**
-     * mixin will delegate all MicroEvent.js function in the destination object
+     * mixin will delegate all Emit.js function in the destination object
      *
-     * - require('MicroEvent').mixin(Foobar) will make Foobar able to use MicroEvent
+     * - require('Emit').mixin(Foobar) will make Foobar able to use Emit
      *
-     * @param {Object} the object which will support MicroEvent
+     * @param {Object} the object which will support Emit
      */
     Emit.mixin = function(destObject)
     {
@@ -88,4 +85,4 @@
     }
 
     return Emit;
-});
+})(G);

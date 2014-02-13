@@ -21,8 +21,28 @@ G.Object = G.Class.extend({
 
         //prevent sub-objects from being modified if obj used again (e.g. if an object is used to create a shape, and that objects's pos is changed afterwards, this shape's ops would normally be that obj's pos. prevent that)
         //this also get's rid of functions... consider changing to allow functions?
-        obj = JSON.parse(JSON.stringify(obj));
-        // defaults = JSON.parse(JSON.stringify(defaults||{}));
+        var tmp = {};
+        for(var i in obj)
+        {
+            if(_.isObj(obj[i]) || _.isArr(obj[i])) 
+            {
+                try {
+                    tmp[i] = JSON.parse(JSON.stringify(obj[i]));
+                }  
+                catch (e) {                    
+                    if(_.isArr(obj[i]))
+                    {
+                        tmp[i] = obj[i].slice(0);
+                    }
+                    else
+                    {
+                        tmp[i] = _.extend({}, obj[i])
+                    }
+                }
+            } 
+            else tmp[i] = obj[i];
+        }
+        obj = tmp;
 
         var rootDefaults = {collections:[],events:true};
         var params = rootDefaults;
@@ -41,7 +61,12 @@ G.Object = G.Class.extend({
                 {
                     for(var key in obj[param]) 
                     {
-                        params[param][key] = obj[param][key]; 
+                        try {
+                            params[param][key] = obj[param][key]; 
+                        }  
+                        catch (e) { 
+
+                        }
                     }
                 }
                 else params[param]=obj[param];
@@ -87,7 +112,9 @@ G.Object = G.Class.extend({
                 if(G.stage.addToObjectCollections !== false && this.collections.indexOf(G.stage) === -1) this.collections.push(G.stage);
             }              
             if(typeof id !== "undefined") this.stageId = id; 
-        }            
+        }  
+        
+        return this;          
     },
 
     remove:function(collection)
@@ -126,12 +153,23 @@ G.Object = G.Class.extend({
         //handle of object passed in, set all keys in that object
         if(typeof key === "object") { _.each(arguments[0], function(val, key){ self.set(key, val) }); return self; }
 
-        var current = this[key];
-        if((typeof val !== "object" && val !== current) || (typeof val === "object" && !_.isEqual(current, val)) )
+        var parent = this;
+        if(key.indexOf(".") !== -1)
+        {
+            var depth = key.split(".");
+            for(var i = 0; i < depth.length-1; i++)
+            {
+                parent = parent[depth[i]];   
+            }
+            key = depth.pop();
+        }
+                
+        var current = parent[key];
+        if((typeof val !== "object" && val !== current) || (typeof val === "object" && val !== current) )
         {
 
-            if(typeof val === "object" && !(val instanceof G.Object)) this[key] = _.extend(current, val);
-            else this[key] = val;
+            if(typeof val === "object" && !(val instanceof G.Object)) parent[key] = JSON.parse(JSON.stringify(val));
+            else parent[key] = val;
 
             if(this.events)
             {

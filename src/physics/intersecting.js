@@ -1,4 +1,4 @@
-G.intersecting = (function()
+G.Physics.intersecting = (function()
 {
 
 //parameters are pointx, pointy, centerx, centery, rotation in radians (center is pivot point)
@@ -24,11 +24,11 @@ return function(shape1, shape2, reverseVertices)
             if(!(shape instanceof G.Shape)) return;
             if (shape2 instanceof G.Shape) 
             {
-                var intersecting = G.intersecting(shape, shape2, reverseVertices);
+                var intersecting = G.Physics.intersecting(shape, shape2, reverseVertices);
             }
             else _.each(shape1, function(shape1)
             {
-                if (shape1 instanceof G.Shape) var intersecting = G.intersecting(shape, shape1, shape2);
+                if (shape1 instanceof G.Shape) var intersecting = G.Physics.intersecting(shape, shape1, shape2);
                 if(intersecting) bool = intersecting;
                 if(bool) return false;
             });
