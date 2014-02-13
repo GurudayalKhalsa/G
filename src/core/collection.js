@@ -236,7 +236,9 @@ G.Collection = G.Class.extend({
             //could be slow
             if(typeof object.zindex !== "undefined")
             {
-                this.sortByZindex();
+                var needToSort = false;
+                for(var i = 0; i < this.objects.length; i++) if(this.objects[i] && this.objects[i].zindex !== 0) { needToSort = true; break; }
+                if(needToSort) this.sortByZindex();
             }
 
             //add to visible visibleHash
@@ -387,7 +389,12 @@ G.Collection = G.Class.extend({
         if(typeof index === "number")
         {
             if(index >= 0)return this.objects[index];
-            return this.objects[this.objects.length+index];
+            var i = 0;
+            for(i = this.objects.length-1; i > 0; i--)
+            {
+                if(this.objects[i]) break;
+            }
+            return this.objects[i+1+index];
         }
         if(this.objects.indexOf(undefined) === -1) return this.objects.slice(0);
         var objects = [];
@@ -517,9 +524,7 @@ G.Collection = G.Class.extend({
                        key = depth.pop();
                    }
                    
-                   
-                   if(typeof parent[key] === "undefined") not = true;
-                   else if(typeof query !== "undefined" && parent[key] !== query) not = true; 
+                   process(query, key, parent);
                 });
             }
             
@@ -551,7 +556,7 @@ G.Collection = G.Class.extend({
                 //if number range - e.g. "range:10:20" in between 10 and 20
                 if(typeof val === "string" && val.indexOf("range") !== -1)
                 {
-                    var range = val.split("range:").join("").split(":").map(function(val){return parseFloat(val)});
+                    var range = val.split("range:").join("").split(":").map(function(val){return +val});
                     if(range && parent[key] >= range[0] && parent[key] <= range[1]) not = false;
                     else not = true; 
                 }

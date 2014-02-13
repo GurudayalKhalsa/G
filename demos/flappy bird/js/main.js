@@ -1,12 +1,7 @@
 var g = {};
 
-curl([
-        
-        "../../dist/G.js",
-        ""
-        
-     ], function(G)
-{
+(function(){
+    
     var stage = new G.Stage({physics:{gravity:{y:0.15}}}).setCanvas();
     stage.backgroundColor = "#4ec0ca";
     
@@ -15,31 +10,7 @@ curl([
     //load and create assets
     var assets = new G.Collection,
         srces = 
-        [
-            "assets/ceiling.png",
-            "assets/font_big_0.png",
-            "assets/font_big_1.png",
-            "assets/font_big_2.png",
-            "assets/font_big_3.png",
-            "assets/font_big_4.png",
-            "assets/font_big_5.png",
-            "assets/font_big_6.png",
-            "assets/font_big_7.png",
-            "assets/font_big_8.png",
-            "assets/font_big_9.png",
-            "assets/land.png",
-            "assets/medal_gold.png",
-            "assets/pipe_down.png",
-            "assets/pipe_up.png",
-            "assets/pipe.png",
-            "assets/replay.png",
-            "assets/score_button.png",
-            "assets/scoreboard.png",
-            "assets/sky.png",
-            "assets/splash.png",
-            "assets/start_button.png",
-            "assets/title.png",
-        ];
+        [ "assets/ceiling.png", "assets/font_big_0.png", "assets/font_big_1.png", "assets/font_big_2.png", "assets/font_big_3.png", "assets/font_big_4.png", "assets/font_big_5.png", "assets/font_big_6.png", "assets/font_big_7.png", "assets/font_big_8.png", "assets/font_big_9.png", "assets/land.png", "assets/medal_gold.png", "assets/pipe_down.png", "assets/pipe_up.png", "assets/pipe.png", "assets/replay.png", "assets/score_button.png", "assets/scoreboard.png", "assets/sky.png", "assets/splash.png", "assets/start_button.png", "assets/title.png" ];
     
     for(var i = 0; i < srces.length; i++)
     {
@@ -52,6 +23,8 @@ curl([
     var skyImg = assets.sky;
     assets.sky = new G.Collection;
     assets.land = new G.Collection;
+    
+    landImg.vel.x = -2;
 
     //create bird sprite
     var bird = assets.bird = new G.Sprite
@@ -69,7 +42,8 @@ curl([
         },
         addToStage:false,
         physics:false,
-        zindex: 1
+        zindex: 1,
+        flyForce: -5
     });
     assets.add(assets.bird);    
         
@@ -80,6 +54,15 @@ curl([
     assets.one("load", function()
     {
         loadingText.remove();
+        
+        scrollCollection(assets.land, landImg, function(last)
+        {
+            var img = new G.Image(landImg);
+            img.set({type:"kinematic", physics: true, vel:{x:landImg.vel.x, y:0}});
+            assets.land.add(img);
+            img.add().bounds({left: last.bounds().right-1 });
+        });
+
         splash();
         stage.event.on("resize", window, function()
         {
@@ -95,6 +78,30 @@ curl([
             }
         });
     });
+    
+    //infinitely scrolls collection
+    function scrollCollection(collection, shape, fn)
+    {
+        var collection = assets.land,
+            shape = landImg;
+        
+        stage.on("update", function()
+        {
+            //remove old
+            var landBeforeZero = collection.query("pos.x", "range:-10000:-"+((shape.width/2)+1));
+                                    
+            landBeforeZero.remove(true);
+                                    
+            //add new
+            var last = collection.query("pos.x", "range:"+(stage.width-(shape.width/2)-1)+":"+stage.width).get(0),
+                more = collection.query("pos.x", "range:"+(stage.width+1)+":"+(stage.width+shape.width)).length();
+                                    
+            if(last && !more)
+            {
+                fn(last);
+            }
+        });
+    }
     
     //draws splash screen
     function splash()
@@ -123,6 +130,7 @@ curl([
         for(var i = 0, l = stage.width/landImg.width; i < l; i++)
         {
             var img = new G.Image(landImg);
+            img.set({type:"kinematic", physics: true, vel:{x:landImg.vel.x, y:0}});
             assets.land.add(img);
             img.add().bounds({bottom: stage.height, left: i * landImg.width });
         }
@@ -143,7 +151,11 @@ curl([
         assets.start_button.remove();
         assets.title.remove();
         
-        bird.set("")
+        bird.setAnimation("movingFlap").set({pos:{x: 150, y:stage.height/2}, physics:true});
+        stage.event.mouse.on("up", function()
+        {
+           bird.vel.y = bird.flyForce; 
+        });
     }
     
     
@@ -158,4 +170,5 @@ curl([
     g.stage = stage; 
     g.assets = assets;  
     g.bird = bird; 
-});
+
+})();
