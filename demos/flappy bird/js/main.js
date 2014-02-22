@@ -103,9 +103,9 @@ var game = {};
         render: function(score, x, y, scale)
         {
             if(typeof score === "undefined") score = 0;
-            if(typeof x === "undefined") x = stage.width/2;
-            if(typeof y === "undefined") y = 100;
-            if(typeof scale === "undefined") scale = 1;
+            if(typeof x === "undefined") x = stage.width/2 + 20;
+            if(typeof y === "undefined") y = 32;
+            if(typeof scale === "undefined") scale = 0.8;
             
             this.remove(true);
             
@@ -246,15 +246,15 @@ var game = {};
         instructions.remove();
         
         //buttons
-        assets.pause_button.add().set({zindex: 5, "pos.x": 50, "pos.y": 50});
-        assets.restart_button_icon.add().set({zindex: 5, "pos.x": 100, "pos.y": 50});
+        assets.pause_button.add().set({zindex: 5, "pos.x": 30, "pos.y": 30});
+        assets.restart_button_icon.add().set({zindex: 5, "pos.x": 70, "pos.y": 30});
         
         var buttonEvents = mouse.on("down", function()
         {
             if(assets.pause_button.posInBounds(mouse.state.x, mouse.state.y))
             {
                 assets.pause_button.set({"pos.x": -100, "pos.y": -100}).remove();
-                assets.unpause_button.add().set({"pos.x": 50, "pos.y": 50});
+                assets.unpause_button.add().set({zindex: 5, "pos.x": 30, "pos.y": 30});
                 stage.render();
                 stage.pause();
             }
@@ -262,7 +262,7 @@ var game = {};
             else if(assets.unpause_button.posInBounds(mouse.state.x, mouse.state.y))
             {
                 assets.unpause_button.set({"pos.x": -100, "pos.y": -100}).remove();
-                assets.pause_button.add().set({"pos.x": 50, "pos.y": 50});
+                assets.pause_button.add().set({zindex: 5, "pos.x": 30, "pos.y": 30});
                 stage.unPause();
             }
             
