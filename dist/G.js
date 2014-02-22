@@ -1,5 +1,5 @@
 /**
- * G 0.2, 2014-02-22
+ * G 0.2-dev, 2014-02-22
  * A fast, powerful and extendable HTML5 game framework
  *
  * Copyright (c) 2014 Gurudayal Khalsa, gurudayalkhalsa@gmail.com
@@ -1584,7 +1584,8 @@ G.Collection = G.Class.extend({
         this.objects = [];
         this._currentId = 0;
         this._length = 0;
-        this._visibleHashEnabled = false;
+        this.enableVisibleHash = false;
+        this.enableZindex = false;
 
         this.addToCollections = typeof addToCollections === "boolean" ? addToCollections : ((typeof addToCollections === "object" && typeof addToCollections.addToCollections === "boolean") ? addToCollections.addToCollections : true);
         this.addToObjectCollections = typeof addToObjectCollections === "boolean" ? addToObjectCollections : ((typeof addToSCollections === "object" && typeof addToCollections.addToObjectCollections === "boolean") ? addToCollections.addToObjectCollections : true);
@@ -1690,8 +1691,8 @@ G.Collection = G.Class.extend({
         if(self.events) self.trigger("render");
 
         //retrieve all visible shapes, very efficient if thousands of static shapes
-        //only enabled if stage._visibleHashEnabled is set to true
-        if(this.visibleHash && this._visibleHashEnabled)
+        //only enabled if stage.enableVisibleHash is set to true
+        if(this.visibleHash && this.enableVisibleHash)
         {
             this.visibleHash.moving.clear().insert(this.visibleHash.moving.shapes);
             var obj = {};
@@ -1818,7 +1819,7 @@ G.Collection = G.Class.extend({
             }
 
             //add to visible visibleHash
-            if(this._visibleHashEnabled && (this.canvas || (this.get(0) && this.get(0).stage && this.get(0).stage.canvas)) && object instanceof G.Shape)
+            if(this.enableVisibleHash && (this.canvas || (this.get(0) && this.get(0).stage && this.get(0).stage.canvas)) && object instanceof G.Shape)
             {
                 this.addToVisibleHash(object);
             }
@@ -1943,7 +1944,7 @@ G.Collection = G.Class.extend({
 
     enableVisibleHash:function()
     {
-        this._visibleHashEnabled = true;
+        this.enableVisibleHash = true;
         var self = this;
         this.each(function(shape)
         {
@@ -1953,7 +1954,7 @@ G.Collection = G.Class.extend({
 
     disableVisibleHash:function()
     {
-        this._visibleHashEnabled = false;
+        this.enableVisibleHash = false;
         var self = this;
         this.each(function(shape)
         {
@@ -2724,7 +2725,7 @@ G.Stage = G.Collection.extend({
         this.addToObjectCollections = false;
         this.events = true;
         this.enableZindex = true;
-        this._visibleHashEnabled = false;
+        this.enableVisibleHash = false;
 
         if(obj && typeof obj.events !== "undefined" && !obj.events) this.events = false;
 
@@ -4602,6 +4603,7 @@ Physics.World = (function(){
                 }
             }
             
+            this.enableHash = typeof obj.enableHash === "boolean" ? obj.enableHash : true;
             this.onlyAABB = typeof obj.onlyAABB === "boolean" ? obj.onlyAABB : false;
             this.framerateVel = typeof obj.framerateVel === "boolean" ? obj.framerateVel : true;
 
@@ -4692,7 +4694,7 @@ Physics.World = (function(){
                     shape.colliding = false;
                     if(shape.enableCollisions === false || shape.physics === false) return;
                     //retrieve shapes in position range
-                    if(this.enableHash !== false)
+                    if(self.enableHash !== false)
                     {
                         _.each(self.dynamicHash.retrieve(shape), function(shape2)
                         {
@@ -4702,7 +4704,7 @@ Physics.World = (function(){
                     }
                     else
                     {
-                        _.each(self.shapes.dynamic, function(shape2)
+                        self.shapes.dynamic.each(function(shape2)
                         {
                             if(shape2.physics === false || shape2.enableCollisions === false) return;
                             self.handleCollisions(shape, shape2);
@@ -4732,7 +4734,7 @@ Physics.World = (function(){
                     {
                         shape.colliding = false;
                         //retrieve shapes in position range
-                        if(this.enableHash !== false)
+                        if(self.enableHash !== false)
                         {
                             _.each(self.dynamicHash.retrieve(shape), function(shape2)
                             {
@@ -4742,7 +4744,7 @@ Physics.World = (function(){
                         }
                         else
                         {
-                            _.each(self.shapes.dynamic, function(shape2)
+                            self.shapes.dynamic.each(function(shape2)
                             {
                                 if(shape2.physics === false || shape2.enableCollisions === false) return;
                                 self.handleCollisions(shape, shape2);
@@ -4786,23 +4788,23 @@ Physics.World = (function(){
                             }
                             
                             //retrieve shapes in position range
-                            if(this.enableHash !== false) _.each(self.staticHash.retrieve(shape), handle);
-                            else _.each(self.shapes.static, handle);
+                            if(self.enableHash !== false) _.each(self.staticHash.retrieve(shape), handle);
+                            else self.shapes.static.each(handle);
                            
                         }
 
                         if(self.collisions.dynamickinematic && self.shapes.dynamic.length() < self.shapes.kinematic.length()) 
                         {
                             //retrieve shapes in position range
-                            if(this.enableHash !== false) _.each(self.kinematicHash.retrieve(shape), handle);
-                            else _.each(self.shapes.kinematic, handle);
+                            if(self.enableHash !== false) _.each(self.kinematicHash.retrieve(shape), handle);
+                            else self.shapes.kinematic.each(handle);
                         }
 
                         if(self.collisions.dynamicdynamic) 
                         {
                             //retrieve shapes in position range
-                            if(this.enableHash !== false) _.each(self.dynamicHash.retrieve(shape), handle);
-                            else _.each(self.shapes.dynamic, handle);
+                            if(self.enableHash !== false) _.each(self.dynamicHash.retrieve(shape), handle);
+                            else self.shapes.dynamic.each(handle);
                         }
                     }
                     
