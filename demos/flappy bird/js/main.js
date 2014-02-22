@@ -73,12 +73,7 @@ var game = {};
     
     //Set Asset Values
     //----------------
-    
-    assets.query(function(obj){ return obj.name.indexOf("score") !== -1 }, function(img)
-    {
-        img.zindex = 5;
-    });
-    
+
     assets.land.vel.x = -2;
 
     //create bird sprite
@@ -117,11 +112,11 @@ var game = {};
             var score = (""+score).split("");
 
             var a = new G.Image(assets["score_"+score.pop()]);
-            this.add(a.set({ pos:{ x:x, y:y }, width: a.width * scale, height: a.height * scale }));
+            this.add(a.set({ zindex: 5, pos:{ x:x, y:y }, width: a.width * scale, height: a.height * scale }));
             for(var i = score.length - 1; i >= 0; i--)
             {                            
                 var b = new G.Image(assets["score_"+score[i]]);
-                this.add(b.set({ pos:{ x: a.bounds().left - a.width/2 - 2, y:y }, width: b.width * scale, height: b.height * scale }));
+                this.add(b.set({ zindex: 5, pos:{ x: a.bounds().left - a.width/2 - 2, y:y }, width: b.width * scale, height: b.height * scale }));
                 a = b;
             }
         } 
@@ -251,8 +246,8 @@ var game = {};
         instructions.remove();
         
         //buttons
-        assets.pause_button.add().set({"pos.x": 50, "pos.y": 50});
-        assets.restart_button_icon.add().set({"pos.x": 100, "pos.y": 50});
+        assets.pause_button.add().set({zindex: 5, "pos.x": 50, "pos.y": 50});
+        assets.restart_button_icon.add().set({zindex: 5, "pos.x": 100, "pos.y": 50});
         
         var buttonEvents = mouse.on("down", function()
         {
