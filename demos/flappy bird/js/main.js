@@ -239,7 +239,7 @@ var game = {};
             zindex: 2
         }).add();
     }
-    
+        
     //starts the game
     game.start = function()
     {
@@ -275,7 +275,7 @@ var game = {};
                 keyflapDown.off();
                 keyflapUp.off();
                 mouseFlap.off();
-                bird.one("collision", function(){ birdUpdate.off(); });
+                birdUpdate.off();
                 birdScoreUpdate.off();
                 event.off();
                 bird.removeAnimation();
@@ -334,10 +334,11 @@ var game = {};
         //determines whether to scroll
         function()
         {
+            var t = topPipes.get(0);
             //remove old
-            if(topPipes.get(0).pos.x < -((assets.pipe.width/2)+1)) 
+            if(t.pos.x < -((assets.pipe.width/2)+1)) 
             {
-                topPipes.get(0).remove();
+                t.remove();
                 bottomPipes.get(0).remove();
             }
             
