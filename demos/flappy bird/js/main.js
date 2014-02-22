@@ -78,7 +78,7 @@ var game = {};
         {
             if(typeof score === "undefined") score = 0;
             if(typeof x === "undefined") x = stage.width/2;
-            if(typeof y === "undefined") y = top + 100;
+            if(typeof y === "undefined") y = 100;
             if(typeof scale === "undefined") scale = 1;
             
             this.remove(true);
@@ -225,7 +225,7 @@ var game = {};
         //Set ceiling
         //-----------
         assets.ceiling.set({physics: true, type: "kinematic", "vel.x":-speed});
-        assets.ceiling.bounds({bottom: top});
+        assets.ceiling.bounds({bottom: 0});
         for(var i = 0, l = stage.width/assets.ceiling.width; i < l+2; i++)
         {
             var img = new G.Image(assets.ceiling);
@@ -247,11 +247,11 @@ var game = {};
         {
             var mid = G.random.float(bottom-(pipegap+pipegap/2), top+(pipegap+pipegap/2));
             
-            var topPipe = new TopPipe(x, 0, assets.pipe.width, mid-(pipegap/2)-top)
+            var topPipe = new TopPipe(x, 0, assets.pipe.width, mid-(pipegap/2))
                 .bounds({bottom:mid-pipegap/2})
                 .set({"type": "kinematic", "vel.x": -speed, zindex: 2});
 
-            var bottomPipe = new BottomPipe(x, 0, assets.pipe.width, bottom-assets.land.height-(pipegap/2)-mid)
+            var bottomPipe = new BottomPipe(x, 0, assets.pipe.width, stage.height-assets.land.height-(pipegap/2)-mid)
                 .bounds({top:mid+pipegap/2})
                 .set({"type": "kinematic", "vel.x": -speed, zindex: 2});
                 
@@ -299,7 +299,7 @@ var game = {};
         var birdUpdate = bird.on("update", function()
         {
             //make sure bird doesn't go out of bounds
-            if(bird.pos.y < top) bird.pos.y = top+bird.height;
+            if(bird.pos.y-bird.height/2 < 0) bird.pos.y = 0+bird.height/2;
                 
             //rotate based on y velocity
             if(bird.vel.y < 0 && bird.rotation > -0.4) bird.rotation -= 0.1;             
