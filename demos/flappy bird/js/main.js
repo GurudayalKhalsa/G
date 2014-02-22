@@ -332,7 +332,6 @@ var game = {};
             return [topPipe, bottomPipe];
         }
         
-            
         scrollCollection(topPipes, undefined, 
         //determines whether to scroll
         function()
