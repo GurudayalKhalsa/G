@@ -15,14 +15,45 @@ var game = {};
     var speed = 2;
     
     //disable default mouse and touch events
-    stage.event.mouse.on("down, up", function(e){ e.preventDefault() })
+    mouse.on("down, up", function(e){ e.preventDefault() })
     
     //load and create assets
     //----------------------
     
     var assets = game.assets = new G.Collection,
         srces = 
-        [ "assets/ceiling.png", "assets/score_0.png", "assets/score_1.png", "assets/score_2.png", "assets/score_3.png", "assets/score_4.png", "assets/score_5.png", "assets/score_6.png", "assets/score_7.png", "assets/score_8.png", "assets/score_9.png", "assets/land.png", "assets/medal_bronze.png", "assets/medal_silver.png", "assets/medal_gold.png", "assets/medal_platinum.png", "assets/pipe_down.png", "assets/pipe_up.png", "assets/pipe.png", "assets/replay.png", "assets/score_button.png", "assets/scoreboard.png", "assets/sky.png", "assets/splash.png", "assets/start_button.png", "assets/restart_button.png", "assets/title.png" ];
+        [ 
+          "assets/ceiling.png", 
+          "assets/score_0.png", 
+          "assets/score_1.png", 
+          "assets/score_2.png", 
+          "assets/score_3.png", 
+          "assets/score_4.png", 
+          "assets/score_5.png", 
+          "assets/score_6.png", 
+          "assets/score_7.png", 
+          "assets/score_8.png", 
+          "assets/score_9.png", 
+          "assets/land.png", 
+          "assets/medal_bronze.png", 
+          "assets/medal_silver.png", 
+          "assets/medal_gold.png", 
+          "assets/medal_platinum.png", 
+          "assets/pipe_down.png", 
+          "assets/pipe_up.png", 
+          "assets/pipe.png", 
+          "assets/replay.png", 
+          "assets/score_button.png", 
+          "assets/scoreboard.png", 
+          "assets/sky.png", 
+          "assets/splash.png", 
+          "assets/start_button.png", 
+          "assets/restart_button.png", 
+          "assets/restart_button_icon.png", 
+          "assets/pause_button.png",
+          "assets/unpause_button.png",
+          "assets/title.png" 
+        ];
     
     for(var i = 0; i < srces.length; i++)
     {
@@ -219,6 +250,46 @@ var game = {};
         assets.title.remove();
         instructions.remove();
         
+        //buttons
+        assets.pause_button.add().set({"pos.x": 50, "pos.y": 50});
+        assets.restart_button_icon.add().set({"pos.x": 100, "pos.y": 50});
+        
+        var buttonEvents = mouse.on("down", function()
+        {
+            if(assets.pause_button.posInBounds(mouse.state.x, mouse.state.y))
+            {
+                assets.pause_button.set({"pos.x": -100, "pos.y": -100}).remove();
+                assets.unpause_button.add().set({"pos.x": 50, "pos.y": 50});
+                stage.render();
+                stage.pause();
+            }
+            
+            else if(assets.unpause_button.posInBounds(mouse.state.x, mouse.state.y))
+            {
+                assets.unpause_button.set({"pos.x": -100, "pos.y": -100}).remove();
+                assets.pause_button.add().set({"pos.x": 50, "pos.y": 50});
+                stage.unPause();
+            }
+            
+            else if(assets.restart_button_icon.posInBounds(mouse.state.x, mouse.state.y))
+            {
+                buttonEvents.off();
+                keyflapDown.off();
+                keyflapUp.off();
+                mouseFlap.off();
+                bird.one("collision", function(){ birdUpdate.off(); });
+                birdScoreUpdate.off();
+                event.off();
+                bird.removeAnimation();
+                scoreImages.remove(true);
+                bird.set({score: 0, "vel.y": 0, rotation: 0})
+                topPipes.remove(true);
+                bottomPipes.remove(true);
+                ceiling.remove(true);
+                game.start();
+            }
+        })
+        
         //score
         scoreImages.render(bird.score);
         
@@ -292,6 +363,7 @@ var game = {};
                 
         function flap()
         {
+            if(assets.pause_button.posInBounds(mouse.state.x, mouse.state.y) || assets.unpause_button.posInBounds(mouse.state.x, mouse.state.y)) return;
             bird.vel.y = bird.flyForce; 
         }
         
@@ -321,6 +393,7 @@ var game = {};
         {
             if(!ceiling.has(shape))
             {
+                buttonEvents.off();
                 keyflapDown.off();
                 keyflapUp.off();
                 mouseFlap.off();
@@ -389,9 +462,9 @@ var game = {};
             "pos.y": assets.scoreboard.bounds().bottom - 50
         });
         
-        var restartEvent = stage.event.mouse.on("up", function()
+        var restartEvent = mouse.on("up", function()
         {
-            if(assets.restart_button.posInBounds(stage.event.mouse.state.x, stage.event.mouse.state.y))
+            if(assets.restart_button.posInBounds(mouse.state.x, mouse.state.y))
             {
                 restartEvent.off();
                 [assets.scoreboard, scoreImages, highscoreImages, medal, assets.restart_button].forEach(function(asset){ if(asset) asset.remove(true); });
