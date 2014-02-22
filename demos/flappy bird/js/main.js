@@ -269,9 +269,6 @@ var game = {};
             
             else if(assets.restart_button_icon.posInBounds(mouse.state.x, mouse.state.y))
             {
-                location.reload();
-                return;
-                
                 buttonEvents.off();
                 keyflapDown.off();
                 keyflapUp.off();
