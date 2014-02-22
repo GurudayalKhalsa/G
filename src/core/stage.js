@@ -43,7 +43,7 @@ G.Stage = G.Collection.extend({
         this.addToObjectCollections = false;
         this.events = true;
         this.enableZindex = true;
-        this._visibleHashEnabled = false;
+        this.enableVisibleHash = false;
 
         if(obj && typeof obj.events !== "undefined" && !obj.events) this.events = false;
 

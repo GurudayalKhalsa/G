@@ -8,7 +8,8 @@ G.Collection = G.Class.extend({
         this.objects = [];
         this._currentId = 0;
         this._length = 0;
-        this._visibleHashEnabled = false;
+        this.enableVisibleHash = false;
+        this.enableZindex = false;
 
         this.addToCollections = typeof addToCollections === "boolean" ? addToCollections : ((typeof addToCollections === "object" && typeof addToCollections.addToCollections === "boolean") ? addToCollections.addToCollections : true);
         this.addToObjectCollections = typeof addToObjectCollections === "boolean" ? addToObjectCollections : ((typeof addToSCollections === "object" && typeof addToCollections.addToObjectCollections === "boolean") ? addToCollections.addToObjectCollections : true);
@@ -114,8 +115,8 @@ G.Collection = G.Class.extend({
         if(self.events) self.trigger("render");
 
         //retrieve all visible shapes, very efficient if thousands of static shapes
-        //only enabled if stage._visibleHashEnabled is set to true
-        if(this.visibleHash && this._visibleHashEnabled)
+        //only enabled if stage.enableVisibleHash is set to true
+        if(this.visibleHash && this.enableVisibleHash)
         {
             this.visibleHash.moving.clear().insert(this.visibleHash.moving.shapes);
             var obj = {};
@@ -242,7 +243,7 @@ G.Collection = G.Class.extend({
             }
 
             //add to visible visibleHash
-            if(this._visibleHashEnabled && (this.canvas || (this.get(0) && this.get(0).stage && this.get(0).stage.canvas)) && object instanceof G.Shape)
+            if(this.enableVisibleHash && (this.canvas || (this.get(0) && this.get(0).stage && this.get(0).stage.canvas)) && object instanceof G.Shape)
             {
                 this.addToVisibleHash(object);
             }
@@ -367,7 +368,7 @@ G.Collection = G.Class.extend({
 
     enableVisibleHash:function()
     {
-        this._visibleHashEnabled = true;
+        this.enableVisibleHash = true;
         var self = this;
         this.each(function(shape)
         {
@@ -377,7 +378,7 @@ G.Collection = G.Class.extend({
 
     disableVisibleHash:function()
     {
-        this._visibleHashEnabled = false;
+        this.enableVisibleHash = false;
         var self = this;
         this.each(function(shape)
         {

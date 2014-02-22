@@ -86,7 +86,7 @@ Physics.World = (function(){
                 }
             }
             
-            this.enableHash = typeof obj.enableHash === "boolean" ? obj.enableHash : false;
+            this.enableHash = typeof obj.enableHash === "boolean" ? obj.enableHash : true;
             this.onlyAABB = typeof obj.onlyAABB === "boolean" ? obj.onlyAABB : false;
             this.framerateVel = typeof obj.framerateVel === "boolean" ? obj.framerateVel : true;
 
@@ -177,7 +177,7 @@ Physics.World = (function(){
                     shape.colliding = false;
                     if(shape.enableCollisions === false || shape.physics === false) return;
                     //retrieve shapes in position range
-                    if(this.enableHash !== false)
+                    if(self.enableHash !== false)
                     {
                         _.each(self.dynamicHash.retrieve(shape), function(shape2)
                         {
@@ -187,7 +187,7 @@ Physics.World = (function(){
                     }
                     else
                     {
-                        _.each(self.shapes.dynamic, function(shape2)
+                        self.shapes.dynamic.each(function(shape2)
                         {
                             if(shape2.physics === false || shape2.enableCollisions === false) return;
                             self.handleCollisions(shape, shape2);
@@ -217,7 +217,7 @@ Physics.World = (function(){
                     {
                         shape.colliding = false;
                         //retrieve shapes in position range
-                        if(this.enableHash !== false)
+                        if(self.enableHash !== false)
                         {
                             _.each(self.dynamicHash.retrieve(shape), function(shape2)
                             {
@@ -227,7 +227,7 @@ Physics.World = (function(){
                         }
                         else
                         {
-                            _.each(self.shapes.dynamic, function(shape2)
+                            self.shapes.dynamic.each(function(shape2)
                             {
                                 if(shape2.physics === false || shape2.enableCollisions === false) return;
                                 self.handleCollisions(shape, shape2);
@@ -271,23 +271,23 @@ Physics.World = (function(){
                             }
                             
                             //retrieve shapes in position range
-                            if(this.enableHash !== false) _.each(self.staticHash.retrieve(shape), handle);
-                            else _.each(self.shapes.static, handle);
+                            if(self.enableHash !== false) _.each(self.staticHash.retrieve(shape), handle);
+                            else self.shapes.static.each(handle);
                            
                         }
 
                         if(self.collisions.dynamickinematic && self.shapes.dynamic.length() < self.shapes.kinematic.length()) 
                         {
                             //retrieve shapes in position range
-                            if(this.enableHash !== false) _.each(self.kinematicHash.retrieve(shape), handle);
-                            else _.each(self.shapes.kinematic, handle);
+                            if(self.enableHash !== false) _.each(self.kinematicHash.retrieve(shape), handle);
+                            else self.shapes.kinematic.each(handle);
                         }
 
                         if(self.collisions.dynamicdynamic) 
                         {
                             //retrieve shapes in position range
-                            if(this.enableHash !== false) _.each(self.dynamicHash.retrieve(shape), handle);
-                            else _.each(self.shapes.dynamic, handle);
+                            if(self.enableHash !== false) _.each(self.dynamicHash.retrieve(shape), handle);
+                            else self.shapes.dynamic.each(handle);
                         }
                     }
                     

@@ -127,6 +127,7 @@ var game = {};
     
     var TopPipe = G.Rect.extend
     ({
+        initialize:function(){ this._super.apply(this, arguments); this.name = "topPipe";  },
        _render: function()
        {
            var b = this.bounds();
@@ -139,6 +140,7 @@ var game = {};
     
     var BottomPipe = G.Rect.extend
     ({
+        initialize:function(){ this._super.apply(this, arguments); this.name = "bottomPipe";  },
        _render: function()
        {
            var b = this.bounds();
@@ -291,16 +293,16 @@ var game = {};
         
         //Set ceiling
         //-----------
-        assets.ceiling.set({physics: true, type: "kinematic", "vel.x":-speed});
-        assets.ceiling.bounds({bottom: 0});
-        for(var i = 0, l = stage.width/assets.ceiling.width; i < l+2; i++)
-        {
-            var img = new G.Image(assets.ceiling);
-            ceiling.add(img);
-            img.add().bounds({ left: i * assets.ceiling.width });
-        }
+        // assets.ceiling.set({physics: true, type: "kinematic", "vel.x":-speed});
+        // assets.ceiling.bounds({bottom: 0});
+        // for(var i = 0, l = stage.width/assets.ceiling.width; i < l+2; i++)
+        // {
+        //     var img = new G.Image(assets.ceiling);
+        //     ceiling.add(img);
+        //     img.add().bounds({ left: i * assets.ceiling.width });
+        // }
         
-        scrollCollection(ceiling, assets.ceiling);
+        // scrollCollection(ceiling, assets.ceiling);
         
         //platform stuff
         //--------------
