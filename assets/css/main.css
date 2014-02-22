@@ -18,13 +18,13 @@ body{
 
 .header{
   z-index:  1;
-  background-color: #fff;
+  background-color: #2ca78e;
   box-shadow: 0 0 4px rgba(0,0,0,0.25);
   margin-bottom: 2px;
 }
 
 .header a{
-  color: #004D39;
+  color: #fff;
 }
 
 .header .nav a{
@@ -33,8 +33,8 @@ body{
 }
 
 .header .nav a:hover, .header .nav li.active a{
-  color: #fff;
-  background-color: #004D39;
+  color: #004D39;
+  background-color: #fff;
 }
 
 .header .logo{
@@ -122,6 +122,16 @@ body{
 }
 
 /* Documentation page */
+hr{
+  border: 0;
+  height: 1px;
+  background: #333;
+  background-image: -webkit-linear-gradient(left, #ccc, #333, #ccc); 
+  background-image:    -moz-linear-gradient(left, #ccc, #333, #ccc); 
+  background-image:     -ms-linear-gradient(left, #ccc, #333, #ccc); 
+  background-image:      -o-linear-gradient(left, #ccc, #333, #ccc);   
+}
+
 body.docs{
   margin-top: 70px;
 }
