@@ -328,7 +328,10 @@ G.Collection = G.Class.extend({
     
     sortByZindex: function()
     {
-      this.objects.sort(function(cur, next){return cur.zindex > next.zindex});
+        this.objects.sort(function(cur, next)
+        {
+            return (cur.zindex > next.zindex ? 1 : (cur.zindex === next.zindex ? 0 : -1));
+        });
     },
 
     addToVisibleHash:function(object)

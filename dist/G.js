@@ -1,5 +1,5 @@
 /**
- * G 0.2-dev, 2014-02-21
+ * G 0.2-dev, 2014-02-22
  * A fast, powerful and extendable HTML5 game framework
  *
  * Copyright (c) 2014 Gurudayal Khalsa, gurudayalkhalsa@gmail.com
@@ -1904,7 +1904,10 @@ G.Collection = G.Class.extend({
     
     sortByZindex: function()
     {
-      this.objects.sort(function(cur, next){return cur.zindex > next.zindex});
+        this.objects.sort(function(cur, next)
+        {
+            return (cur.zindex > next.zindex ? 1 : (cur.zindex === next.zindex ? 0 : -1));
+        });
     },
 
     addToVisibleHash:function(object)

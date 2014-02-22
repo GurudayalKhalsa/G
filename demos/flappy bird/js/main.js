@@ -332,7 +332,6 @@ var game = {};
             return [topPipe, bottomPipe];
         }
         
-            
         scrollCollection(topPipes, undefined, 
         //determines whether to scroll
         function()
@@ -413,6 +412,8 @@ var game = {};
     game.end = function()
     {
         gameOver = true;
+        assets.pause_button.remove();
+        assets.restart_button_icon.remove();
         topPipes.each(function(){ this.physics = false; this.vel.x = 0; });
         bottomPipes.each(function(){ this.physics = false; this.vel.x = 0; });
         ceiling.each(function(){ this.vel.x = 0; });
