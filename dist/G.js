@@ -4602,6 +4602,7 @@ Physics.World = (function(){
                 }
             }
             
+            this.enableHash = typeof obj.enableHash === "boolean" ? obj.enableHash : false;
             this.onlyAABB = typeof obj.onlyAABB === "boolean" ? obj.onlyAABB : false;
             this.framerateVel = typeof obj.framerateVel === "boolean" ? obj.framerateVel : true;
 
