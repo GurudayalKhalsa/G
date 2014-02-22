@@ -73,12 +73,7 @@ var game = {};
     
     //Set Asset Values
     //----------------
-    
-    assets.query(function(obj){ return obj.name.indexOf("score") !== -1 }, function(img)
-    {
-        img.zindex = 5;
-    });
-    
+
     assets.land.vel.x = -2;
 
     //create bird sprite
@@ -108,24 +103,25 @@ var game = {};
         render: function(score, x, y, scale)
         {
             if(typeof score === "undefined") score = 0;
-            if(typeof x === "undefined") x = stage.width/2;
-            if(typeof y === "undefined") y = 100;
-            if(typeof scale === "undefined") scale = 1;
+            if(typeof x === "undefined") x = stage.width/2 + 20;
+            if(typeof y === "undefined") y = 42;
+            if(typeof scale === "undefined") scale = 0.8;
             
             this.remove(true);
             
             var score = (""+score).split("");
 
             var a = new G.Image(assets["score_"+score.pop()]);
-            this.add(a.set({ pos:{ x:x, y:y }, width: a.width * scale, height: a.height * scale }));
+            this.add(a.set({ zindex: 5, pos:{ x:x, y:y }, width: a.width * scale, height: a.height * scale }));
             for(var i = score.length - 1; i >= 0; i--)
             {                            
                 var b = new G.Image(assets["score_"+score[i]]);
-                this.add(b.set({ pos:{ x: a.bounds().left - a.width/2 - 2, y:y }, width: b.width * scale, height: b.height * scale }));
+                this.add(b.set({ zindex: 5, pos:{ x: a.bounds().left - a.width/2 - 2, y:y }, width: b.width * scale, height: b.height * scale }));
                 a = b;
             }
         } 
     });
+    
 
     var scoreImages = new ScoreImages();
     
@@ -251,15 +247,15 @@ var game = {};
         instructions.remove();
         
         //buttons
-        assets.pause_button.add().set({"pos.x": 50, "pos.y": 50});
-        assets.restart_button_icon.add().set({"pos.x": 100, "pos.y": 50});
+        assets.pause_button.add().set({zindex: 5, "pos.x": 30, "pos.y": 40});
+        assets.restart_button_icon.add().set({zindex: 5, "pos.x": 70, "pos.y": 40});
         
         var buttonEvents = mouse.on("down", function()
         {
             if(assets.pause_button.posInBounds(mouse.state.x, mouse.state.y))
             {
                 assets.pause_button.set({"pos.x": -100, "pos.y": -100}).remove();
-                assets.unpause_button.add().set({"pos.x": 50, "pos.y": 50});
+                assets.unpause_button.add().set({zindex: 5, "pos.x": 30, "pos.y": 40});
                 stage.render();
                 stage.pause();
             }
@@ -267,7 +263,7 @@ var game = {};
             else if(assets.unpause_button.posInBounds(mouse.state.x, mouse.state.y))
             {
                 assets.unpause_button.set({"pos.x": -100, "pos.y": -100}).remove();
-                assets.pause_button.add().set({"pos.x": 50, "pos.y": 50});
+                assets.pause_button.add().set({zindex: 5, "pos.x": 30, "pos.y": 40});
                 stage.unPause();
             }
             
@@ -337,13 +333,15 @@ var game = {};
         function()
         {
             //remove old
-            topPipes.query(function(pipe){ return pipe.pos.x < -((assets.pipe.width/2)+1) }).remove(true);                        
-            bottomPipes.query(function(pipe){ return pipe.pos.x < -((assets.pipe.width/2)+1) }).remove(true);                        
+            if(topPipes.get(0).pos.x < -((assets.pipe.width/2)+1)) 
+            {
+                topPipes.get(0).remove();
+                bottomPipes.get(0).remove();
+            }
             
-            var last = topPipes.query("pos.x", "range:"+(stage.width-assets.pipe.width/2)+":"+(stage.width)).get(0),
-                more = topPipes.query("pos.x", "range:"+(stage.width)+":"+(stage.width+1000)).length();
+            var last = topPipes.get(-1);
             
-            return last && !more ? last : false;
+            return last.pos.x > stage.width-assets.pipe.width/2 && last.pos.x < stage.width ? last : false;
         },
         //adds next item to collection and stage
         function(last)
@@ -505,13 +503,14 @@ var game = {};
         if(!fn1) fn1 = function()
         {
             //remove old
-            collection.query(function(shape){ return shape.pos.x + shape.width*1.5 < 0 }).remove(true);
-                                    
-            //add new
-            var last = collection.query("pos.x", "range:"+(stage.width-(shape.width/2)-1)+":"+stage.width).get(0),
-                more = collection.query("pos.x", "range:"+(stage.width+1)+":"+(stage.width+shape.width)).length();
-                
-            return last && !more ? last : false;
+            if(collection.get(0).pos.x + collection.get(0).width*1.5 < 0) 
+            {
+                collection.get(0).remove();
+            }
+            
+            var last = collection.get(-1);
+            
+            return last.pos.x > stage.width-(shape.width/2)-1 && last.pos.x < stage.width ? last : false;
         }
          
         if(!fn2) fn2 = function(last)

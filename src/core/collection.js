@@ -179,7 +179,6 @@ G.Collection = G.Class.extend({
         }
 
         //draw and update all objects in stage
-        this._rendering = true;
         for(var i = 0; i < this.objects.length; i++)
         {
             var shape = this.objects[i];
@@ -187,7 +186,6 @@ G.Collection = G.Class.extend({
             if(self.events) self.trigger("renderShape", [shape]);
             shape.render();
         }
-        this._rendering = false;
         return this;
     },
 
@@ -236,7 +234,7 @@ G.Collection = G.Class.extend({
             this._length = this._length+1;  
             
             //could be slow
-            if(typeof object.zindex !== "undefined")
+            if(typeof object.zindex !== "undefined" && this.enableZindex)
             {
                 var needToSort = false;
                 for(var i = 0; i < this.objects.length; i++) if(this.objects[i] && this.objects[i].zindex !== 0) { needToSort = true; break; }
