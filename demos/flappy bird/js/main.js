@@ -1,0 +1,457 @@
+var game = {};
+
+(function(){
+        
+    var stage = game.stage = new G.Stage({ physics:{ gravity:{y:0.3}, onlyAABB: true, framerateVel: false, enableHash: false } });
+    stage.setCanvas();
+    stage.backgroundColor = "#4ec0ca";
+    
+    var mouse = stage.event.mouse,
+        key = stage.event.key;
+    
+    var gameStarted = false,
+        gameOver = false;
+    var w = 320, h = 568;
+    var speed = 2;
+    
+    //disable default mouse and touch events
+    stage.event.mouse.on("down, up", function(e){ e.preventDefault() })
+    
+    //load and create assets
+    //----------------------
+    
+    var assets = game.assets = new G.Collection,
+        srces = 
+        [ "assets/ceiling.png", "assets/score_0.png", "assets/score_1.png", "assets/score_2.png", "assets/score_3.png", "assets/score_4.png", "assets/score_5.png", "assets/score_6.png", "assets/score_7.png", "assets/score_8.png", "assets/score_9.png", "assets/land.png", "assets/medal_bronze.png", "assets/medal_silver.png", "assets/medal_gold.png", "assets/medal_platinum.png", "assets/pipe_down.png", "assets/pipe_up.png", "assets/pipe.png", "assets/replay.png", "assets/score_button.png", "assets/scoreboard.png", "assets/sky.png", "assets/splash.png", "assets/start_button.png", "assets/restart_button.png", "assets/title.png" ];
+    
+    for(var i = 0; i < srces.length; i++)
+    {
+        var img = new G.Image({ name: srces[i].split("/").pop().replace(".png", ""), src:srces[i], addToStage: false, physics: false });
+        assets.add(img);
+        assets[srces[i].split("/").pop().replace(".png", "")] = img;
+    }
+    
+    var top = stage.height-h > assets.ceiling.height ? stage.height-h : 0;
+    var bottom = stage.height-assets.land.height;
+    
+    var sky = new G.Collection;
+        land = new G.Collection;
+        ceiling = new G.Collection,
+        topPipes = new G.Collection,
+        bottomPipes = new G.Collection;
+    
+    //Set Asset Values
+    //----------------
+    
+    assets.query(function(obj){ return obj.name.indexOf("score") !== -1 }, function(img)
+    {
+        img.zindex = 5;
+    });
+    
+    assets.land.vel.x = -2;
+
+    //create bird sprite
+    var bird = assets.bird = game.bird = new G.Sprite
+    ({
+        name:"bird",
+        src:"assets/bird.png",
+        pos:{ x:200, y:200 },
+        stepSize:{ x:34, y:24 },
+        columns:1,
+        rows:4,
+        animations:
+        {
+            stillFlap:{range:[0,3], speed:1/6},
+            movingFlap:{range:[0,3], speed:1/3}
+        },
+        addToStage:false,
+        physics:false,
+        zindex: 300,
+        flyForce: -5.7,
+        score: 0
+    });
+    assets.add(assets.bird);    
+        
+    var ScoreImages = G.Collection.extend
+    ({
+        render: function(score, x, y, scale)
+        {
+            if(typeof score === "undefined") score = 0;
+            if(typeof x === "undefined") x = stage.width/2;
+            if(typeof y === "undefined") y = top + 100;
+            if(typeof scale === "undefined") scale = 1;
+            
+            this.remove(true);
+            
+            var score = (""+score).split("");
+
+            var a = new G.Image(assets["score_"+score.pop()]);
+            this.add(a.set({ pos:{ x:x, y:y }, width: a.width * scale, height: a.height * scale }));
+            for(var i = score.length - 1; i >= 0; i--)
+            {                            
+                var b = new G.Image(assets["score_"+score[i]]);
+                this.add(b.set({ pos:{ x: a.bounds().left - a.width/2 - 2, y:y }, width: b.width * scale, height: b.height * scale }));
+                a = b;
+            }
+        } 
+    });
+
+    var scoreImages = new ScoreImages();
+    
+    var TopPipe = G.Rect.extend
+    ({
+       _render: function()
+       {
+           var b = this.bounds();
+           stage.ctx.drawImage(assets.pipe_down.image,b.left,b.bottom-assets.pipe_down.height,assets.pipe_down.width,assets.pipe_down.height);
+           
+           var h = ((b.bottom-assets.pipe_down.height-b.top) / assets.pipe.height);
+           stage.ctx.drawImage(assets.pipe.image,b.left,b.top,assets.pipe.width,h);
+       }
+    });
+    
+    var BottomPipe = G.Rect.extend
+    ({
+       _render: function()
+       {
+           var b = this.bounds();
+           stage.ctx.drawImage(assets.pipe_up.image,b.left,b.top,assets.pipe_up.width,assets.pipe_up.height);
+           
+           var h = ((b.bottom-(assets.pipe_up.height+b.top)) / assets.pipe.height);
+           stage.ctx.drawImage(assets.pipe.image, b.left, b.top + assets.pipe_up.height, assets.pipe.width, h);
+       }  
+    });
+    
+    //display loading until loaded all assets, start game after 
+    var loadingText = new G.Text("Loading...", stage.width/2, stage.height/2, "25px", "Helvetica Neue", "bold", "white", "center");
+    
+    var instructions = new G.Text(G.touchEnabled ? "Instructions: Tap to flap" : "Instructions: Click or press space to flap", 0,0, "20px", "Helvetica Neue", "bold", "white", "center", false);
+    
+    var pauseButton;
+    
+    //start on load
+    assets.one("load", function()
+    {
+        //Display Splash screen
+        
+        loadingText.remove();
+        
+        scrollCollection(land, assets.land);
+
+        game.splashScreen();
+        stage.event.on("resize", window, function()
+        {
+            if(!gameStarted) 
+            {
+                stage.setCanvas(window.innerWidth, window.innerHeight);
+                game.splashScreen();
+            }
+        });
+        
+        //Start game when start_button clicked
+        mouse.on("up", function()
+        {
+            if(assets.start_button.posInBounds(mouse.state.x, mouse.state.y) && !gameStarted)
+            {
+                game.start();
+            }
+        });
+    });
+    
+    //pause on esc
+    key.on("keyup:escape", function()
+    {
+        if(!gameOver) game.togglePaused();
+    });
+    
+    //draws splash screen
+    game.splashScreen = function()
+    {        
+        gameStarted = false;
+        
+        //Create Splash Screen and Set Images
+        //-----------------------------------
+        
+        //get center box
+        var c = { left:(stage.width/2) - w/2, top: (stage.height/2) - h/2, bottom: (stage.height/2) + h/2, right: (stage.width/2) + w/2, width:w, height:h };
+        
+        //add and set sky
+        sky.remove(true);
+        assets.land.bounds({bottom: stage.height});
+        for(var i = 0, l = stage.width/assets.sky.width; i < l; i++)
+        {
+            var img = new G.Image(assets.sky);
+            sky.add(img);
+            img.add().bounds({bottom: assets.land.bounds().top, left: i * assets.sky.width });
+        }
+        //add and set land, repeating
+        land.remove(true);
+        assets.land.set({physics: true, type: "kinematic", vel:{x:-speed}});
+        for(var i = 0, l = stage.width/assets.land.width; i < l; i++)
+        {
+            var img = new G.Image(assets.land);
+            land.add(img);
+            img.add().bounds({bottom: stage.height, left: i * assets.land.width });
+        }
+        
+        //add and set title position
+        assets.title.add().pos.set(c.left + (c.width/2) - 20, c.top + 150);
+        //add and set bird
+        assets.bird.add().setAnimation("stillFlap").pos.set(assets.title.bounds().right + assets.bird.width, assets.title.pos.y);
+        //add and set start button
+        assets.start_button.zindex = 1;
+        assets.start_button.add().bounds({top:assets.title.bounds().bottom+30}).pos.x = stage.width/2;
+        
+        //instructions
+        instructions.add();
+        instructions.set
+        ({
+            pos:{ x: stage.width/2, y: assets.start_button.pos.y + 60 },
+            zindex: 2
+        }).add();
+    }
+    
+    //starts the game
+    game.start = function()
+    {
+        gameStarted = true;
+        assets.start_button.remove();
+        assets.title.remove();
+        instructions.remove();
+        
+        //score
+        scoreImages.render(bird.score);
+        
+        //Set ceiling
+        //-----------
+        assets.ceiling.set({physics: true, type: "kinematic", "vel.x":-speed});
+        assets.ceiling.bounds({bottom: top});
+        for(var i = 0, l = stage.width/assets.ceiling.width; i < l+2; i++)
+        {
+            var img = new G.Image(assets.ceiling);
+            ceiling.add(img);
+            img.add().bounds({ left: i * assets.ceiling.width });
+        }
+        
+        scrollCollection(ceiling, assets.ceiling);
+        
+        //platform stuff
+        //--------------
+        var pipespacing = topPipes.pipespacing = bottomPipes.pipespacing = 120,
+            pipegap = topPipes.pipegap = bottomPipes.pipegap = 100;
+            
+        var topPipe = addPipe(stage.width)[0];
+        var nextPipe = topPipes.get(0);
+            
+        function addPipe(x)
+        {
+            var mid = G.random.float(bottom-(pipegap+pipegap/2), top+(pipegap+pipegap/2));
+            
+            var topPipe = new TopPipe(x, 0, assets.pipe.width, mid-(pipegap/2)-top)
+                .bounds({bottom:mid-pipegap/2})
+                .set({"type": "kinematic", "vel.x": -speed, zindex: 2});
+
+            var bottomPipe = new BottomPipe(x, 0, assets.pipe.width, bottom-assets.land.height-(pipegap/2)-mid)
+                .bounds({top:mid+pipegap/2})
+                .set({"type": "kinematic", "vel.x": -speed, zindex: 2});
+                
+            topPipes.add(topPipe);
+            bottomPipes.add(bottomPipe);
+            
+            return [topPipe, bottomPipe];
+        }
+        
+            
+        scrollCollection(topPipes, undefined, 
+        //determines whether to scroll
+        function()
+        {
+            //remove old
+            topPipes.query(function(pipe){ return pipe.pos.x < -((assets.pipe.width/2)+1) }).remove(true);                        
+            bottomPipes.query(function(pipe){ return pipe.pos.x < -((assets.pipe.width/2)+1) }).remove(true);                        
+            
+            var last = topPipes.query("pos.x", "range:"+(stage.width-assets.pipe.width/2)+":"+(stage.width)).get(0),
+                more = topPipes.query("pos.x", "range:"+(stage.width)+":"+(stage.width+1000)).length();
+            
+            return last && !more ? last : false;
+        },
+        //adds next item to collection and stage
+        function(last)
+        {
+            addPipe(last.pos.x + last.width + pipespacing);
+        });
+        
+        //bird stuff
+        //----------
+        bird.setAnimation("movingFlap").set({pos:{x: stage.width/5, y:stage.height-assets.land.height-( h <= window.innerHeight ? h/2 : (stage.height-assets.land.height)/2) }, physics:true});
+        
+        //flap on mouse down or spacebar
+        var mouseFlap = mouse.on("down", flap);
+        var keyflapDown = key.one("keydown:space", flap);
+        var keyflapUp = key.on("keyup:space", function(){ keyflapDown = key.one("keydown:space", flap) });
+                
+        function flap()
+        {
+            bird.vel.y = bird.flyForce; 
+        }
+        
+        //update loop for bird
+        var birdUpdate = bird.on("update", function()
+        {
+            //make sure bird doesn't go out of bounds
+            if(bird.pos.y < top) bird.pos.y = top+bird.height;
+                
+            //rotate based on y velocity
+            if(bird.vel.y < 0 && bird.rotation > -0.4) bird.rotation -= 0.1;             
+            if(bird.vel.y > 6 && bird.rotation < Math.PI/2) bird.rotation += 0.1;
+        });
+        
+        var birdScoreUpdate = bird.on("update", function()
+        {
+            //increase score if past next pillar
+            if(bird.pos.x > nextPipe.pos.x) 
+            {
+                bird.score++;
+                scoreImages.render(bird.score);
+                nextPipe = topPipes.get(topPipes.getId(nextPipe) + 1);
+            }
+        });
+        
+        var event = bird.on("collision", function(shape, mtv)
+        {
+            if(!ceiling.has(shape))
+            {
+                keyflapDown.off();
+                keyflapUp.off();
+                mouseFlap.off();
+                bird.one("collision", function(){ birdUpdate.off(); });
+                birdScoreUpdate.off();
+                event.off();
+                bird.removeAnimation();
+
+                game.end();
+                
+                //stop from resolving collision
+                return false;
+            }    
+        });
+    }
+    
+    game.end = function()
+    {
+        gameOver = true;
+        topPipes.each(function(){ this.physics = false; this.vel.x = 0; });
+        bottomPipes.each(function(){ this.physics = false; this.vel.x = 0; });
+        ceiling.each(function(){ this.vel.x = 0; });
+        land.each(function(){ this.vel.x = 0; });
+
+        //add gameover image and scoreboard
+        assets.scoreboard.add().set({zindex: 3, pos:{ x:stage.width/2, y: stage.height/2 }});
+
+        //display score && highscore
+        var scale = 0.5,
+            x = stage.width/2 + 85,
+            y = stage.height/2 - 25;
+        
+        scoreImages.render(bird.score, x, y, scale);
+        
+        var highscore = localStorage.getItem("flappy_bird_highscore");
+        if(typeof highscore === "undefined" || bird.score > +highscore)
+        {
+            localStorage.setItem("flappy_bird_highscore", ""+bird.score);
+            highscore = bird.score;
+        }
+        var highscoreImages = new ScoreImages();
+        highscoreImages.render(highscore, x, y + 43, scale);
+        
+        //display medal if any
+        var medal;
+        if(bird.score >= 40) medal = assets.medal_platinum;
+        else if(bird.score >= 30) medal = assets.medal_gold;
+        else if(bird.score >= 20) medal = assets.medal_silver;
+        else if(bird.score >= 10) medal = assets.medal_bronze;
+            
+        if(medal)
+        {
+            medal.add().set
+            ({
+                zindex: 10,
+                "pos.x": stage.width/2 - 65,
+                "pos.y": stage.height/2 - 5
+            });
+        }
+        
+        //add restart button, restart on click
+        assets.restart_button.add().set
+        ({
+            zindex: 10,
+            "pos.x": stage.width/2, 
+            "pos.y": assets.scoreboard.bounds().bottom - 50
+        });
+        
+        var restartEvent = stage.event.mouse.on("up", function()
+        {
+            if(assets.restart_button.posInBounds(stage.event.mouse.state.x, stage.event.mouse.state.y))
+            {
+                restartEvent.off();
+                [assets.scoreboard, scoreImages, highscoreImages, medal, assets.restart_button].forEach(function(asset){ if(asset) asset.remove(true); });
+                bird.set({score: 0, "vel.y": 0, rotation: 0})
+                topPipes.remove(true);
+                bottomPipes.remove(true);
+                ceiling.remove(true);
+                land.each(function(){ this.vel.x = -speed; });
+                game.start();
+            }
+        })
+    };
+
+    game.togglePaused = function()
+    {
+        if(!stage.isPaused) 
+        {
+            stage.pause();
+        }
+        
+        else
+        {
+            stage.unPause();
+        }
+    };
+    
+
+    stage.animate(function()
+    {
+        stage.update();
+        stage.render();
+    });
+    
+    //infinitely scrolls collection
+    function scrollCollection(collection, shape, fn1, fn2)
+    {   
+        if(!fn1) fn1 = function()
+        {
+            //remove old
+            collection.query(function(shape){ return shape.pos.x + shape.width*1.5 < 0 }).remove(true);
+                                    
+            //add new
+            var last = collection.query("pos.x", "range:"+(stage.width-(shape.width/2)-1)+":"+stage.width).get(0),
+                more = collection.query("pos.x", "range:"+(stage.width+1)+":"+(stage.width+shape.width)).length();
+                
+            return last && !more ? last : false;
+        }
+         
+        if(!fn2) fn2 = function(last)
+        {
+            var img = new G.Image(shape);
+            collection.add(img);
+            img.add().bounds({left: last.bounds().right-1 });
+        }
+        
+        stage.on("update", function()
+        {
+            var res = fn1();               
+            if(res) fn2(res);
+        });
+    }
+    
+})();

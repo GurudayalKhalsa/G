@@ -3,16 +3,12 @@
 
     if(G.isMobile) return;
 
-    G.physics = true;
-    G.setCanvas("#canvas");
-
-    if(!G.canvas) return;
-
-    var stage = G.stage, canvas = G.canvas, ctx = G.ctx;
+    var stage = new G.Stage({physics:true}).setCanvas("#canvas"),
+        r = G.random;
 
     function addCircles(x,y,l)
     {
-        for(var i = 0; i < 50; i++) new G.Circle(x||G.random(G.stage.width), y||G.random(G.stage.height), 2, G.random.color(), G.random.choice([G.random(-2, -5), G.random(5,2)]), G.random.choice([G.random(-2, -5), G.random(5,2)]));
+        for(var i = 0; i < 50; i++) new G.Circle(x||r(stage.width), y||r(stage.height), 2, r.color(), r.choice([r(-2, -5), r(5,2)]), r.choice([r(-2, -5), r(5,2)]));
     }
 
     new G.Bounds(1,0,20);

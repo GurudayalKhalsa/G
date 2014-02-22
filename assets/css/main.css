@@ -2,7 +2,9 @@
 
 body{
   font-size: 15px;
+  font-weight: 300;
   color: #004D39;
+  background-color: rgba(240, 255, 249, 1);
 }
 
 #canvas{
@@ -14,21 +16,25 @@ body{
   z-index: -1;
 }
 
-body{
-  background-color: #DFFFF2;
+.header{
+  z-index:  1;
+  background-color: #fff;
+  box-shadow: 0 0 4px rgba(0,0,0,0.25);
+  margin-bottom: 2px;
 }
 
 .header a{
+  color: #004D39;
+}
+
+.header .nav a{
+  border-radius: 5px;
+  margin-right: 3px;
+}
+
+.header .nav a:hover, .header .nav li.active a{
   color: #fff;
-}
-
-.header a:hover{
-  color: #98EACE;
-}
-
-.header{
-  background-color: #029F76;
-  z-index:  1;
+  background-color: #004D39;
 }
 
 .header .logo{
@@ -41,11 +47,11 @@ body{
 
 .content .container{
   padding: 10px;
-  background-color: rgba(223, 255, 242);
-  background-color: rgba(223, 255, 242, 0.9);
+  background-color: rgb(240, 255, 249);
+  background-color: rgba(240, 255, 249, 0.9);
 }
 
-.content h1, .content h2, .content h3, .content h4, .content h5, .content a{
+.content a{
   color: #07A77A;
 }
 
@@ -67,7 +73,7 @@ body{
 }
 
 .content .description{
-  margin-bottom: 20px;
+  margin-bottom: 25px;
 }
 
 .features .column{
@@ -115,6 +121,7 @@ body{
   padding-top: 10px;
 }
 
+/* Documentation page */
 body.docs{
   margin-top: 70px;
 }
@@ -125,6 +132,12 @@ body.docs .header{
   width: 100%;
 }
 
+.docs .content{
+  margin: 20px auto;
+  max-width: 1200px;
+  position: relative;
+}
+
 .docs .sidebar{
   position: fixed;
   float: left;
@@ -132,6 +145,7 @@ body.docs .header{
   display: inline-block;
   overflow: auto;
   height: 85%;
+  margin-top: 5px;
 }
 
 .docs .main{
@@ -163,11 +177,23 @@ body.docs .header{
   margin-top: -135px;
 }
 
+.docs .sidebar a{
+  color: #004D39;
+}
+
 .docs .sidebar a:hover{
   text-decoration: underline;
 }
 
 .docs .subsection{
+  margin-left: 15px;
+}
+
+.docs .subsection .subsection{
+  margin-left: 10px;
+}
+
+.docs .subsection .subsection .subsection{
   margin-left: 5px;
 }
 
@@ -201,12 +227,8 @@ pre h5{
   }
 }
 
-@media all and (max-width: 400px){
-
-  .header h5, .header h3{
-    font-size: 0.7em;
-  }
-
+@media all and (max-width: 650px){
+  
   .docs .sidebar, .docs .main{
     display: block;
     width: 100%;
@@ -216,6 +238,18 @@ pre h5{
     margin: 0px;
     position: relative;
   }
+}
+
+@media all and (max-width: 400px){
+
+  .header h5, .header h3{
+    font-size: 0.7em;
+  }
+  
+  body{
+    font-size: 0.9em;
+  }
+
 }
 
 @media all and (max-height: 600px){
