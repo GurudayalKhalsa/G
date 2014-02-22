@@ -121,6 +121,7 @@ var game = {};
             }
         } 
     });
+    
 
     var scoreImages = new ScoreImages();
     
