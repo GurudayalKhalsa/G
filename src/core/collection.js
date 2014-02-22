@@ -398,12 +398,7 @@ G.Collection = G.Class.extend({
         if(typeof index === "number")
         {
             if(index >= 0)return this.objects[index];
-            var i = 0;
-            for(i = this.objects.length-1; i > 0; i--)
-            {
-                if(this.objects[i]) break;
-            }
-            return this.objects[i+1+index];
+            return this.objects[this.objects.length+index];
         }
         if(this.objects.indexOf(undefined) === -1) return this.objects.slice(0);
         var objects = [];
