@@ -4,7 +4,7 @@
  * based on Emit -> https://github.com/jeromeetienne/Emit.js
  * From Emit -> changed bind and unbind events to on and off, added one event
  */
-var Emit = G.Emit = (function(){
+this.Emit = G.Emit = (function(){
 
     var Emit = function() {};
     Emit.prototype = {
@@ -13,14 +13,50 @@ var Emit = G.Emit = (function(){
             this._events = this._events || {};
             this._events[event] = this._events[event] || [];
             this._events[event].push(fct);
-            return this;
+            return {
+                context:this,
+                event:event,
+                type:"on",
+                callback: fct,
+                makeOne: function()
+                {
+                    this.off();
+                    var res = this.context.one(this.event, this.callback);
+                    for(var i in res)
+                    {
+                        this[i] = res[i];
+                    }    
+                },
+                off: function()
+                {
+                    this.context.off(this.event, this.callback);
+                }
+            };
         },
         one:function(event, fct)
         {
             this._events = this._events || {};
             this._events[event] = this._events[event] || [];
             this._events[event].push(["one", fct]);
-            return this;
+            return {
+                context:this,
+                event:event,
+                type:"off",
+                callback: fct,
+                makeOn: function()
+                {
+                    this.off();
+                    var res = this.context.on(this.event, this.callback);
+                    for(var i in res)
+                    {
+                        this[i] = res[i];
+                    }    
+                },
+                off: function()
+                {
+                    this.context.off(this.event, this.callback);
+                }
+            };
         },
         off: function(event, fct)
         {

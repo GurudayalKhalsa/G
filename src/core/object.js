@@ -119,6 +119,8 @@ G.Object = G.Class.extend({
 
     remove:function(collection)
     {        
+        if(typeof collection === "boolean") collection = undefined;
+        
         var self = this;  
         //delete collection specified if specified
         if(collection && collection instanceof G.Collection)
@@ -193,5 +195,7 @@ G.Object = G.Class.extend({
         if(typeof this[name] === "undefined") return false;
         if(typeof this[name] === "object") return _.clone(obj);
         return this[name];
-    }
+    },
+    
+    update: function(){}
 });

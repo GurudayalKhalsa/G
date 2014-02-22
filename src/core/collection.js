@@ -93,15 +93,15 @@ G.Collection = G.Class.extend({
     update:function()
     {
         this.trigger("update");
+        //update physics world if exists
         if((this.world && ((this !== G.stage && this.physics) || (this === G.stage && G.physics && this.physics)))) this.world.update();
-        //prevent update from being called more than once
-        else if(this.get(0) && !(this.get(0).stage && this.get(0).stage.world))
+        
+        //update each shape
+        this.each(function(shape)
         {
-            this.each(function(shape)
-            {
-                if(shape.update) shape.update();
-            });
-        }
+            if(shape.update) shape.update();
+        });
+        
         return this;
     },
 
@@ -179,6 +179,7 @@ G.Collection = G.Class.extend({
         }
 
         //draw and update all objects in stage
+        this._rendering = true;
         for(var i = 0; i < this.objects.length; i++)
         {
             var shape = this.objects[i];
@@ -186,6 +187,7 @@ G.Collection = G.Class.extend({
             if(self.events) self.trigger("renderShape", [shape]);
             shape.render();
         }
+        this._rendering = false;
         return this;
     },
 
@@ -277,13 +279,15 @@ G.Collection = G.Class.extend({
         {
             var index = 0;
             var objects = [];
-            this.each(function(object)
+            for(var i = 0, j = this.objects.length; i < j; i++)
             {
+                var object = this.objects[i];
                 objects.push(object);
                 self.remove(object);
                 //force removal
                 if(object) object.remove();
-            });
+            }
+                
             return objects;
         }
 
@@ -294,7 +298,10 @@ G.Collection = G.Class.extend({
         if(this.events) this.trigger("remove", arguments);
         if(this.events) this.trigger("change", arguments);
 
-        delete this.objects[index];
+        this.objects.splice(index, 1);
+        // delete this.objects[index];
+        
+        this._currentId = this.objects.length;
         this._length = this._length-1;
 
         //remove from visible visibleHash
@@ -413,11 +420,11 @@ G.Collection = G.Class.extend({
 
     each:function(callback)
     {
-        for(var i = 0; i < this.objects.length; i++)
+        for(var i = 0, j = this.objects.length; i < j; i++)
         {
             if(typeof this.objects[i] !== "undefined") 
             {
-                var res = callback.call(this, this.objects[i], i);
+                var res = callback.call(this.objects[i], this.objects[i], i);
                 if(res === false) break;
             }
         }
@@ -565,7 +572,7 @@ G.Collection = G.Class.extend({
 
             if(!not) 
             {
-                cb(object, obj);
+                cb.call(object, object, obj);
                 collection.add(object);
                 none = false;
             }

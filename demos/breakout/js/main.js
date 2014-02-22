@@ -191,6 +191,7 @@ var introText = new G.Collection
     new G.Text("Breakout", G.stage.width/2, G.stage.height/2-50, "30px", "Helvetica Neue", "normal", G.random.color(), "center", "center"),
     new G.Text((G.isMobile ? "Tap" : "Click") + " To Begin", G.stage.width/2, G.stage.height/2, "20px", "Helvetica Neue", "normal", G.random.color(), "center", "center")
 )
+
 introText.render();
 
 var ball;

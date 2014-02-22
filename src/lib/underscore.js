@@ -44,6 +44,10 @@
   // Delegates to **ECMAScript 5**'s native `forEach` if available.
   _.each = function(obj, iterator, context) {
     if (obj == null) return;
+    if(typeof obj === "number")
+    {
+      for(var i = 0; i < obj; i++) iterator(i);
+    }
     if (Array.prototype.forEach && obj.forEach === Array.prototype.forEach) {
       obj.forEach(iterator, context);
     } else if (obj.length === +obj.length) {
