@@ -1,5 +1,5 @@
 /**
- * G 0.2, 2014-01-22
+ * G 0.2-dev, 2014-02-21
  * A fast, powerful and extendable HTML5 game framework
  *
  * Copyright (c) 2014 Gurudayal Khalsa, gurudayalkhalsa@gmail.com
@@ -7,7 +7,7 @@
  */
 ! function(name, root, factory) {
     //expose module to either Node/CommonJS or AMD if available, and root object of choosing (e.g. Window)
-    (typeof define === "function" && define.amd) ? define(function(){ return root.call(factory) }) : (typeof module === "object" && typeof module.exports === "object") ? module.exports = factory.call(root) : root[name] = factory.call(root)
+    (typeof define === "function" && define.amd) ? define(function(){ return factory.call(root) }) : (typeof module === "object" && typeof module.exports === "object") ? module.exports = factory.call(root) : root[name] = factory(root)
 }
 ("G", this, function() {
 
@@ -64,14 +64,10 @@ var G = {};
 /**
  * Emit.js - to make any js object an event emitter (server or browser)
  * 
- * based on MicroEvent -> https://github.com/jeromeetienne/microevent.js
- * From MicroEvent -> changed bind and unbind events to on and off, added one event
+ * based on Emit -> https://github.com/jeromeetienne/Emit.js
+ * From Emit -> changed bind and unbind events to on and off, added one event
  */
-! function(name, root, factory) {
-    //expose module to either Node/CommonJS or AMD if available, and root object of choosing (e.g. Window)
-    (typeof define === "function" && define.amd) ? define(function(){ return root.call(factory) }) : (typeof module === "object" && typeof module.exports === "object") ? module.exports = factory.call(root) : root[name] = factory.call(root)
-}
-("Emit", this, function() {
+var Emit = G.Emit = (function(){
 
     var Emit = function() {};
     Emit.prototype = {
@@ -80,14 +76,50 @@ var G = {};
             this._events = this._events || {};
             this._events[event] = this._events[event] || [];
             this._events[event].push(fct);
-            return this;
+            return {
+                context:this,
+                event:event,
+                type:"on",
+                callback: fct,
+                makeOne: function()
+                {
+                    this.off();
+                    var res = this.context.one(this.event, this.callback);
+                    for(var i in res)
+                    {
+                        this[i] = res[i];
+                    }    
+                },
+                off: function()
+                {
+                    this.context.off(this.event, this.callback);
+                }
+            };
         },
         one:function(event, fct)
         {
             this._events = this._events || {};
             this._events[event] = this._events[event] || [];
             this._events[event].push(["one", fct]);
-            return this;
+            return {
+                context:this,
+                event:event,
+                type:"off",
+                callback: fct,
+                makeOn: function()
+                {
+                    this.off();
+                    var res = this.context.on(this.event, this.callback);
+                    for(var i in res)
+                    {
+                        this[i] = res[i];
+                    }    
+                },
+                off: function()
+                {
+                    this.context.off(this.event, this.callback);
+                }
+            };
         },
         off: function(event, fct)
         {
@@ -115,10 +147,11 @@ var G = {};
             {
                 var res;
                 //if one, remove
-                if(typeof this._events[event][i] === "object") 
+                if(this._events[event][i][0] === "one") 
                 {
-                    res = this._events[event][i][1].apply(this, arguments[1]||undefined);
-                    this._events[event].splice(this._events[event][i], 1);
+                    var fn = this._events[event][i][1];
+                    this._events[event].splice(i, 1);
+                    res = fn.apply(this, arguments[1]||undefined);
                 }
                 else res = this._events[event][i].apply(this, arguments[1]||undefined);
                 responses.push(res);
@@ -128,11 +161,11 @@ var G = {};
     };
 
     /**
-     * mixin will delegate all MicroEvent.js function in the destination object
+     * mixin will delegate all Emit.js function in the destination object
      *
-     * - require('MicroEvent').mixin(Foobar) will make Foobar able to use MicroEvent
+     * - require('Emit').mixin(Foobar) will make Foobar able to use Emit
      *
-     * @param {Object} the object which will support MicroEvent
+     * @param {Object} the object which will support Emit
      */
     Emit.mixin = function(destObject)
     {
@@ -151,9 +184,9 @@ var G = {};
     }
 
     return Emit;
-});
+})(G);
 
- var Event = function(){
+ var Event = G.Event = function(){
 
     var root = this;
     var self = root;
@@ -177,7 +210,7 @@ var G = {};
         if(typeof arguments[0] === "undefined") return false;
         if(typeof callback === "undefined") 
         {
-            console.warn("No callback specified. Not listening for event.");   
+            console.trace("No callback specified. Not listening for event.");   
             return false;
         }     
         if(typeof el.addEventListener === "undefined") 
@@ -256,6 +289,13 @@ var G = {};
         if(!obj) return false;
         
         obj.run("addEventListener", "on", obj.event, obj.el, obj.callback, obj.useCapture);
+        
+        return {
+            off: function()
+            {
+                root.off(obj.event, obj.el, obj.callback);
+            }
+        }
     }
 
     /**
@@ -269,8 +309,14 @@ var G = {};
         var obj = get.apply(this, arguments);
         if(!obj) return false;
 
-
         obj.run("addEventListener", "one", obj.event, obj.el, obj.callback, obj.useCapture);
+        
+        return {
+            off: function()
+            {
+                root.off(obj.event, obj.el, obj.callback);
+            }
+        }
     }
 
     /**
@@ -285,6 +331,8 @@ var G = {};
         if(!obj) return false;
 
         obj.run("removeEventListener", "off", obj.event, obj.el, obj.callback);
+        
+        return root;
     }
 
     root.key = (function()
@@ -584,11 +632,18 @@ var G = {};
             {
                 var type = key.split(":").length === 1 ? (key === "keyup" ? "keyup" : "keydown") : key.split(":")[0];
                 var keys = key.split(":").length > 1 ? key.split(":")[1] : (key === "keydown" || key === "keyup" ? false : key);
-                root.addEventListener(type, function(e)
+                function listener(e)
                 {
                     var triggered = type === "keydown" ? Key.isDown(keys, e) : Key.isUp(keys, e);
                     if(triggered) callback(e);
-                });
+                }
+                root.addEventListener(type, listener);
+                return {
+                    off: function()
+                    {
+                        Key.off(type, listener);
+                    }    
+                };
             }
             
         }
@@ -617,6 +672,12 @@ var G = {};
                         root.removeEventListener(type, func);
                     }
                 }
+                return {
+                    off: function()
+                    {
+                        Key.off(type, func);
+                    }    
+                };
             }
         }
 
@@ -858,9 +919,9 @@ var G = {};
             return args;
         }
 
-        Mouse.on = function(){ self.on.apply(Mouse, getArgs(arguments)); return Mouse; };
-        Mouse.one = function(){ self.one.apply(Mouse, getArgs(arguments)); return Mouse; };
-        Mouse.off = function(){ self.off.apply(Mouse, getArgs(arguments)); return Mouse; };
+        Mouse.on = function(){ return self.on.apply(Mouse, getArgs(arguments)); };
+        Mouse.one = function(){ return self.one.apply(Mouse, getArgs(arguments)); };
+        Mouse.off = function(){ return self.off.apply(Mouse, getArgs(arguments)); };
 
         return Mouse;
   
@@ -1064,6 +1125,10 @@ var Stats = function()
   // Delegates to **ECMAScript 5**'s native `forEach` if available.
   _.each = function(obj, iterator, context) {
     if (obj == null) return;
+    if(typeof obj === "number")
+    {
+      for(var i = 0; i < obj; i++) iterator(i);
+    }
     if (Array.prototype.forEach && obj.forEach === Array.prototype.forEach) {
       obj.forEach(iterator, context);
     } else if (obj.length === +obj.length) {
@@ -1232,6 +1297,16 @@ var Stats = function()
     _.isEqual = function(a, b) {
       return eq(a, b, [], []);
     };
+    
+    _.isObj = function(o)
+    {
+      return Object.prototype.toString.call(o) === "[object Object]";
+    }
+    
+    _.isArr = function(o)
+    {
+      return Array.isArray(o);
+    }
 
     // Return a copy of the object without the blacklisted properties.
     _.omit = function(obj) {
@@ -1268,8 +1343,28 @@ G.Object = G.Class.extend({
 
         //prevent sub-objects from being modified if obj used again (e.g. if an object is used to create a shape, and that objects's pos is changed afterwards, this shape's ops would normally be that obj's pos. prevent that)
         //this also get's rid of functions... consider changing to allow functions?
-        obj = JSON.parse(JSON.stringify(obj));
-        // defaults = JSON.parse(JSON.stringify(defaults||{}));
+        var tmp = {};
+        for(var i in obj)
+        {
+            if(_.isObj(obj[i]) || _.isArr(obj[i])) 
+            {
+                try {
+                    tmp[i] = JSON.parse(JSON.stringify(obj[i]));
+                }  
+                catch (e) {                    
+                    if(_.isArr(obj[i]))
+                    {
+                        tmp[i] = obj[i].slice(0);
+                    }
+                    else
+                    {
+                        tmp[i] = _.extend({}, obj[i])
+                    }
+                }
+            } 
+            else tmp[i] = obj[i];
+        }
+        obj = tmp;
 
         var rootDefaults = {collections:[],events:true};
         var params = rootDefaults;
@@ -1288,7 +1383,12 @@ G.Object = G.Class.extend({
                 {
                     for(var key in obj[param]) 
                     {
-                        params[param][key] = obj[param][key]; 
+                        try {
+                            params[param][key] = obj[param][key]; 
+                        }  
+                        catch (e) { 
+
+                        }
                     }
                 }
                 else params[param]=obj[param];
@@ -1334,11 +1434,15 @@ G.Object = G.Class.extend({
                 if(G.stage.addToObjectCollections !== false && this.collections.indexOf(G.stage) === -1) this.collections.push(G.stage);
             }              
             if(typeof id !== "undefined") this.stageId = id; 
-        }            
+        }  
+        
+        return this;          
     },
 
     remove:function(collection)
     {        
+        if(typeof collection === "boolean") collection = undefined;
+        
         var self = this;  
         //delete collection specified if specified
         if(collection && collection instanceof G.Collection)
@@ -1373,12 +1477,23 @@ G.Object = G.Class.extend({
         //handle of object passed in, set all keys in that object
         if(typeof key === "object") { _.each(arguments[0], function(val, key){ self.set(key, val) }); return self; }
 
-        var current = this[key];
-        if((typeof val !== "object" && val !== current) || (typeof val === "object" && !_.isEqual(current, val)) )
+        var parent = this;
+        if(key.indexOf(".") !== -1)
+        {
+            var depth = key.split(".");
+            for(var i = 0; i < depth.length-1; i++)
+            {
+                parent = parent[depth[i]];   
+            }
+            key = depth.pop();
+        }
+                
+        var current = parent[key];
+        if((typeof val !== "object" && val !== current) || (typeof val === "object" && val !== current) )
         {
 
-            if(typeof val === "object" && !(val instanceof G.Object)) this[key] = _.extend(current, val);
-            else this[key] = val;
+            if(typeof val === "object" && !(val instanceof G.Object)) parent[key] = JSON.parse(JSON.stringify(val));
+            else parent[key] = val;
 
             if(this.events)
             {
@@ -1402,7 +1517,9 @@ G.Object = G.Class.extend({
         if(typeof this[name] === "undefined") return false;
         if(typeof this[name] === "object") return _.clone(obj);
         return this[name];
-    }
+    },
+    
+    update: function(){}
 });
 
 
@@ -1551,15 +1668,16 @@ G.Collection = G.Class.extend({
 
     update:function()
     {
+        this.trigger("update");
+        //update physics world if exists
         if((this.world && ((this !== G.stage && this.physics) || (this === G.stage && G.physics && this.physics)))) this.world.update();
-        //prevent update from being called more than once
-        else if(this.get(0) && !(this.get(0).stage && this.get(0).stage.world))
+        
+        //update each shape
+        this.each(function(shape)
         {
-            this.each(function(shape)
-            {
-                if(shape.update) shape.update();
-            });
-        }
+            if(shape.update) shape.update();
+        });
+        
         return this;
     },
 
@@ -1637,7 +1755,7 @@ G.Collection = G.Class.extend({
         }
 
         //draw and update all objects in stage
-        for(var i = 0; i < this.objects.length; i++)
+        for(var i = 0, j = this.objects.length; i < j; i++)
         {
             var shape = this.objects[i];
             if(!(shape instanceof G.Shape)) continue;
@@ -1649,6 +1767,8 @@ G.Collection = G.Class.extend({
 
     add:function(object)
     {
+        if(_.isArr(object)){ for(var i = 0; i < object.length; i++) this.add(object[i]); return this }
+        
         var self = this;
         //if multiple in arguments
         if(arguments.length > 1)
@@ -1688,6 +1808,14 @@ G.Collection = G.Class.extend({
             this.objects[id] = object;
             this._currentId++;
             this._length = this._length+1;  
+            
+            //could be slow
+            if(typeof object.zindex !== "undefined")
+            {
+                var needToSort = false;
+                for(var i = 0; i < this.objects.length; i++) if(this.objects[i] && this.objects[i].zindex !== 0) { needToSort = true; break; }
+                if(needToSort) this.sortByZindex();
+            }
 
             //add to visible visibleHash
             if(this._visibleHashEnabled && (this.canvas || (this.get(0) && this.get(0).stage && this.get(0).stage.canvas)) && object instanceof G.Shape)
@@ -1710,6 +1838,8 @@ G.Collection = G.Class.extend({
 
     remove:function(object, fromObject)
     {
+        if(_.isArr(object)){ for(var i = 0; i < object.length; i++) this.remove(object[i]); return this }
+
         if(this.length() === 0) return false;
         //if index, get object
         if(typeof object === "number") object = this.get(object);
@@ -1723,13 +1853,15 @@ G.Collection = G.Class.extend({
         {
             var index = 0;
             var objects = [];
-            this.each(function(object)
+            for(var i = 0, j = this.objects.length; i < j; i++)
             {
+                var object = this.objects[i];
                 objects.push(object);
                 self.remove(object);
                 //force removal
                 if(object) object.remove();
-            });
+            }
+                
             return objects;
         }
 
@@ -1740,7 +1872,10 @@ G.Collection = G.Class.extend({
         if(this.events) this.trigger("remove", arguments);
         if(this.events) this.trigger("change", arguments);
 
-        delete this.objects[index];
+        this.objects.splice(index, 1);
+        // delete this.objects[index];
+        
+        this._currentId = this.objects.length;
         this._length = this._length-1;
 
         //remove from visible visibleHash
@@ -1763,6 +1898,11 @@ G.Collection = G.Class.extend({
         if(this === G.stage || this.queryParent === G.stage) object.remove();
 
         return object;
+    },
+    
+    sortByZindex: function()
+    {
+      this.objects.sort(function(cur, next){return cur.zindex > next.zindex});
     },
 
     addToVisibleHash:function(object)
@@ -1830,7 +1970,12 @@ G.Collection = G.Class.extend({
         if(typeof index === "number")
         {
             if(index >= 0)return this.objects[index];
-            return this.objects[this.objects.length+index];
+            var i = 0;
+            for(i = this.objects.length-1; i > 0; i--)
+            {
+                if(this.objects[i]) break;
+            }
+            return this.objects[i+1+index];
         }
         if(this.objects.indexOf(undefined) === -1) return this.objects.slice(0);
         var objects = [];
@@ -1849,11 +1994,11 @@ G.Collection = G.Class.extend({
 
     each:function(callback)
     {
-        for(var i = 0; i < this.objects.length; i++)
+        for(var i = 0, j = this.objects.length; i < j; i++)
         {
             if(typeof this.objects[i] !== "undefined") 
             {
-                var res = callback.call(this, this.objects[i]);
+                var res = callback.call(this.objects[i], this.objects[i], i);
                 if(res === false) break;
             }
         }
@@ -1920,37 +2065,68 @@ G.Collection = G.Class.extend({
     {
         if(typeof obj !== "string" && typeof obj !== "object" && typeof obj !== "function") return false;
 
-        if(typeof obj === "string") var match = obj.split(",");
+        if(typeof obj === "string") 
+        {
+            var match = obj.split(",");
+            if(typeof cb === "string") 
+            {
+                var query = cb;
+                cb = arguments[2];
+            }
+        }
         if(typeof obj === "function") var custom = obj;
-
+        
         var cb = cb || function(){};
         var collection = new G.Collection(false, false);
         collection.queryParent = this;
         var none = true;
 
         for(var i = 0; i < this.objects.length; i++)
-        {
+        {            
             if(!this.objects[i]) continue;
             var object = this.objects[i];
 
             var not = false;
             
+            
             //handle if string
             if(match) 
             {
-                for(var i = 0; i < match.length; i++)
+                _.each(match, function(key)
                 {
-                    if(typeof object[match[i]] === "undefined") not = true;
-                }
+                   var parent = object;
+                   if(key.indexOf(".") !== -1)
+                   {
+                       var depth = key.split(".");
+                       for(var i = 0; i < depth.length-1; i++)
+                       {
+                           parent = parent[depth[i]];   
+                       }
+                       key = depth.pop();
+                   }
+                   
+                   process(query, key, parent);
+                });
             }
+            
 
             //handle if obj
             else if(custom) not = custom(object) ? false : true;
 
             else _.each(obj, function(val, key)
             {
-                if(typeof val === "object") _.each(val, function(val2, key2){ process(val2, key2, object[key]) });
-                else process(val, key, object);
+                var parent = object;
+                if(key.indexOf(".") !== -1)
+                {
+                    var depth = key.split(".");
+                    for(var i = 0; i < depth.length-1; i++)
+                    {
+                        parent = parent[depth[i]];   
+                    }
+                    key = depth.pop();
+                }
+                if(typeof val === "object") _.each(val, function(val2, key2){ process(val2, key2, parent[key]) });
+                else process(val, key, parent);
             });
 
             function process(val, key, parent)
@@ -1961,7 +2137,7 @@ G.Collection = G.Class.extend({
                 //if number range - e.g. "range:10:20" in between 10 and 20
                 if(typeof val === "string" && val.indexOf("range") !== -1)
                 {
-                    var range = val.split("range:").join("").split(":").map(function(val){return parseFloat(val)});
+                    var range = val.split("range:").join("").split(":").map(function(val){return +val});
                     if(range && parent[key] >= range[0] && parent[key] <= range[1]) not = false;
                     else not = true; 
                 }
@@ -1970,7 +2146,7 @@ G.Collection = G.Class.extend({
 
             if(!not) 
             {
-                cb(object, obj);
+                cb.call(object, object, obj);
                 collection.add(object);
                 none = false;
             }
@@ -2029,9 +2205,107 @@ var Shape = G.Shape = G.Object.extend
 
     mergeValues:function(obj, defaults)
     {        
-        var defaults = _.extend({pos:new G.Vector(),vel:new G.Vector(),width:0,height:0,rotation:0,color:"#000",fill:true,hidden:false,_bounds:{top:1,left:1,right:1,bottom:1}}, defaults||{});
-
+        var defaults = _.extend
+        ({
+          pos: new G.Vector(),
+          vel: new G.Vector(),
+          width: 0,
+          height: 0,
+          rotation: 0,
+          zindex: 0,
+          color: "#000",
+          fill: true,
+          hidden: false
+        }, defaults ||
+        {});
+                
         this._super(obj, defaults);
+        
+        var self = this;
+        
+        //define custom properties
+        //------------------------
+        
+        //zindex
+        (function()
+        {
+            
+            var zindex = this.zindex;
+            Object.defineProperty(this, "zindex", 
+            {
+                get: function(){ return zindex },
+                set: function(z)
+                { 
+                    zindex = z; 
+                    if(this.stage) this.stage.sortByZindex();
+                    _.each(this.collections, function(collection)
+                    {
+                        collection.sortByZindex();
+                    })
+                }.bind(this)
+            })
+            
+        }).bind(this)();
+        
+        //bounds
+        (function(){
+            
+            if(typeof this.width === "undefined" || typeof this.height === "undefined" || typeof this.pos.x === "undefined" || typeof this.pos.y === "undefined") return;
+            
+            if(typeof this.bounds.left !== "undefined") return;
+            
+            Object.defineProperty(this.bounds, "top",
+            {
+                set: function(val){ this.pos.y=val+this.height/2; }.bind(this),
+                get: function(){ return this.pos.y-this.height/2; }.bind(this)
+            });
+            
+            Object.defineProperty(this.bounds, "left",
+            {
+                set: function(val){ this.pos.x=val+this.width/2; }.bind(this),
+                get: function(){ return this.pos.x-this.width/2; }.bind(this)
+            });
+            
+            Object.defineProperty(this.bounds, "bottom",
+            {
+                set: function(val){ this.pos.y=val-this.height/2; }.bind(this),
+                get: function(){ return this.pos.y+this.height/2; }.bind(this)
+            });
+            
+            Object.defineProperty(this.bounds, "right",
+            {
+                set: function(val){ this.pos.x=val-this.width/2; }.bind(this),
+                get: function(){ return this.pos.x+this.width/2; }.bind(this)
+            });
+            
+        }).bind(this)();
+        
+        //physics
+        (function(){
+                        
+            var physics = this.physics;
+            
+            var d = Object.getOwnPropertyDescriptor(this, "physics");
+            if(d && d.configurable === false) return false;
+            
+            Object.defineProperty(this, "physics",
+            {
+                set: function(p)
+                {
+                    physics = p;
+                    if(this.stage && this.stage.world && this.stage.world instanceof G.Physics.World)
+                    {
+                        p ? this.stage.world.add(this) : this.stage.world.remove(this);
+                    }
+                },
+                get: function()
+                {
+                    return physics;
+                }
+            });
+            
+        }.bind(this))();
+        
     },
 
     //top left right bottom bounds
@@ -2048,24 +2322,22 @@ var Shape = G.Shape = G.Object.extend
                 if(key==="top") 
                 {
                     this.pos.y=bounds[key]+this.height/2;
-                    this._bounds[key] = bounds[key];
                 }
                 else if(key==="bottom") 
                 {
                     this.pos.y=bounds[key]-this.height/2;
-                    this._bounds[key] = bounds[key];
                 }
                 else if(key==="left") 
                 {
                     this.pos.x=bounds[key]+this.width/2;
-                    this._bounds[key] = bounds[key];
                 }
                 else if(key==="right") 
                 {
                     this.pos.x=bounds[key]-this.width/2;
-                    this._bounds[key] = bounds[key];                    
                 }
             }
+            
+            return this;
         }
 
         else
@@ -2073,12 +2345,13 @@ var Shape = G.Shape = G.Object.extend
             //if doesn't have bounds, return
             if(!this.width) return false;
             var w = this.width/2, h = this.height/2;
+            var bounds = {};
 
-            this._bounds.left = this.pos.x-w;
-            this._bounds.right = this.pos.x+w;
-            this._bounds.top = this.pos.y-h;
-            this._bounds.bottom = this.pos.y+h;
-            return this._bounds;
+            bounds.left = this.pos.x-w;
+            bounds.right = this.pos.x+w;
+            bounds.top = this.pos.y-h;
+            bounds.bottom = this.pos.y+h;
+            return bounds;
         }
         
     },
@@ -2222,9 +2495,21 @@ var Shape = G.Shape = G.Object.extend
             var self = this;
             if (typeof src !== "string") return console.warn("Warning: A sound must have a source... ", this);
 
-            //get a playable source
-            for (var i = 0; i < extensions.length; i++) if (playable(extensions[i], audio)) { this.src = src+"."+extensions[i]; break; }
+            if(!(extensions instanceof Array))
+            {
+                this.src = src;
+            }
 
+            else
+            {
+                //get a playable source
+                for (var i = 0; i < extensions.length; i++) if (playable(extensions[i], audio)) { this.src = src+"."+extensions[i]; break; }
+            }
+
+            this.multipleChannels = true;
+            for (var i = 0; i < arguments.length; i++) if (typeof arguments[i] === "boolean") this.multipleChannels = arguments[i];
+
+            
             //create audio
             function createAudio(){
                 var audio = new Audio;
@@ -2233,9 +2518,10 @@ var Shape = G.Shape = G.Object.extend
             }
 
             //create channels
-            var channels = [];
+            
+            var channels = this.channels = [];
             for(var i = 0; i < 4; i++) channels.push(createAudio());
-            var currentChannel = 0;
+            this.currentChannel = 0;
             var audio = this.audio = channels[0];
             
             //trigger when loaded
@@ -2260,26 +2546,28 @@ var Shape = G.Shape = G.Object.extend
             audio.addEventListener("ended", function() { self.playing = false; });
 
             //mobile browsers must have an input event happen to load audio
-            if(G.isMobile && G.stages[0]) G.stages[0].event.one("touchstart", window, function(){ audio.muted = true; audio.play(); audio.muted = false; }) 
-
-            this.play = function()
+            if(G.isMobile && G.stages[0]) G.stages[0].event.one("touchstart", window, function(){ audio.muted = true; audio.play(); audio.muted = false; })     
+        },
+        //plays all
+        play: function(t)
+        {
+            var audio = this.audio, channels = this.channels;
+            //if currently playing, play new channel simultaneously
+            if (this.playing && this.multipleChannels !== false) 
             {
-                //if currently playing, play new channel simultaneously
-                if (this.playing) 
-                {
-                    currentChannel++;
-                    if(currentChannel > 3) currentChannel = 0;
-                    return channels[currentChannel].play();
-                }
-                if (!this.loaded) return this.on("load", function() { self.play(); });
-                return audio.play();
-            };
-            //stops all
-            this.stop = function()
-            {
-                if (!this.loaded && !this.playing) return false;
-                for(var i in channels) channels[i].pause();
-            };      
+                this.currentChannel++;
+                if(this.currentChannel > 3) this.currentChannel = 0;
+                return channels[this.currentChannel].play(t);
+            }
+            if (!this.loaded) return this.on("load", function() { self.play(t); });
+            return audio.play(t);
+        },
+        //pauses all
+        pause: function(t)
+        {
+            var audio = this.audio, channels = this.channels;
+            if (!this.loaded && !this.playing) return false;
+            for(var i in channels) channels[i].pause(t);
         }
     })
 })(G);
@@ -2521,6 +2809,8 @@ G.Stage = G.Collection.extend({
                 else
                 {
                     this.canvas = document.body.appendChild(document.createElement('canvas'));
+                    this.canvas.width = window.innerWidth;
+                    this.canvas.height = window.innerHeight;
                 }
 
                 //get canvas's 2d context
@@ -2583,7 +2873,7 @@ G.Stage = G.Collection.extend({
                                 this.ctx.backingStorePixelRatio || 1,
             ratio = devicePixelRatio / backingStoreRatio;
 
-        if(args.indexOf("lowres") === -1 && devicePixelRatio !== backingStoreRatio)
+        if(Array.prototype.indexOf.call(arguments, "lowres") === -1 && devicePixelRatio !== backingStoreRatio)
         {
             this.setScale(ratio);
         }
@@ -2708,12 +2998,12 @@ G.Stage = G.Collection.extend({
         {
             //framerate gets wonky sometimes while using requestanimframe in browsers other than chrome.... :| (dissatisfied face)
             //TODO - fix ^
-            if(this.desiredFramerate === 60) this._frameId = window.requestAnimationFrame(function(time){ self.animate.call(self, time) });
+            if(this.desiredFramerate === 60) this._animFrameId = window.requestAnimationFrame(function(time){ self.animate.call(self, time) });
             else 
             {
                 var currTime = (new Date).getTime();
                 var timeToCall = Math.max(0, 1000/this.desiredFramerate - (currTime - this.time));
-                this._frameId = window.setTimeout(function() {
+                this._animFrameId = window.setTimeout(function() {
                     self.animate.call(self, currTime + timeToCall)
                 }, timeToCall);
             }
@@ -2723,7 +3013,7 @@ G.Stage = G.Collection.extend({
     pause:function()
     {
         this.isPaused = true;  
-        this.desiredFramerate === 60 ? window.cancelAnimationFrame(this._frameId) : window.clearTimeout(this._frameId);       
+        this.desiredFramerate === 60 ? window.cancelAnimationFrame(this._animFrameId) : window.clearTimeout(this._animFrameId);       
         this.trigger("pause", arguments);
         return this;
     },
@@ -2897,7 +3187,7 @@ G.Image=G.Rect.extend({
     initialize:function(obj)
     {            
         //if not passing in object literal, assign arguments as src,x,y,width,height,vx,vy,clip
-        if(arguments.length > 2)
+        if(typeof arguments[0] === "string")
         {
             var a = {};
             //necessary
@@ -2927,23 +3217,41 @@ G.Image=G.Rect.extend({
         if(this._super) this._super.apply(this, args); 
 
         //set values
-        this.image = new Image();
-        this.image.src = this.src;
-        this.loaded = false;
-
+        if(!obj.image)
+        {
+            this.image = new Image();
+            this.image.src = this.src;
+            this.loaded = false;
+            this.image.addEventListener("load", function(){ onload.call(self); });
+        }
+        
+        else onload(true);
+        
         var self = this;
 
-        function onload()
+        function onload(loaded)
         {
             this.loaded = true;
             if(this.width === 0) this.width = this.image.naturalWidth;
             //make sure if only width provided, to scale height according to aspect ratio
             if(this.height === 0) this.height = this.width / (this.image.naturalWidth / this.image.naturalHeight);
-            self.trigger("load");
+            if(!loaded)self.trigger("load");
         }
-
-        this.image.addEventListener("load", function(){ onload.call(self); });
-
+        
+        //reset image on src change
+        var src = this.src;
+        Object.defineProperty(this, "src", 
+        {
+            get: function(){ return src },
+            set: function(n)
+            {
+                src = n;
+                this.image = new Image();
+                this.image.src = src;
+                this.loaded = false;
+                this.image.addEventListener("load", function(){ onload.call(self); });
+            }
+        }) 
     },
 
     _render:function(x,y,w,h)
@@ -3494,9 +3802,9 @@ G.Sprite = G.Image.extend
     //default: the default frame to use, defaults to 0
     //animations: the animations to use
     
-    initialize:function(obj, addToStage)
+    initialize:function(obj)
     {
-        this._super(obj.src, obj.pos?obj.pos.x:0, obj.pos?obj.pos.y:0, obj.width||undefined, obj.height||undefined, addToStage);
+        this._super.apply(this, arguments);
 
         this.frames = [];
         if(obj[frames]) this.frames = obj[frames];
@@ -3583,7 +3891,7 @@ G.Sprite = G.Image.extend
 
     setAnimation:function(key)
     {
-        if(this.animation === this.animations[key]) return;
+        if(this.animation === this.animations[key]) return this;
         this.animation = this.animations[key];
         this.animation.currentFrame = 0;
         return this;
@@ -3659,7 +3967,8 @@ G.Text = Shape.extend({
         for(var i in defaults) this[i] = defaults[i];
         for(var i in arguments[0]) this[i] = typeof arguments[0][i] === "object" ? _.clone(arguments[0][i]) : arguments[0][i];
 
-            if(arguments[0].addToStage !== false) this.add();
+        if(arguments[0].addToStage !== false) this.add();
+        delete this.addToStage;
     },
 
     bounds:function()
@@ -3688,6 +3997,9 @@ G.Text = Shape.extend({
 
 var Physics = G.Physics = {};
 
+//Returns intersection of two G.Shape instances
+//If not intersecting, returns false
+//if intersecting, returns the xy vector of the minimum distance shape2 must go to not be intersecting with shape1
 G.Physics.intersecting = (function()
 {
 
@@ -3701,6 +4013,8 @@ function rotatePoint(point, origin, angle)
 
 return function(shape1, shape2, reverseVertices)
 {
+    var onlyAABB = false;
+    if(Array.prototype.indexOf.call(arguments, true) !== -1) onlyAABB = true;
     if(shape2 instanceof G.Vector) shape2 = new G.Circle(shape2.x,shape2.y,0.1,false);
     if ((shape1 instanceof G.Collection)) 
     {
@@ -3732,32 +4046,59 @@ return function(shape1, shape2, reverseVertices)
     if(shape1 === shape2) return false;
 
     //detect simple aabb collision, saves compute time for complex shapes
-    if(!aabb(shape1, shape2)) return false;
+    var aabbmtv = aabb(shape1, shape2);
+    if(!aabbmtv) return false;
+    
+    if(onlyAABB) 
+    {
+        return aabbmtv;
+    }
 
     //if one is static, return mtv for other one, defaults to returning shape1's mtv from shape2
     if(shape2.shape === "static"){ var temp = shape2; shape2 = shape1; shape1 = temp;}
 
     //circle vs circle
-    if(shape1.shape === "circle" && shape2.shape === "circle") return circle2circle(shape1, shape2);
+    if(shape1.shape === "circle" && shape2.shape === "circle") res = circle2circle(shape1, shape2);
 
     //if no circles, do SAT (separating axis test) polygon against polygon
-    else if(shape1.shape !== "circle" && shape2.shape !== "circle") return polygon2polygon(shape1, shape2);
+    else if(shape1.shape !== "circle" && shape2.shape !== "circle") res = polygon2polygon(shape1, shape2);
 
-    //if one circle and one polygon, do SAT (separating axis test) polygon against circle (different from above)
-    else if(shape1.shape === "circle" || shape2.shape === "circle") return polygon2circle(shape1, shape2);
+    //if one circle and one polygon, do SAT (separating axis test) polygon against circle
+    else if(shape1.shape === "circle" || shape2.shape === "circle") res = polygon2circle(shape1, shape2);
 
     //otherwise, not objects able to be tested
-    else return false;
+    else res = false;
+    
+    return res;
 
     //simple broad phase check
     function aabb(shape1, shape2)
     {
-        //quick method
-        if(shape1.shape === "circle" || shape1.shape === "rect") return shape2.pos.x-shape2.width/2<shape1.pos.x+shape1.width/2&&shape2.pos.x+shape2.width/2>shape1.pos.x-shape1.width/2&&shape2.pos.y-shape2.height/2<shape1.pos.y+shape1.height/2&&shape2.pos.y+shape2.height/2>shape2.pos.y-shape2.height/2;
+        var top, bottom, left, right, b1 = {}, b2 = {};
+        
+        //if simple shapes
+        if((shape1.shape === "circle" || shape1.shape === "rect") && (shape2.shape === "circle" || shape2.shape === "rect")) 
+        {
+            b1 = shape1.bounds(), b2 = shape2.bounds();
+        }
+        
+        //if complex shapes
+        else
+        {
+            b1 = shape1.bounds(), b2 = shape2.bounds();
+        }
+        
+        //collision detection
+        var top = b1.top<b2.bottom && b1.top>b2.top && b1.right>b2.left && b1.left<b2.right,
+            left = b1.left<b2.right && b1.left>b2.left && b1.bottom>b2.top && b1.top<b2.bottom,
+            bottom = b1.bottom>b2.top && b1.bottom<b2.bottom && b1.right>b2.left && b1.left<b2.right,
+            right = b1.right>b2.left && b1.right<b2.right && b1.bottom>b2.top && b1.top<b2.bottom;
+    
+        //exit if not intersecting
+        if(!top && !bottom && !left && !right) return false;
 
-        //slow method, for other shapes like polygon and line
-        var b1 = shape1.bounds(), b2 = shape2.bounds();
-        return b2.left<b1.right&&b2.right>b1.left&&b2.top<b1.bottom&&b2.bottom>b2.top;
+        //return mtv if intersecting
+        return shape1.shape === "rect" && shape2.shape === "rect" && onlyAABB ? polygon2polygon(shape1, shape2) : new G.Vector();
     }
 
     function circle2circle(circle1, circle2)
@@ -3946,7 +4287,7 @@ return function(shape1, shape2, reverseVertices)
         else if(shape.shape === "polygon") 
         {
             for(var i = 0; i < shape.vertices.length-1; i += 2) vertices.push((shape.pos.x||0)+shape.vertices[i], (shape.pos.y||0)+shape.vertices[i+1]);
-            if(reverseVertices)
+            if(_.isArr(reverseVertices))
             {
                 var n = [], arr = vertices;
                 for(var i = arr.length-1; i > 0; i -= 2)
@@ -3966,7 +4307,7 @@ return function(shape1, shape2, reverseVertices)
         }
 
         //if invalid shape
-        else throw new Error("Shape does not contain vertices");
+        else return console.trace("Shape does not contain vertices");
 
         //convert to vectors
         var vecVertices = [];
@@ -4182,42 +4523,6 @@ Physics.World = (function(){
             restitution:0,
             friction:0,
             mass:1
-        },
-        fn,
-        update = 
-        {
-            update: function()
-            {
-                if (fn && fn !== update.update) fn.apply(this, arguments);
-                if (this.type === "kinematic") update.kinematic.apply(this, arguments);
-                else if (this.type === "dynamic") update.dynamic.apply(this, arguments)
-            },
-            kinematic:function()
-            {
-                var shape = this;
-                //make sure pos, vel, and acc are all vectors
-                if(!(shape.pos instanceof G.Vector) || !(shape.vel instanceof G.Vector))
-                {
-                    shape.pos = new G.Vector(shape.pos ? shape.pos.x : 0, shape.pos ? shape.pos.y : 0);
-                    shape.vel = new G.Vector(shape.vel ? shape.vel.x : 0, shape.vel ? shape.vel.y : 0);
-                }
-                //perform euler integration - ish - (pos = pos + vel)
-                shape.pos.add(shape.vel.multiply(shape.stage?shape.stage.deltaFramerate:1));
-            },
-            dynamic:function()
-            {
-                var shape = this;
-                //make sure pos, vel, and acc are all vectors
-                if(!(shape.pos instanceof G.Vector) || !(shape.vel instanceof G.Vector) || !(shape.acc instanceof G.Vector))
-                {
-                    shape.pos = new G.Vector(shape.pos ? shape.pos.x : 0, shape.pos ? shape.pos.y : 0);
-                    shape.vel = new G.Vector(shape.vel ? shape.vel.x : 0, shape.vel ? shape.vel.y : 0);
-                    shape.acc = new G.Vector(shape.acc ? shape.acc.x : 0, shape.acc ? shape.acc.y : 0);
-                }
-                //perform euler integration - ish - (acc = gravity + force, vel = vel + acc, pos = pos + vel)
-                shape.vel.add(shape.acc);
-                shape.pos.add(shape.vel.multiply(shape.stage?shape.stage.deltaFramerate:1));
-            }
         };
 
     return G.Class.extend
@@ -4253,10 +4558,6 @@ Physics.World = (function(){
             this.shapes.kinematic.name = "Kinematic Collision Shapes";
             this.shapes.dynamic.name = "Dynamic Collision Shapes";
             this.shapes.all.name = "All Collision Shapes";
-
-            //set update functions
-            fn = G.Shape.prototype.update;
-            if(fn !== update.update) G.Shape.prototype.update = update.update;
         },
 
         setCellSize:function(cellSize)
@@ -4269,8 +4570,8 @@ Physics.World = (function(){
 
         setGravity:function(gravity)
         {
-            var x = typeof gravity !== "undefined" ? (typeof gravity.x === "number" ? gravity.x : (typeof arguments[0] === number ? arguments[0] : 0)) : (typeof G.gravity !== "undefined" ? G.gravity.x : 0);
-            var y = typeof gravity !== "undefined" ? (typeof gravity.y === "number" ? gravity.y : (typeof arguments[1] === number ? arguments[1] : 0)) : (typeof G.gravity !== "undefined" ? G.gravity.y : 0);
+            var x = typeof gravity !== "undefined" ? (typeof gravity.x === "number" ? gravity.x : (typeof arguments[0] === "number" ? arguments[0] : 0)) : (typeof G.gravity !== "undefined" ? G.gravity.x : 0);
+            var y = typeof gravity !== "undefined" ? (typeof gravity.y === "number" ? gravity.y : (typeof arguments[1] === "number" ? arguments[1] : 0)) : (typeof G.gravity !== "undefined" ? G.gravity.y : 0);
             this.gravity = new G.Vector(x, y);
         },
 
@@ -4296,6 +4597,10 @@ Physics.World = (function(){
                     });
                 }
             }
+            
+            this.onlyAABB = typeof obj.onlyAABB === "boolean" ? obj.onlyAABB : false;
+            this.framerateVel = typeof obj.framerateVel === "boolean" ? obj.framerateVel : true;
+
         },
 
         add:function(shape)
@@ -4368,10 +4673,13 @@ Physics.World = (function(){
             var self = this;
 
             //with hash
-            if(this.collisions.dynamicstatic !== false && self.staticHash.length !== self.shapes.static.length()) self.staticHash.clear().insert(self.shapes.static);
-            if(this.collisions.dynamickinematic !== false) self.kinematicHash.clear().insert(self.shapes.kinematic);
-            if(this.collisions.dynamicdynamic !== false || this.collisions.dynamicstatic !== false) self.dynamicHash.clear().insert(self.shapes.dynamic);
-
+            if(this.enableHash !== false)
+            {
+                if(this.collisions.dynamicstatic !== false && self.staticHash.length !== self.shapes.static.length()) self.staticHash.clear().insert(self.shapes.static);
+                if(this.collisions.dynamickinematic !== false) self.kinematicHash.clear().insert(self.shapes.kinematic);
+                if(this.collisions.dynamicdynamic !== false || this.collisions.dynamicstatic !== false) self.dynamicHash.clear().insert(self.shapes.dynamic);
+            }
+            
             //resolve collisions
             if(self.collisions.dynamicstatic && self.collisions !== false && self.shapes.dynamic.length() >= self.shapes.static.length())
             {
@@ -4380,11 +4688,22 @@ Physics.World = (function(){
                     shape.colliding = false;
                     if(shape.enableCollisions === false || shape.physics === false) return;
                     //retrieve shapes in position range
-                    _.each(self.dynamicHash.retrieve(shape), function(shape2)
+                    if(this.enableHash !== false)
                     {
-                        if(shape2.physics === false || shape2.enableCollisions === false) return;
-                        self.handleCollisions(shape, shape2);
-                    });
+                        _.each(self.dynamicHash.retrieve(shape), function(shape2)
+                        {
+                            if(shape2.physics === false || shape2.enableCollisions === false) return;
+                            self.handleCollisions(shape, shape2);
+                        });
+                    }
+                    else
+                    {
+                        _.each(self.shapes.dynamic, function(shape2)
+                        {
+                            if(shape2.physics === false || shape2.enableCollisions === false) return;
+                            self.handleCollisions(shape, shape2);
+                        });
+                    }
                 });
             }
 
@@ -4395,19 +4714,41 @@ Physics.World = (function(){
 
                 //don't do physics if shape says so
                 if(shape.physics === false) return;
-
-                shape.update();
-
-                if(self.collisions !== false && shape.enableCollisions !== false && self.collisions.dynamickinematic && self.shapes.dynamic.length() >= self.shapes.kinematic.length()) 
+                
+                shape.one("update", function()
                 {
-                    shape.colliding = false;
-                    //retrieve shapes in position range
-                    _.each(self.dynamicHash.retrieve(shape), function(shape2)
+                    //make sure pos, vel, and acc are all vectors
+                    if(!(shape.pos instanceof G.Vector) || !(shape.vel instanceof G.Vector))
                     {
-                        if(shape2.physics === false || shape2.enableCollisions === false) return;
-                        self.handleCollisions(shape, shape2);
-                    });
-                }
+                        shape.pos = new G.Vector(shape.pos ? shape.pos.x : 0, shape.pos ? shape.pos.y : 0);
+                        shape.vel = new G.Vector(shape.vel ? shape.vel.x : 0, shape.vel ? shape.vel.y : 0);
+                    }
+
+                    if(self.collisions !== false && shape.enableCollisions !== false && self.collisions.dynamickinematic && self.shapes.dynamic.length() >= self.shapes.kinematic.length()) 
+                    {
+                        shape.colliding = false;
+                        //retrieve shapes in position range
+                        if(this.enableHash !== false)
+                        {
+                            _.each(self.dynamicHash.retrieve(shape), function(shape2)
+                            {
+                                if(shape2.physics === false || shape2.enableCollisions === false) return;
+                                self.handleCollisions(shape, shape2);
+                            });
+                        }
+                        else
+                        {
+                            _.each(self.shapes.dynamic, function(shape2)
+                            {
+                                if(shape2.physics === false || shape2.enableCollisions === false) return;
+                                self.handleCollisions(shape, shape2);
+                            });
+                        }
+                    }
+                    
+                    //perform euler integration - ish - (pos = pos + vel)
+                    shape.pos.add(shape.vel.multiply(shape.stage && (shape.framerateVel !== false && self.framerateVel !== false) ? shape.stage.deltaFramerate:1));     
+                });
             });
 
             self.shapes.dynamic.each(function(shape)
@@ -4418,44 +4759,65 @@ Physics.World = (function(){
                 //don't do physics if shape says so
                 if(shape.physics === false) return;
 
-                if(shape.gravity !== false) shape.acc = self.gravity;
-
-                shape.update();
-
-                //resolve collisions
-                if(self.collisions !== false && shape.enableCollisions !== false)
+                shape.one("update", function()
                 {
-                    shape.colliding = false;
-                    if(self.collisions.dynamicstatic && self.shapes.dynamic.length() < self.shapes.static.length()) 
+                    //make sure pos, vel, and acc are all vectors
+                    if(!(shape.pos instanceof G.Vector) || !(shape.vel instanceof G.Vector) || !(shape.acc instanceof G.Vector))
                     {
-                        //retrieve shapes in position range
-                        _.each(self.staticHash.retrieve(shape), function(shape2)
-                        {
-                            if(shape2.physics === false || shape2.enableCollisions === false) return;
-                            self.handleCollisions(shape, shape2);
-                        });
+                        shape.pos = new G.Vector(shape.pos ? shape.pos.x : 0, shape.pos ? shape.pos.y : 0);
+                        shape.vel = new G.Vector(shape.vel ? shape.vel.x : 0, shape.vel ? shape.vel.y : 0);
+                        shape.acc = new G.Vector(shape.acc ? shape.acc.x : 0, shape.acc ? shape.acc.y : 0);
                     }
+                                                                       
+                    //resolve collisions
+                    if(self.collisions !== false && shape.enableCollisions !== false)
+                    {
+                        shape.colliding = false;
+                        if(self.collisions.dynamicstatic && self.shapes.dynamic.length() < self.shapes.static.length()) 
+                        {
+                            function handle(shape2)
+                            {
+                                if(shape2.physics === false || shape2.enableCollisions === false) return;
+                                self.handleCollisions(shape, shape2);
+                            }
+                            
+                            //retrieve shapes in position range
+                            if(this.enableHash !== false) _.each(self.staticHash.retrieve(shape), handle);
+                            else _.each(self.shapes.static, handle);
+                           
+                        }
 
-                    if(self.collisions.dynamickinematic && self.shapes.dynamic.length() < self.shapes.kinematic.length()) 
-                    {
-                        //retrieve shapes in position range
-                        _.each(self.kinematicHash.retrieve(shape), function(shape2)
+                        if(self.collisions.dynamickinematic && self.shapes.dynamic.length() < self.shapes.kinematic.length()) 
                         {
-                            if(shape2.physics === false || shape2.enableCollisions === false) return;
-                            self.handleCollisions(shape, shape2);
-                        });
-                    }
+                            //retrieve shapes in position range
+                            if(this.enableHash !== false) _.each(self.kinematicHash.retrieve(shape), handle);
+                            else _.each(self.shapes.kinematic, handle);
+                        }
 
-                    if(self.collisions.dynamicdynamic) 
-                    {
-                        //retrieve shapes in position range
-                        _.each(self.dynamicHash.retrieve(shape), function(shape2)
+                        if(self.collisions.dynamicdynamic) 
                         {
-                            if(shape2.physics === false || shape2.enableCollisions === false) return;
-                            self.handleCollisions(shape, shape2);
-                        });
+                            //retrieve shapes in position range
+                            if(this.enableHash !== false) _.each(self.dynamicHash.retrieve(shape), handle);
+                            else _.each(self.shapes.dynamic, handle);
+                        }
                     }
-                }
+                    
+                    if(shape.stage && shape.stage.world)
+                    {
+                        if(shape.gravity !== false && shape.colliding !== true) 
+                        {
+                            shape.acc = shape.stage.world.gravity;
+                        }
+                        else if(shape.colliding)
+                        {
+                            shape.acc = new G.Vector();                    
+                        }
+                    }
+                    
+                    //perform euler integration - ish - (acc = gravity + force, vel = vel + acc, pos = pos + vel)
+                    shape.vel.add(shape.acc);
+                    shape.pos.add(shape.vel.multiply(shape.stage && (shape.framerateVel !== false && self.framerateVel !== false) ? shape.stage.deltaFramerate : 1));
+                });
             });
 
             //debug
@@ -4484,12 +4846,12 @@ Physics.World = (function(){
             if((res1 instanceof Array && res1.indexOf(false) !== -1) || (res2 instanceof Array && res2.indexOf(false) !== -1)) return true; 
 
             //TODO - add swept collisions
-            var mtv = G.Physics.intersecting(shape1, shape2);
+            var mtv = G.Physics.intersecting(shape1, shape2, this.onlyAABB);
             if(!mtv) 
             {
                 return false;
             }
-
+            
             //trigger collision event on shapes
             if(shape1.type !== "dynamic")
             {
@@ -4515,6 +4877,7 @@ Physics.World = (function(){
             if(shape1.type !== "dynamic")
             {
                 if(shape2.vel.y > 0 && mtv.y > 0 || shape2.vel.y < 0 && mtv.y < 0) return;
+                
                 //push shape2's position to be outside of shape1
                 shape2.pos.add(mtv);
 
@@ -4599,6 +4962,9 @@ Physics.World = (function(){
                     }
                 }
             }
+            
+            if(shape1.events) var res1 = shape1.trigger("collisionResolved", [shape2, mtv]);
+            if(shape2.events) var res2 = shape2.trigger("collisionResolved", [shape1, mtv]);
         }
 
     });
@@ -4615,6 +4981,17 @@ G.toRadians = function(degrees)
     return degrees * (Math.PI / 180);
 }
 
+
+G.rgb = function(r, g, b)
+{
+  if(_.isArr(r))
+  {
+    var arr = r;
+    r = arr[0], g = arr[1], b = arr[2];
+  }
+  
+  return "rgb("+r+","+g+","+b+")";
+}
 
 G.random=function(max, min)
 {
@@ -4752,6 +5129,7 @@ G.stages = [];
 G.collections = [];
 
 G.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+G.touchEnabled = "ontouchstart" in window;
 
 //add root stage events
 G.event = new Event();
