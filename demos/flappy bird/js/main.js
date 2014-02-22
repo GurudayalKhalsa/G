@@ -269,6 +269,9 @@ var game = {};
             
             else if(assets.restart_button_icon.posInBounds(mouse.state.x, mouse.state.y))
             {
+                location.reload();
+                return;
+                
                 buttonEvents.off();
                 keyflapDown.off();
                 keyflapUp.off();
@@ -333,13 +336,15 @@ var game = {};
         function()
         {
             //remove old
-            topPipes.query(function(pipe){ return pipe.pos.x < -((assets.pipe.width/2)+1) }).remove(true);                        
-            bottomPipes.query(function(pipe){ return pipe.pos.x < -((assets.pipe.width/2)+1) }).remove(true);                        
+            if(topPipes.get(0).pos.x < -((assets.pipe.width/2)+1)) 
+            {
+                topPipes.get(0).remove();
+                bottomPipes.get(0).remove();
+            }
             
-            var last = topPipes.query("pos.x", "range:"+(stage.width-assets.pipe.width/2)+":"+(stage.width)).get(0),
-                more = topPipes.query("pos.x", "range:"+(stage.width)+":"+(stage.width+1000)).length();
+            var last = topPipes.get(-1);
             
-            return last && !more ? last : false;
+            return last.pos.x > stage.width-assets.pipe.width/2 && last.pos.x < stage.width ? last : false;
         },
         //adds next item to collection and stage
         function(last)
@@ -501,13 +506,14 @@ var game = {};
         if(!fn1) fn1 = function()
         {
             //remove old
-            collection.query(function(shape){ return shape.pos.x + shape.width*1.5 < 0 }).remove(true);
-                                    
-            //add new
-            var last = collection.query("pos.x", "range:"+(stage.width-(shape.width/2)-1)+":"+stage.width).get(0),
-                more = collection.query("pos.x", "range:"+(stage.width+1)+":"+(stage.width+shape.width)).length();
-                
-            return last && !more ? last : false;
+            if(collection.get(0).pos.x + collection.get(0).width*1.5 < 0) 
+            {
+                collection.get(0).remove();
+            }
+            
+            var last = collection.get(-1);
+            
+            return last.pos.x > stage.width-(shape.width/2)-1 && last.pos.x < stage.width ? last : false;
         }
          
         if(!fn2) fn2 = function(last)
