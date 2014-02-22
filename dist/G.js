@@ -67,7 +67,7 @@ var G = {};
  * based on Emit -> https://github.com/jeromeetienne/Emit.js
  * From Emit -> changed bind and unbind events to on and off, added one event
  */
-var Emit = G.Emit = (function(){
+this.Emit = G.Emit = (function(){
 
     var Emit = function() {};
     Emit.prototype = {
@@ -1755,13 +1755,15 @@ G.Collection = G.Class.extend({
         }
 
         //draw and update all objects in stage
-        for(var i = 0, j = this.objects.length; i < j; i++)
+        this._rendering = true;
+        for(var i = 0; i < this.objects.length; i++)
         {
             var shape = this.objects[i];
             if(!(shape instanceof G.Shape)) continue;
             if(self.events) self.trigger("renderShape", [shape]);
             shape.render();
         }
+        this._rendering = false;
         return this;
     },
 
