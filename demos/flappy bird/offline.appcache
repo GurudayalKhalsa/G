@@ -3,9 +3,6 @@ CACHE MANIFEST
 # Version: 1.0
 
 CACHE:
-index.html
-js/main.js
-css/style.css
 assets/ceiling.png 
 assets/score_0.png 
 assets/score_1.png 
