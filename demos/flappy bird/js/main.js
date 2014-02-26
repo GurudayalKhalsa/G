@@ -515,6 +515,7 @@ var game = {};
             
             return last.pos.x > stage.width-(shape.width/2)-1 && last.pos.x < stage.width ? last : false;
         }
+        
          
         if(!fn2) fn2 = function(last)
         {
