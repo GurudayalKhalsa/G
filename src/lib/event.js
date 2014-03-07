@@ -1,4 +1,4 @@
- var Event = G.Event = function(){
+var Event = G.Event = function(){
 
     var root = this;
     var self = root;
@@ -168,6 +168,8 @@
 
         Key.separator = ",";
 
+        var mac = navigator.userAgent.indexOf("Macintosh") !== -1;
+
         var state = Key.state = 
         {
             up: {},
@@ -183,8 +185,8 @@
         {
             "shift":["⇧"],
             "alt":["option", "⌥"],
-            "ctrl":navigator.userAgent.indexOf("Macintosh") !== -1 ? ["control", "⌃"] : ["control", "⌃", "meta"],
-            "cmd":navigator.userAgent.indexOf("Macintosh") !== -1 ? ["command","⌘", "meta"] : ["command", "⌘"]
+            "ctrl":mac ? ["control", "⌃"] : ["control", "⌃", "meta"],
+            "cmd":mac ? ["command","⌘", "meta"] : ["command", "⌘"]
         };
 
         // modifier keys
@@ -193,7 +195,7 @@
             "shiftKey":16,
             "altKey":18,
             "ctrlKey":17,
-            "metaKey":navigator.userAgent.indexOf("Macintosh") !== -1 ? 91 : 18
+            "metaKey":mac ? 91 : 18
         };
         
         // special keys
@@ -233,7 +235,7 @@
         };
 
         //set meta key based on OS (Cmd for mac, Ctrl for win/linux)
-        // if(navigator.userAgent.indexOf("Macintosh") !== -1) keyMap[91].push("meta");
+        // if(mac) keyMap[91].push("meta");
         // else keyMap[17].push("meta");
 
         /**
@@ -253,10 +255,22 @@
 
                     for(var i = 0; i < key.length; i++)
                     {
-                        state.down[key[i]] = true;
+                        //fix for right meta key
+                        if(e.metaKey && key[0] !== "]") state.down[key[i]] = true;
                         state.up = {};
                     }
-                    if(e.metaKey) state.down.meta = true;
+                    if(e.metaKey) 
+                    {
+                        state.down.meta = true;
+                        //fix for right meta key
+                        if(key[0] === "]")
+                        {
+                            for(var i = 0; i < keyMap[modifierMap["metaKey"]].length; i++)
+                            {
+                                state.down[keyMap[modifierMap["metaKey"]][i]] = true;
+                            }
+                        }
+                    }
                     
                 },
                 up:function(e)
@@ -272,7 +286,7 @@
                     if(!e.metaKey) delete state.down.meta;
                     //hack - when meta key is down and other keys are unpressed, other key unpress event is not triggered, so they are treated as down still
                     //this gets rid of all down keys when meta key is up
-                    if(key[0] === "cmd" || key[0] === "ctrl") state.down = {};
+                    if(key[0] === "cmd" || key[0] === "ctrl" || (e.metaKey && key[0] !== "]")) state.down = {};
                     setTimeout(function(){state.up = {}}, (G.stage?G.stage.deltaTime||1000/60:1000/60));
                 }
             };
@@ -344,8 +358,14 @@
                         for(var i in multiples) if(contains(state[type], multiples[i]) && !contains(keys, multiples[i])) { keys.push(multiples[i][0]);} 
                         for(var i in state[type])  if(!contains([multiples, "meta"], i)) keys.push(i); 
                     }
-                
+                                
                     e.keys = keys.join("+");
+                    
+                    //handle if right meta key pressed (originally treated as "]" key)
+                    if(e.metaKey)
+                    {
+                        if(e.keys[0] === "]") e.keys = keyMap[modifierMap["metaKey"]][0] + e.keys.substr(1);
+                    }
                 }
                 return true;
             }
@@ -359,7 +379,10 @@
             //recursively narrow down to one key
             if(keys.length > 1)
             {
-                for(var i = 0; i < keys.length; i++) if(is(keys[i])) return true;
+                for(var i = 0; i < keys.length; i++) 
+                {
+                    if(is(keys[i])) return true;
+                }
                 return false;
             }
 
@@ -395,24 +418,35 @@
                 }
 
                 //get all values of current state type, and add to event keys
-                if(e) e.keys = removeUndefined(Object.keys(state[type]).map(function(key){ for(var k in multipleModifiers){ if(multipleModifiers[k].indexOf(key) !== -1) return undefined; } return key; })).join("+");
-
+                if(e) 
+                {
+                    e.keys = removeUndefined(Object.keys(state[type]).map(function(key){ for(var k in multipleModifiers){ if(multipleModifiers[k].indexOf(key) !== -1) return undefined; } return key; })).join("+");
+                                        
+                    //handle if right meta key pressed (originally treated as "]" key)
+                    if(e.metaKey)
+                    {
+                        if(e.keys[0] === "]") e.keys = keyMap[modifierMap["metaKey"]][0] + e.keys.substr(1);
+                    }
+                }       
+                
+                var code = (e && e.metaKey && Key.toString(e.keyCode) === "]") ? keyMap[modifierMap["metaKey"]] : Key.toString(e.keyCode);    
+                                                                        
                 //do not trigger if the key/s specified does not contain a modifier key, yet a modifier key is down/up
                 if(e && (e.metaKey || e.ctrlKey || e.shiftKey) && !contains(key, [keyMap[modifierMap["metaKey"]],keyMap[modifierMap["ctrlKey"]],keyMap[modifierMap["shiftKey"]]])) return false;
-                
+                                
                 //do not trigger if meta key down and the other key down is not key specified to check for
                 //needed because when meta + other key are down, when other key is unpressed while meta key is still down, keyup event not called for that unpressing
-                if(e && e.metaKey && contains(key, keyMap[modifierMap["metaKey"]]) && !contains(key, Key.toString(e.keyCode))) return false;
-                
+                if(e && e.metaKey && contains(key, keyMap[modifierMap["metaKey"]]) && !contains(key, code)) return false;
+                                
                 //determine if key or keys are down/up based on state.down/up
                 if(Array.isArray(key) && key.length === 1) return is(key[0]);
                 
-                else if(typeof key === "string" && (!e || (Key.toString(e.keyCode) === key))) 
+                else if(typeof key === "string" && (!e || (code === key))) 
                 {
                     return key in state[type];
                 }
                 
-                else if(typeof key === "string" && (Key.toString(e.keyCode) !== key))
+                else if(typeof key === "string" && (code !== key))
                 {
                     return false;
                 }
@@ -447,7 +481,10 @@
                 function listener(e)
                 {
                     var triggered = type === "keydown" ? Key.isDown(keys, e) : Key.isUp(keys, e);
-                    if(triggered) callback(e);
+                    if(triggered) 
+                    {
+                        callback(e);
+                    }
                 }
                 root.addEventListener(type, listener);
                 return {
@@ -459,6 +496,9 @@
             }
             
         }
+        
+        Key.onDown = function(key, callback){ return Key.on("keydown"+(key?":"+key:""), callback); }
+        Key.onUp = function(key, callback){ return Key.on("keyup"+(key?":"+key:""), callback); }
 
         Key.one = function(key, callback)
         {
@@ -492,6 +532,10 @@
                 };
             }
         }
+        
+        Key.oneDown = function(key, callback){ return Key.one("keydown:"+key, callback); }
+        Key.oneUp = function(key, callback){ return Key.one("keyup:"+key, callback); }
+
 
         Key.off = function(type, callback)
         {
