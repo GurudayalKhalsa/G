@@ -275,7 +275,7 @@ var Event = G.Event = function(){
                 },
                 up:function(e)
                 {
-                    var key = Key.toString(e.keyCode);
+                    var key = e.keyIdentifier === "Meta" && Key.toString(e.keyCode) === "]" ? keyMap[modifierMap["metaKey"]][0] : Key.toString(e.keyCode);
                     if(!Array.isArray(key)) key = [key];
 
                     for(var i = 0; i < key.length; i++)
@@ -286,7 +286,7 @@ var Event = G.Event = function(){
                     if(!e.metaKey) delete state.down.meta;
                     //hack - when meta key is down and other keys are unpressed, other key unpress event is not triggered, so they are treated as down still
                     //this gets rid of all down keys when meta key is up
-                    if(key[0] === "cmd" || key[0] === "ctrl" || (e.metaKey && key[0] !== "]")) state.down = {};
+                    if(key[0] === "cmd" || key[0] === "ctrl") state.down = {};
                     setTimeout(function(){state.up = {}}, (G.stage?G.stage.deltaTime||1000/60:1000/60));
                 }
             };
