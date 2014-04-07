@@ -11,8 +11,6 @@ icon.png
 
 css/style.css
 
-../plugins/box2d/box2d.js
-../../plugins/box2d/box2d-G.js
 ../../dist/G.js
 js/main.js
 
