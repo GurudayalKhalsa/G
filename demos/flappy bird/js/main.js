@@ -75,6 +75,7 @@ var game = {};
     //----------------
 
     assets.land.vel.x = -2;
+    assets.land.zindex = 100;
 
     //create bird sprite
     var bird = assets.bird = game.bird = new G.Sprite
