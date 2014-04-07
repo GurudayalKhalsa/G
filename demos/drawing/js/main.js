@@ -22,13 +22,13 @@ mouse.on('down', function(e)
     if(mouse.state.right) return;
     
     var thickness = G.random(25,5);
-    var endStyle = "round";
+    var lineCap = "round";
     var color = G.random.color();
 
     function moveListener(e2)
     {
         var line = new G.Line(mouse.state.pos.last.x, mouse.state.pos.last.y, mouse.state.pos.x, mouse.state.pos.y, color, thickness);
-        line.endStyle = "round";
+        line.lineCap = "round";
         line.render();
     }
 

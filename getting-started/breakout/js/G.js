@@ -3112,7 +3112,7 @@ G.Line = Shape.extend({
 
     initialize:function(obj)
     {
-        var defaults = {pos:{x1:0,y1:0,x2:0,y2:0,x:0,y:0}, thickness:1,endStyle:"butt"};
+        var defaults = {pos:{x1:0,y1:0,x2:0,y2:0,x:0,y:0}, thickness:1,lineCap:"butt"};
 
         //if not passing in object literal, assign arguments as x1,y1,x2,y2,strokeColor,thickness,vx,vy
         if(typeof obj !== "object" && arguments.length > 3)
@@ -3225,7 +3225,7 @@ G.Line = Shape.extend({
         //change thickness
         ctx.lineWidth = this.thickness;
         //change end style
-        ctx.lineCap = this.endStyle;
+        ctx.lineCap = this.lineCap;
 
         ctx.stroke();
         ctx.closePath();
@@ -4202,7 +4202,7 @@ Physics.World = (function(){
                     shape.vel = new G.Vector(shape.vel ? shape.vel.x : 0, shape.vel ? shape.vel.y : 0);
                 }
                 //perform euler integration - ish - (pos = pos + vel)
-                shape.pos.add(shape.vel.multiply(shape.stage?shape.stage.deltaFramerate:1));
+                shape.pos.add(shape.vel.times(shape.stage?shape.stage.deltaFramerate:1));
             },
             dynamic:function()
             {
@@ -4216,7 +4216,7 @@ Physics.World = (function(){
                 }
                 //perform euler integration - ish - (acc = gravity + force, vel = vel + acc, pos = pos + vel)
                 shape.vel.add(shape.acc);
-                shape.pos.add(shape.vel.multiply(shape.stage?shape.stage.deltaFramerate:1));
+                shape.pos.add(shape.vel.times(shape.stage?shape.stage.deltaFramerate:1));
             }
         };
 
@@ -4498,8 +4498,8 @@ Physics.World = (function(){
             }
             else
             {
-                if(shape1.events) var res1 = shape1.trigger("collision", [shape2, mtv.divide(2).multiply(-1)]);
-                if(shape2.events) var res2 = shape2.trigger("collision", [shape1, mtv.divide(2)]);
+                if(shape1.events) var res1 = shape1.trigger("collision", [shape2, mtv.over(2).times(-1)]);
+                if(shape2.events) var res2 = shape2.trigger("collision", [shape1, mtv.over(2)]);
             }
             
             //exit if shapes want to exit
@@ -4544,8 +4544,8 @@ Physics.World = (function(){
             else
             {
                 //push shape2's position to be outside of shape1
-                shape2.pos.add(mtv.divide(2));
-                shape1.pos.subtract(mtv.divide(2));
+                shape2.pos.add(mtv.over(2));
+                shape1.pos.subtract(mtv.over(2));
 
                 //Handle for simple AABB's
                 //simple aabb velocity reversing, does not work with rotating shapes or non-box shapes
@@ -4692,13 +4692,13 @@ G.Vector.prototype.minus = function()
     return this.subtract.apply(new G.Vector(this.x, this.y), arguments);
 }
 
-G.Vector.prototype.multiply = function(s1, s2)
+G.Vector.prototype.times = function(s1, s2)
 {
     if(s2) return new G.Vector(this.x * s1, this.y * s2);
     return new G.Vector(this.x * s1, this.y * s1);
 };
 
-G.Vector.prototype.divide = function(s1, s2)
+G.Vector.prototype.over = function(s1, s2)
 {
     if(s2) return new G.Vector(this.x / s1, this.y / s2);
     return new G.Vector(this.x / s1, this.y / s1);

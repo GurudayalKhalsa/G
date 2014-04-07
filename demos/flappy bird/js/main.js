@@ -92,6 +92,7 @@ var game = {};
         },
         addToStage:false,
         physics:false,
+        disablePhysicsRotation: true,
         zindex: 300,
         flyForce: -5.7,
         score: 0
@@ -102,7 +103,7 @@ var game = {};
     ({
         render: function(score, x, y, scale)
         {
-            if(typeof score === "undefined") score = 0;
+            if(!score) score = 0;
             if(typeof x === "undefined") x = stage.width/2 + 20;
             if(typeof y === "undefined") y = 42;
             if(typeof scale === "undefined") scale = 0.8;
@@ -110,7 +111,7 @@ var game = {};
             this.remove(true);
             
             var score = (""+score).split("");
-
+            
             var a = new G.Image(assets["score_"+score.pop()]);
             this.add(a.set({ zindex: 5, pos:{ x:x, y:y }, width: a.width * scale, height: a.height * scale }));
             for(var i = score.length - 1; i >= 0; i--)
@@ -464,13 +465,15 @@ var game = {};
             "pos.y": assets.scoreboard.bounds().bottom - 50
         });
         
+        bird.one("collisionResolved", function(){ bird.physics = false })
+        
         var restartEvent = mouse.on("up", function()
         {
             if(assets.restart_button.posInBounds(mouse.state.x, mouse.state.y))
             {
                 restartEvent.off();
                 [assets.scoreboard, scoreImages, highscoreImages, medal, assets.restart_button].forEach(function(asset){ if(asset) asset.remove(true); });
-                bird.set({score: 0, "vel.y": 0, rotation: 0})
+                bird.set({physics: true, score: 0, "vel.y": 0, rotation: 0})
                 topPipes.remove(true);
                 bottomPipes.remove(true);
                 ceiling.remove(true);
