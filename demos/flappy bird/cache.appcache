@@ -4,6 +4,7 @@ CACHE MANIFEST
 
 CACHE:
 
+cache.appcache
 index.html
 
 favicon.png
