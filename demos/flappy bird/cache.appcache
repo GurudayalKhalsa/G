@@ -3,9 +3,19 @@ CACHE MANIFEST
 # Version: 1.0
 
 CACHE:
+
 index.html
-js/main.js
+
+favicon.png
+icon.png
+
 css/style.css
+
+../plugins/box2d/box2d.js
+../../plugins/box2d/box2d-G.js
+../../dist/G.js
+js/main.js
+
 assets/ceiling.png 
 assets/score_0.png 
 assets/score_1.png 
@@ -36,3 +46,6 @@ assets/restart_button_icon.png
 assets/pause_button.png
 assets/unpause_button.png
 assets/title.png
+
+NETWORK:
+*

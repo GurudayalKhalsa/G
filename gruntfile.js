@@ -85,6 +85,14 @@ module.exports = function(grunt){
                 src: '<%= src %>',
                 dest: '<%= dev %>'
             },
+            vector: {
+                options:{
+                    banner: '<%= dev_banner %>',
+                    separator: '\n\n'
+                },
+                src: '<%= src %>',
+                dest: '../../vector/public_html/assets/js/lib/G.js'
+            },
             build: {
                 options:{
                     banner: '<%= build_banner %>',
@@ -117,7 +125,7 @@ module.exports = function(grunt){
         watch: {
             js: {
                 files: '<%= src %>',
-                tasks: ['concat:dev']
+                tasks: ['concat:dev', 'concat:vector']
             }
         },
 
@@ -127,6 +135,7 @@ module.exports = function(grunt){
     grunt.registerTask('dev',[
         'clean:dev',
         'concat:dev',
+        'concat:vector',
         // 'jshint:dev',
         'uglify:dev',
         'watch'

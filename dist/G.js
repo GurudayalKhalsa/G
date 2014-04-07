@@ -1,15 +1,11 @@
 /**
- * G 0.2-dev, 2014-02-22
+ * G 0.2-dev, 2014-04-01
  * A fast, powerful and extendable HTML5 game framework
  *
  * Copyright (c) 2014 Gurudayal Khalsa, gurudayalkhalsa@gmail.com
  * Licensed under MIT
  */
-! function(name, root, factory) {
-    //expose module to either Node/CommonJS or AMD if available, and root object of choosing (e.g. Window)
-    (typeof define === "function" && define.amd) ? define(function(){ return factory.call(root) }) : (typeof module === "object" && typeof module.exports === "object") ? module.exports = factory.call(root) : root[name] = factory(root)
-}
-("G", this, function() {
+!(function() {
 
 var G = {};
 
@@ -186,7 +182,7 @@ this.Emit = G.Emit = (function(){
     return Emit;
 })(G);
 
- var Event = G.Event = function(){
+var Event = G.Event = function(){
 
     var root = this;
     var self = root;
@@ -356,6 +352,8 @@ this.Emit = G.Emit = (function(){
 
         Key.separator = ",";
 
+        var mac = navigator.userAgent.indexOf("Macintosh") !== -1;
+
         var state = Key.state = 
         {
             up: {},
@@ -371,8 +369,8 @@ this.Emit = G.Emit = (function(){
         {
             "shift":["⇧"],
             "alt":["option", "⌥"],
-            "ctrl":navigator.userAgent.indexOf("Macintosh") !== -1 ? ["control", "⌃"] : ["control", "⌃", "meta"],
-            "cmd":navigator.userAgent.indexOf("Macintosh") !== -1 ? ["command","⌘", "meta"] : ["command", "⌘"]
+            "ctrl":mac ? ["control", "⌃"] : ["control", "⌃", "meta"],
+            "cmd":mac ? ["command","⌘", "meta"] : ["command", "⌘"]
         };
 
         // modifier keys
@@ -381,7 +379,7 @@ this.Emit = G.Emit = (function(){
             "shiftKey":16,
             "altKey":18,
             "ctrlKey":17,
-            "metaKey":navigator.userAgent.indexOf("Macintosh") !== -1 ? 91 : 18
+            "metaKey":mac ? 91 : 18
         };
         
         // special keys
@@ -421,7 +419,7 @@ this.Emit = G.Emit = (function(){
         };
 
         //set meta key based on OS (Cmd for mac, Ctrl for win/linux)
-        // if(navigator.userAgent.indexOf("Macintosh") !== -1) keyMap[91].push("meta");
+        // if(mac) keyMap[91].push("meta");
         // else keyMap[17].push("meta");
 
         /**
@@ -441,15 +439,27 @@ this.Emit = G.Emit = (function(){
 
                     for(var i = 0; i < key.length; i++)
                     {
-                        state.down[key[i]] = true;
+                        //fix for right meta key
+                        if(!e.metaKey || (e.metaKey && key[0] !== "]")) state.down[key[i]] = true;
                         state.up = {};
                     }
-                    if(e.metaKey) state.down.meta = true;
+                    if(e.metaKey) 
+                    {
+                        state.down.meta = true;
+                        //fix for right meta key
+                        if(key[0] === "]")
+                        {
+                            for(var i = 0; i < keyMap[modifierMap["metaKey"]].length; i++)
+                            {
+                                state.down[keyMap[modifierMap["metaKey"]][i]] = true;
+                            }
+                        }
+                    }
                     
                 },
                 up:function(e)
                 {
-                    var key = Key.toString(e.keyCode);
+                    var key = e.keyIdentifier === "Meta" && Key.toString(e.keyCode) === "]" ? keyMap[modifierMap["metaKey"]][0] : Key.toString(e.keyCode);
                     if(!Array.isArray(key)) key = [key];
 
                     for(var i = 0; i < key.length; i++)
@@ -503,14 +513,18 @@ this.Emit = G.Emit = (function(){
 
         function contains(arr, str)
         {
-            if(Array.isArray(str)) 
+            if(typeof arr === "string" && typeof str === "str") return arr.indexOf(str) !== -1;
+            
+            if(!_.isArr(arr)) arr = [arr];
+            
+            if(_.isArr(str)) 
             {
                 for(var i = 0; i < str.length; i++) if(contains(arr, str[i])) return true;
                 return false;
             }
             else
             {
-                return Array.isArray(arr) ? flatten(arr).indexOf(str) !== -1 : (arr[str] ? true : false);
+                return _.isArr(arr) ? flatten(arr).indexOf(str) !== -1 : (arr[str] ? true : false);
             }
         }
 
@@ -532,8 +546,14 @@ this.Emit = G.Emit = (function(){
                         for(var i in multiples) if(contains(state[type], multiples[i]) && !contains(keys, multiples[i])) { keys.push(multiples[i][0]);} 
                         for(var i in state[type])  if(!contains([multiples, "meta"], i)) keys.push(i); 
                     }
-                
+                                
                     e.keys = keys.join("+");
+                    
+                    //handle if right meta key pressed (originally treated as "]" key)
+                    if(e.metaKey)
+                    {
+                        if(e.keys[0] === "]") e.keys = keyMap[modifierMap["metaKey"]][0] + e.keys.substr(1);
+                    }
                 }
                 return true;
             }
@@ -547,7 +567,10 @@ this.Emit = G.Emit = (function(){
             //recursively narrow down to one key
             if(keys.length > 1)
             {
-                for(var i = 0; i < keys.length; i++) if(is(keys[i])) return true;
+                for(var i = 0; i < keys.length; i++) 
+                {
+                    if(is(keys[i])) return true;
+                }
                 return false;
             }
 
@@ -583,24 +606,35 @@ this.Emit = G.Emit = (function(){
                 }
 
                 //get all values of current state type, and add to event keys
-                if(e) e.keys = removeUndefined(Object.keys(state[type]).map(function(key){ for(var k in multipleModifiers){ if(multipleModifiers[k].indexOf(key) !== -1) return undefined; } return key; })).join("+");
-
+                if(e) 
+                {
+                    e.keys = removeUndefined(Object.keys(state[type]).map(function(key){ for(var k in multipleModifiers){ if(multipleModifiers[k].indexOf(key) !== -1) return undefined; } return key; })).join("+");
+                                        
+                    //handle if right meta key pressed (originally treated as "]" key)
+                    if(e.metaKey)
+                    {
+                        if(e.keys[0] === "]") e.keys = keyMap[modifierMap["metaKey"]][0] + e.keys.substr(1);
+                    }
+                }       
+                                
+                var code = (e && e.metaKey && Key.toString(e.keyCode) === "]") ? keyMap[modifierMap["metaKey"]] : Key.toString(e.keyCode);    
+                                                                         
                 //do not trigger if the key/s specified does not contain a modifier key, yet a modifier key is down/up
                 if(e && (e.metaKey || e.ctrlKey || e.shiftKey) && !contains(key, [keyMap[modifierMap["metaKey"]],keyMap[modifierMap["ctrlKey"]],keyMap[modifierMap["shiftKey"]]])) return false;
-                
+                                
                 //do not trigger if meta key down and the other key down is not key specified to check for
                 //needed because when meta + other key are down, when other key is unpressed while meta key is still down, keyup event not called for that unpressing
-                if(e && e.metaKey && contains(key, keyMap[modifierMap["metaKey"]]) && !contains(key, Key.toString(e.keyCode))) return false;
-                
+                if(e && e.metaKey && contains(key, keyMap[modifierMap["metaKey"]]) && !contains(key, code)) return false;
+                                
                 //determine if key or keys are down/up based on state.down/up
                 if(Array.isArray(key) && key.length === 1) return is(key[0]);
                 
-                else if(typeof key === "string" && (!e || (Key.toString(e.keyCode) === key))) 
+                else if(typeof key === "string" && (!e || (contains(code, key)))) 
                 {
                     return key in state[type];
                 }
                 
-                else if(typeof key === "string" && (Key.toString(e.keyCode) !== key))
+                else if(typeof key === "string" && (!contains(code, key)))
                 {
                     return false;
                 }
@@ -635,7 +669,10 @@ this.Emit = G.Emit = (function(){
                 function listener(e)
                 {
                     var triggered = type === "keydown" ? Key.isDown(keys, e) : Key.isUp(keys, e);
-                    if(triggered) callback(e);
+                    if(triggered) 
+                    {
+                        callback(e);
+                    }
                 }
                 root.addEventListener(type, listener);
                 return {
@@ -647,6 +684,9 @@ this.Emit = G.Emit = (function(){
             }
             
         }
+        
+        Key.onDown = function(key, callback){ return Key.on("keydown"+(key?":"+key:""), callback||key); }
+        Key.onUp = function(key, callback){ return Key.on("keyup"+(key?":"+key:""), callback||key); }
 
         Key.one = function(key, callback)
         {
@@ -680,6 +720,10 @@ this.Emit = G.Emit = (function(){
                 };
             }
         }
+        
+        Key.oneDown = function(key, callback){ return Key.one("keydown:"+key, callback); }
+        Key.oneUp = function(key, callback){ return Key.one("keyup:"+key, callback); }
+
 
         Key.off = function(type, callback)
         {
@@ -1297,16 +1341,6 @@ var Stats = function()
     _.isEqual = function(a, b) {
       return eq(a, b, [], []);
     };
-    
-    _.isObj = function(o)
-    {
-      return Object.prototype.toString.call(o) === "[object Object]";
-    }
-    
-    _.isArr = function(o)
-    {
-      return Array.isArray(o);
-    }
 
     // Return a copy of the object without the blacklisted properties.
     _.omit = function(obj) {
@@ -1317,6 +1351,26 @@ var Stats = function()
       }
       return copy;
     };
+    
+    _.isObj = function(o)
+    {
+      return Object.prototype.toString.call(o) === "[object Object]";
+    }
+    
+    _.isArr = function(o)
+    {
+      return Array.isArray(o);
+    }
+    
+    _.isBool = function(b)
+    {
+      return typeof b === "boolean";
+    }
+    
+    _.isNum = function(n)
+    {
+      return typeof n === "number";
+    }
 
 }).call(this);
 
@@ -1334,6 +1388,9 @@ G.Object = G.Class.extend({
         if(this.addToStage !== false) this.add(this.addToCollection);
         delete this.addToCollection;
         delete this.addToStage;
+        
+        //default events to turned on
+        if(typeof this.events === "undefined") this.events = true;
     },
 
     mergeValues:function(obj, defaults)
@@ -1468,14 +1525,35 @@ G.Object = G.Class.extend({
             var success = this.stage.remove(this);
             if(typeof success === "number" && this.events) this.trigger("remove", this.stage);
         }
+        
+        return this;
 
     },
 
-    set:function(key, val)
+    set:function(key, val, copy)
     {
         var self = this;
         //handle of object passed in, set all keys in that object
-        if(typeof key === "object") { _.each(arguments[0], function(val, key){ self.set(key, val) }); return self; }
+        if(typeof key === "object") 
+        {
+            copy = val; 
+            _.each(arguments[0], function(val, key){ self.set(key, val) }); return self; 
+        }
+        
+        //handle if multiple key,val arguments passed in sequentially
+        if(arguments.length > 3)
+        {
+            var copy = typeof arguments[arguments.length-1] === "boolean" && typeof arguments[arguments.length-2] !== "string" ? arguments[arguments.length-1] : false; 
+            for(var i = 0; i < arguments.length; i += 2)
+            {
+                var key = arguments[i],
+                    val = arguments[i+1];
+                    
+                this.set(key, val, copy);
+            }
+            
+            return this;
+        }
 
         var parent = this;
         if(key.indexOf(".") !== -1)
@@ -1491,15 +1569,16 @@ G.Object = G.Class.extend({
         var current = parent[key];
         if((typeof val !== "object" && val !== current) || (typeof val === "object" && val !== current) )
         {
-
-            if(typeof val === "object" && !(val instanceof G.Object)) parent[key] = JSON.parse(JSON.stringify(val));
+            if(parent[key] === val) return self;
+            
+            if(copy && typeof val === "object" && !(val instanceof G.Object)) parent[key] = JSON.parse(JSON.stringify(val));
             else parent[key] = val;
 
             if(this.events)
             {
-                this.trigger("change", [current, key]);
-                this.trigger("change:"+key, [current, key]);
-                for(var i = 0; i < this.collections.length; i++) 
+                this.trigger("change", [key, current, val]);
+                this.trigger("change:"+key, [current, val]);
+                if(this.collections) for(var i = 0; i < this.collections.length; i++) 
                 { 
                     if(this.collections[i].events)
                     {
@@ -1514,8 +1593,6 @@ G.Object = G.Class.extend({
 
     get:function(name)
     {
-        if(typeof this[name] === "undefined") return false;
-        if(typeof this[name] === "object") return _.clone(obj);
         return this[name];
     },
     
@@ -1536,9 +1613,11 @@ G.Camera=G.Class.extend
         if(obj.stage) this.stage = obj.stage;
         else this.stage = G.stage;
         //assign parameters based on defaults and passed in object
-        var params = {pos:new G.Vector(),vel:{x:0,y:0},scrollRatio:{x:2,y:2},focus:0,frame:{left:0,right:this.stage.width,top:0,bottom:this.stage.height},bounds:{left:0,right:this.stage.width,top:0,bottom:this.stage.height}};
+        var params = {pos:new G.Vector(),vel:{x:0,y:0},scrollRatio:{x:2,y:2},focus:0,frame:{left:0,right:this.stage.width,top:0,bottom:this.stage.height},bounds:{}};
         for (i in params) this[i] = params[i];
         for (i in obj) this[i] = obj[i];
+            
+        this.ctx = (this.stage ? this.stage.ctx : (this.focus ? (this.focus.stage ? this.focus.stage.ctx : false) : (G.stage ? G.stage.ctx : false)));
     },
 
     translate:function()
@@ -1559,18 +1638,17 @@ G.Camera=G.Class.extend
         if(typeof this.bounds.right === "number" && this.pos.x+this.frame.right > this.bounds.right) this.pos.x = this.bounds.right-this.frame.right;
         if(typeof this.bounds.bottom === "number" && this.pos.y+this.frame.bottom > this.bounds.bottom) this.pos.y = this.bounds.bottom-this.frame.bottom;
     
-        var ctx = (this.stage ? this.stage.ctx : (this.focus ? (this.focus.stage ? this.focus.stage.ctx : false) : (G.stage ? G.stage.ctx : false)));
-        if(!ctx) return false;
+        
+        if(!this.ctx) return false;
         //apply translation of canvas to simulate camera
-        ctx.translate(-this.pos.x,-this.pos.y);
+        this.ctx.translate(-this.pos.x,-this.pos.y);
     },
 
     resetTranslation:function()
     {
-        var ctx = (this.stage ? this.stage.ctx : (this.focus ? (this.focus.stage ? this.focus.stage.ctx : false) : (G.stage ? G.stage.ctx : false)));
-        if(!ctx) return false;
+        if(!this.ctx) return false;
         //reset translation of
-        ctx.translate(this.pos.x,this.pos.y);
+        this.ctx.translate(this.pos.x,this.pos.y);
     }
 });
 
@@ -1584,7 +1662,7 @@ G.Collection = G.Class.extend({
         this.objects = [];
         this._currentId = 0;
         this._length = 0;
-        this.enableVisibleHash = false;
+        this._visibleHashEnabled = false;
         this.enableZindex = false;
 
         this.addToCollections = typeof addToCollections === "boolean" ? addToCollections : ((typeof addToCollections === "object" && typeof addToCollections.addToCollections === "boolean") ? addToCollections.addToCollections : true);
@@ -1654,7 +1732,7 @@ G.Collection = G.Class.extend({
 
     config:function(obj)
     {
-        if(typeof obj !== "object") return false;
+        if(typeof obj !== "object") return this;
 
         //physics
         if(obj.physics) 
@@ -1665,6 +1743,8 @@ G.Collection = G.Class.extend({
                 else this.world.config(obj.Physics);
             }
         }
+        
+        return this;
     },
 
     update:function()
@@ -1691,8 +1771,8 @@ G.Collection = G.Class.extend({
         if(self.events) self.trigger("render");
 
         //retrieve all visible shapes, very efficient if thousands of static shapes
-        //only enabled if stage.enableVisibleHash is set to true
-        if(this.visibleHash && this.enableVisibleHash)
+        //only enabled if stage._visibleHashEnabled is set to true
+        if(this.visibleHash && this._visibleHashEnabled)
         {
             this.visibleHash.moving.clear().insert(this.visibleHash.moving.shapes);
             var obj = {};
@@ -1819,7 +1899,7 @@ G.Collection = G.Class.extend({
             }
 
             //add to visible visibleHash
-            if(this.enableVisibleHash && (this.canvas || (this.get(0) && this.get(0).stage && this.get(0).stage.canvas)) && object instanceof G.Shape)
+            if(this._visibleHashEnabled && (this.canvas || (this.get(0) && this.get(0).stage && this.get(0).stage.canvas)) && object instanceof G.Shape)
             {
                 this.addToVisibleHash(object);
             }
@@ -1880,7 +1960,7 @@ G.Collection = G.Class.extend({
         this._length = this._length-1;
 
         //remove from visible visibleHash
-        if(this.enableVisibleHash && object instanceof G.Shape && this.visibleHash)
+        if(this._visibleHashEnabled && object instanceof G.Shape && this.visibleHash)
         {
             this.removeFromVisibleHash(object);
         }
@@ -1898,7 +1978,7 @@ G.Collection = G.Class.extend({
         //remove object from all of its collections if this is root stage
         if(this === G.stage || this.queryParent === G.stage) object.remove();
 
-        return object;
+        return this;
     },
     
     sortByZindex: function()
@@ -1944,7 +2024,7 @@ G.Collection = G.Class.extend({
 
     enableVisibleHash:function()
     {
-        this.enableVisibleHash = true;
+        this._visibleHashEnabled = true;
         var self = this;
         this.each(function(shape)
         {
@@ -1954,7 +2034,7 @@ G.Collection = G.Class.extend({
 
     disableVisibleHash:function()
     {
-        this.enableVisibleHash = false;
+        this._visibleHashEnabled = false;
         var self = this;
         this.each(function(shape)
         {
@@ -2021,24 +2101,35 @@ G.Collection = G.Class.extend({
         return count;
     },
 
-    shapeContainingPoint:function(x,y,reverse)
+    shapeContainingPoint:function(x,y)
     {
-        var shape;
+        var shapes = [],
+            top = -1,
+            self = this;
+            
         this.each(function(s)
         {
             if(!(s instanceof G.Shape)) return;
-            if(s.posInBounds(x,y,reverse)) 
+            if(s.posInBounds(x,y)) 
+            {
+                shapes.push(s);
+            }
+        });
+        
+        var shape = false;
+        
+        //get shape on top layer of render stack (last in collection)
+        shapes.forEach(function(s)
+        {
+            var id = self.getId(s);
+            if(id > top)
             {
                 shape = s;
-                return false;
+                top = id;
             }
-            
         });
-        if(shape) 
-        {
-            return shape;
-        }
-        return false;
+        
+        return shape;
     },
 
     getIntersections:function()
@@ -2214,6 +2305,7 @@ var Shape = G.Shape = G.Object.extend
           zindex: 0,
           color: "#000",
           fill: true,
+          stroke: false,
           hidden: false
         }, defaults ||
         {});
@@ -2357,8 +2449,8 @@ var Shape = G.Shape = G.Object.extend
 
     posInBounds:function(x, y)
     {
-        var radius = 0.01, reverse = false;
-        for(var i = 2; i < arguments.length; i++) {if(typeof arguments[i] === "number") var radius = arguments[i]; if(typeof arguments[i] === "boolean") reverse = arguments[i]}
+        var radius = 0.01;
+        for(var i = 2; i < arguments.length; i++) {if(typeof arguments[i] === "number") var radius = arguments[i]; }
         var bounds = this.bounds();
         if(this.shape === "rect") return x > bounds.left && x < bounds.right && y > bounds.top && y < bounds.bottom;
         
@@ -2372,7 +2464,7 @@ var Shape = G.Shape = G.Object.extend
             hidden:true
         });
 
-        return G.Physics.intersecting(point, this, reverse);
+        return G.Physics.intersecting(point, this);
             
     },
 
@@ -2720,7 +2812,7 @@ G.Stage = G.Collection.extend({
         this.addToObjectCollections = false;
         this.events = true;
         this.enableZindex = true;
-        this.enableVisibleHash = false;
+        this._visibleHashEnabled = false;
 
         if(obj && typeof obj.events !== "undefined" && !obj.events) this.events = false;
 
@@ -2747,11 +2839,13 @@ G.Stage = G.Collection.extend({
 
         //add to stage list
         G.stages.push(this);
+        
+        return this;
     },
 
     config:function(obj)
     {
-        if(typeof obj !== "object") return false;
+        if(typeof obj !== "object") return this;
 
         //physics
         if(obj.physics) 
@@ -2774,6 +2868,8 @@ G.Stage = G.Collection.extend({
             if(!this.camera) this.camera = new G.Camera(_.extend(obj.camera, {stage:this}));
             else this.camera.initialize(_.extend(obj.camera, {stage:this}));
         }
+        
+        return this;
     },
 
     setCanvas:function()
@@ -2875,7 +2971,10 @@ G.Stage = G.Collection.extend({
 
         if(Array.prototype.indexOf.call(arguments, "lowres") === -1 && devicePixelRatio !== backingStoreRatio)
         {
-            this.setScale(ratio);
+            var w = this.canvas.width, h = this.canvas.height;
+            this.scale(ratio);
+            this.canvas.style.width = w + 'px';
+            this.canvas.style.height = h + 'px';
         }
 
         //run mouse event engine, setting root to canvas
@@ -2916,31 +3015,13 @@ G.Stage = G.Collection.extend({
         }
         return this;
     },
-
-    setScale:function(x, y)
+    
+    scale: function(x, y)
     {
-
-        if(this.ctx && typeof x === "number")
-        {
-            var canvas = this.canvas, ctx = this.ctx;
-            if(typeof y !== "number") var y = x;
-            var oldWidth = canvas.width;
-            var oldHeight = canvas.height;
-
-            canvas.width = oldWidth * x;
-            canvas.height = oldHeight * y;
-
-            canvas.style.width = oldWidth + 'px';
-            canvas.style.height = oldHeight + 'px';
-
-            this.width = oldWidth;
-            this.height = oldHeight;
-
-            // now scale the context to counter
-            // the fact that we've manually scaled
-            // our canvas element
-            ctx.scale(x, y);
-        }
+        if(typeof y !== "number") var y = x;
+        this.canvas.width *= x;
+        this.canvas.height *= y;
+        this.ctx.scale(x, y);
     },
 
     render:function(noClear)
@@ -3153,29 +3234,29 @@ G.Rect = Shape.extend({
             this.width=Math.abs(this.width);
         }
     },
-
+    
     _render:function(x,y,w,h)
     {
         var ctx = this.stage?this.stage.ctx:G.stage.ctx;
         if(!ctx) return;
 
-        if(this.thickness) ctx.lineWidth = this.thickness;
+        if(this.stroke) ctx.lineWidth = this.thickness;
 
         // //draw at new position and dimensions if specified (does not set position of object), (used in rotating)
-        //using typeof is costly, before was doing if typeof x !== "number"
+        if(w === undefined) w = this.width;
+        if(h === undefined) h = this.height;
+        if(x === undefined) x = this.pos.x-w/2;
+        if(y === undefined) y = this.pos.y-h/2;
+
         if(this.fill)
         {
             ctx.fillStyle = this.color;
-            if(x !== undefined && y !== undefined) ctx.fillRect(x-this.width/2,y-this.width/2,this.width,this.height);
-            else if(w !== undefined && h !== undefined) ctx.fillRect(x-w/2,y-h/2,w,h);
-            else ctx.fillRect(this.pos.x-this.width/2,this.pos.y-this.height/2,this.width,this.height);
+            ctx.fillRect(x,y,w,h);
         }
-        else
+        if(this.stroke)
         {
             ctx.strokeStyle = this.strokeColor||this.color;
-            if(x !== undefined && y !== undefined) ctx.strokeRect(x-this.width/2,y-this.width/2,this.width,this.height);
-            else if(w !== undefined && h !== undefined) ctx.strokeRect(x-w/2,y-h/2,w,h);
-            else ctx.strokeRect(this.pos.x-this.width/2,this.pos.y-this.height/2,this.width,this.height);
+            ctx.strokeRect(x,y,w,h);
         }
         
     }
@@ -3401,8 +3482,11 @@ G.Circle = Shape.extend({
         if(!ctx) return;
 
         if(this.fill) ctx.fillStyle = this.color;
-        else ctx.strokeStyle = this.strokeColor||this.color;
-        if(this.thickness) ctx.lineWidth = this.thickness;
+        if(this.thickness)
+        {
+            ctx.strokeStyle = this.strokeColor||this.color;
+            ctx.lineWidth = this.thickness;
+        } 
         
         //draw at specified position and dimensions if specified (does not set position of object), (used in rotating)
         if(x === undefined) var x = this.pos.x;
@@ -3412,15 +3496,60 @@ G.Circle = Shape.extend({
         ctx.beginPath();
         ctx.arc(x,y,w,0,Math.PI*2,false);
         if(this.fill) ctx.fill();
-        else ctx.stroke();
+        if(this.thickness) ctx.stroke();
     }
+});
+
+G.Ellipse = G.Rect.extend
+({
+  initialize: function()
+  {
+    this._super.apply(this, arguments);
+    
+    //set shape-specific properties
+    //shape defaults to rect for physics intersecting reasons
+    // this.shape="ellipse";
+    
+  },
+  
+  _render: function(x,y,w,h)
+  {
+    var ctx = this.stage?this.stage.ctx:G.stage.ctx,
+    canvas = this.stage?this.stage.canvas:G.stage.canvas,
+    stage = this.stage || G.stage;
+    
+    if(!ctx) return;
+    
+    if(this.fill) ctx.fillStyle = this.color;
+    if(this.stroke)
+    {
+        ctx.strokeStyle = this.strokeColor||this.color;
+        ctx.lineWidth = this.thickness;
+    } 
+    
+
+    // //draw at new position and dimensions if specified (does not set position of object), (used in rotating)
+    if(w === undefined) w = this.width;
+    if(h === undefined) h = this.height;
+    if(x === undefined) x = this.pos.x;
+    if(y === undefined) y = this.pos.y;
+
+    ctx.save();
+    ctx.scale(1, h/w);
+    ctx.beginPath();
+    ctx.arc(x, y/(h/w), w/2, 0, Math.PI*2, false);
+    ctx.restore();
+    if(this.fill) ctx.fill();
+    if(this.stroke) ctx.stroke();
+  }
+  
 });
 
 G.Line = Shape.extend({
 
     initialize:function(obj)
     {
-        var defaults = {pos:{x1:0,y1:0,x2:0,y2:0,x:0,y:0}, thickness:1,endStyle:"butt"};
+        var defaults = {pos:{x1:0,y1:0,x2:0,y2:0,x:0,y:0}, thickness:1,lineCap:"butt"};
 
         //if not passing in object literal, assign arguments as x1,y1,x2,y2,strokeColor,thickness,vx,vy
         if(typeof obj !== "object" && arguments.length > 3)
@@ -3533,7 +3662,7 @@ G.Line = Shape.extend({
         //change thickness
         ctx.lineWidth = this.thickness;
         //change end style
-        ctx.lineCap = this.endStyle;
+        ctx.lineCap = this.lineCap;
 
         ctx.stroke();
         ctx.closePath();
@@ -3754,7 +3883,8 @@ G.Polygon = Shape.extend({
         if(!ctx) return;
         
         if(this.fill) ctx.fillStyle = this.color;
-        else ctx.strokeStyle = this.strokeColor||this.color;
+        if(this.stroke) ctx.strokeStyle = this.strokeColor||this.color;
+        if(this.thickness) ctx.lineWidth = this.thickness;
 
         ctx.beginPath();
 
@@ -3779,12 +3909,122 @@ G.Polygon = Shape.extend({
         ctx.lineTo(x+this.vertices[0],y+this.vertices[1]);
 
 
-        if(this.thickness) ctx.lineWidth = this.thickness;
         if(this.fill) ctx.fill();
-        else ctx.stroke();
+        if(this.stroke) ctx.stroke();
 
         ctx.closePath();
     }
+});
+
+G.RoundRect = G.Rect.extend
+({
+  initialize: function()
+  {
+    //if not passing in object literal, assign arguments as x,y,w,h,color,vx,vy
+    if(typeof obj !== "object" && arguments.length >= 5)
+    {
+      var a = {};
+        //necessary
+        a.pos=new G.Vector(arguments[0], arguments[1]);
+        
+        //optional
+        if(arguments[2]) a.width = arguments[2];
+        if(arguments[3]) a.height = arguments[3];
+        if(arguments[4]) a.radius = arguments[4] || 0;
+        if(typeof arguments[5] === "string") a.color = arguments[5];
+        if(typeof arguments[6] === "number") a.vel = {x:arguments[6]};
+        if(typeof arguments[7] === "number" && a.vel) a.vel.y = arguments[7];
+        if(Array.prototype.indexOf.call(arguments, false) !== -1) a.addToStage = false;
+
+        var obj = arguments[0] = a;
+      }
+
+    
+    this._super.apply(this, arguments);
+    
+    //set shape-specific properties
+    //shape defaults to rect for physics intersecting reasons
+    // this.shape="round rect";
+    
+  },
+  
+  _render: function(x,y,w,h)
+  {
+    var ctx = this.stage?this.stage.ctx:G.stage.ctx,
+    canvas = this.stage?this.stage.canvas:G.stage.canvas,
+    stage = this.stage || G.stage;
+    
+    if(!ctx) return;
+    
+    if(this.stroke) ctx.lineWidth = this.thickness;
+
+    // //draw at new position and dimensions if specified (does not set position of object), (used in rotating)
+    if(w === undefined) w = this.width;
+    if(h === undefined) h = this.height;
+    if(x === undefined) x = this.pos.x-w/2;
+    if(y === undefined) y = this.pos.y-h/2;
+
+
+    //draw fill circles at all edges
+    if(this.radius && this.radius < this.width/2 && this.radius < this.height/2)
+    {
+      
+      //draws 2 rects without filling edges
+      if(this.fill)
+      {
+        ctx.fillStyle = this.color;
+        ctx.fillRect(x, y + this.radius, this.width, this.height - (this.radius*2));
+        ctx.fillRect(x + this.radius, y, this.width - (this.radius*2), this.height);
+      }
+      
+      if(this.stroke)
+      {
+        ctx.strokeStyle = this.strokeColor || this.color;
+        ctx.strokeRect(x, y + this.radius, this.width, this.height - (this.radius*2));
+        ctx.strokeRect(x + this.radius, y, this.width - (this.radius*2), this.height);
+      }
+      
+      var r = this.radius,
+          t = this.thickness;
+          
+      ctx.fillStyle = this.color;
+      ctx.strokeStyle = this.strokeColor || this.color;
+      
+      //todo: fix render issue when width or height < r/2
+      var drawCorner = function(x, y, xr, yr, a1, a2)
+      {        
+        var r = Math.abs(xr);
+        var inc = 1;
+        
+        var tx = t ? (xr > 0 ? -t : t ) : 0;
+        var ty = t ? (yr > 0 ? -t : t ) : 0;
+        
+        if(this.stroke) 
+        {
+          x += tx/2;
+          y += ty/2;
+          r /= 2;
+        }
+        
+        //draw circle for roundedness with radius && color        
+        ctx.beginPath();
+        ctx.arc(x+xr, y+yr, r, a1, a2, true);
+        if(this.fill) ctx.fill();
+        if(this.stroke) ctx.stroke();
+        
+      }.bind(this);
+      
+      //draws top left, top right, bottom right, bottom left corners
+      
+      drawCorner(x,y,r,r,Math.PI/2,Math.PI);
+      drawCorner(x+this.width,y,-r,r,0,Math.PI/2);
+      drawCorner(x+this.width,y+this.height,-r,-r,Math.PI*1.5, Math.PI*2);
+      drawCorner(x,y+this.height,r,-r,Math.PI, Math.PI*1.5);
+    }
+    else this._super.apply(this, arguments);
+    
+  }
+  
 });
 
 G.Sprite = G.Image.extend
@@ -4014,6 +4254,11 @@ function rotatePoint(point, origin, angle)
 return function(shape1, shape2, reverseVertices)
 {
     var onlyAABB = false;
+    if(typeof reverseVertices === "boolean")
+    {
+        reverseVertices = false;
+        onlyAABB = true;
+    }
     if(Array.prototype.indexOf.call(arguments, true) !== -1) onlyAABB = true;
     if(shape2 instanceof G.Vector) shape2 = new G.Circle(shape2.x,shape2.y,0.1,false);
     if ((shape1 instanceof G.Collection)) 
@@ -4049,10 +4294,7 @@ return function(shape1, shape2, reverseVertices)
     var aabbmtv = aabb(shape1, shape2);
     if(!aabbmtv) return false;
     
-    if(onlyAABB) 
-    {
-        return aabbmtv;
-    }
+    if(onlyAABB || (shape1.type==="rect" && shape2.type==="rect" && !shape1.rotation && !shape2.rotation)) return aabbmtv;
 
     //if one is static, return mtv for other one, defaults to returning shape1's mtv from shape2
     if(shape2.shape === "static"){ var temp = shape2; shape2 = shape1; shape1 = temp;}
@@ -4074,31 +4316,32 @@ return function(shape1, shape2, reverseVertices)
     //simple broad phase check
     function aabb(shape1, shape2)
     {
-        var top, bottom, left, right, b1 = {}, b2 = {};
+        var a = shape1,
+            b = shape2,
+            hw1 = shape1.width/2,
+            hh1 = shape1.height/2,
+            hw2 = shape2.width/2,
+            hh2 = shape2.height/2,
+            x1 = shape1.pos.x,
+            y1 = shape1.pos.y,
+            x2 = shape2.pos.x,
+            y2 = shape2.pos.y;
         
-        //if simple shapes
-        if((shape1.shape === "circle" || shape1.shape === "rect") && (shape2.shape === "circle" || shape2.shape === "rect")) 
+        //TODO - get bounds for rotated rect
+        //if rotated or special shape, compute xy projections
+        if((shape1.shape !== "circle" || shape2.shape !== "circle") && (shape1.shape !== "rect" && shape2.shape !== "rect" || ((shape1.rotation || shape2.rotation))) )
         {
-            b1 = shape1.bounds(), b2 = shape2.bounds();
+            var b1 = shape1.bounds(), b2 = shape2.bounds();
+            hw1 = (b1.right - b1.left) / 2;
+            hw2 = (b2.right - b2.left) / 2;
+            hh1 = (b1.bottom - b1.top) / 2;
+            hh2 = (b2.bottom - b2.top) / 2;
         }
+                
+        //intersecting if distance between two shape's xy positions is less than combined half-widths && half-heights 
+        if(! (Math.abs(x2-x1) < (hw2 + hw1) && Math.abs(y2-y1) < (hh2 + hh1)) ) return false;
         
-        //if complex shapes
-        else
-        {
-            b1 = shape1.bounds(), b2 = shape2.bounds();
-        }
-        
-        //collision detection
-        var top = b1.top<b2.bottom && b1.top>b2.top && b1.right>b2.left && b1.left<b2.right,
-            left = b1.left<b2.right && b1.left>b2.left && b1.bottom>b2.top && b1.top<b2.bottom,
-            bottom = b1.bottom>b2.top && b1.bottom<b2.bottom && b1.right>b2.left && b1.left<b2.right,
-            right = b1.right>b2.left && b1.right<b2.right && b1.bottom>b2.top && b1.top<b2.bottom;
-    
-        //exit if not intersecting
-        if(!top && !bottom && !left && !right) return false;
-
-        //return mtv if intersecting
-        return shape1.shape === "rect" && shape2.shape === "rect" && onlyAABB ? polygon2polygon(shape1, shape2) : new G.Vector();
+        return onlyAABB ? G.Physics.intersecting(a,b) : true;
     }
 
     function circle2circle(circle1, circle2)
@@ -4716,6 +4959,7 @@ Physics.World = (function(){
                 //don't do physics if shape says so
                 if(shape.physics === false) return;
                 
+                
                 shape.one("update", function()
                 {
                     //make sure pos, vel, and acc are all vectors
@@ -4724,7 +4968,11 @@ Physics.World = (function(){
                         shape.pos = new G.Vector(shape.pos ? shape.pos.x : 0, shape.pos ? shape.pos.y : 0);
                         shape.vel = new G.Vector(shape.vel ? shape.vel.x : 0, shape.vel ? shape.vel.y : 0);
                     }
+                    
+                    //perform euler integration - ish - (pos = pos + vel)
+                    shape.pos.add(shape.vel.times(shape.stage && (shape.framerateVel !== false && self.framerateVel !== false) ? shape.stage.deltaFramerate:1));  
 
+                    //handle collisions
                     if(self.collisions !== false && shape.enableCollisions !== false && self.collisions.dynamickinematic && self.shapes.dynamic.length() >= self.shapes.kinematic.length()) 
                     {
                         shape.colliding = false;
@@ -4745,10 +4993,7 @@ Physics.World = (function(){
                                 self.handleCollisions(shape, shape2);
                             });
                         }
-                    }
-                    
-                    //perform euler integration - ish - (pos = pos + vel)
-                    shape.pos.add(shape.vel.multiply(shape.stage && (shape.framerateVel !== false && self.framerateVel !== false) ? shape.stage.deltaFramerate:1));     
+                    }   
                 });
             });
 
@@ -4759,7 +5004,7 @@ Physics.World = (function(){
 
                 //don't do physics if shape says so
                 if(shape.physics === false) return;
-
+                
                 shape.one("update", function()
                 {
                     //make sure pos, vel, and acc are all vectors
@@ -4769,6 +5014,13 @@ Physics.World = (function(){
                         shape.vel = new G.Vector(shape.vel ? shape.vel.x : 0, shape.vel ? shape.vel.y : 0);
                         shape.acc = new G.Vector(shape.acc ? shape.acc.x : 0, shape.acc ? shape.acc.y : 0);
                     }
+                    
+                    shape.acc = shape.stage.world.gravity;
+                    
+                    //perform euler integration - ish - (acc = gravity + force, vel = vel + acc, pos = pos + vel)
+                    shape.vel.add(shape.acc);
+                    shape.pos.add(shape.vel.times(shape.stage && (shape.framerateVel !== false && self.framerateVel !== false) ? shape.stage.deltaFramerate : 1));
+
                                                                        
                     //resolve collisions
                     if(self.collisions !== false && shape.enableCollisions !== false)
@@ -4802,22 +5054,6 @@ Physics.World = (function(){
                             else self.shapes.dynamic.each(handle);
                         }
                     }
-                    
-                    if(shape.stage && shape.stage.world)
-                    {
-                        if(shape.gravity !== false && shape.colliding !== true) 
-                        {
-                            shape.acc = shape.stage.world.gravity;
-                        }
-                        else if(shape.colliding)
-                        {
-                            shape.acc = new G.Vector();                    
-                        }
-                    }
-                    
-                    //perform euler integration - ish - (acc = gravity + force, vel = vel + acc, pos = pos + vel)
-                    shape.vel.add(shape.acc);
-                    shape.pos.add(shape.vel.multiply(shape.stage && (shape.framerateVel !== false && self.framerateVel !== false) ? shape.stage.deltaFramerate : 1));
                 });
             });
 
@@ -4861,8 +5097,8 @@ Physics.World = (function(){
             }
             else
             {
-                if(shape1.events) var res1 = shape1.trigger("collision", [shape2, mtv.divide(2).multiply(-1)]);
-                if(shape2.events) var res2 = shape2.trigger("collision", [shape1, mtv.divide(2)]);
+                if(shape1.events) var res1 = shape1.trigger("collision", [shape2, mtv.over(2).times(-1)]);
+                if(shape2.events) var res2 = shape2.trigger("collision", [shape1, mtv.over(2)]);
             }
             
             //exit if shapes want to exit
@@ -4908,8 +5144,8 @@ Physics.World = (function(){
             else
             {
                 //push shape2's position to be outside of shape1
-                shape2.pos.add(mtv.divide(2));
-                shape1.pos.subtract(mtv.divide(2));
+                shape2.pos.add(mtv.over(2));
+                shape1.pos.subtract(mtv.over(2));
 
                 //Handle for simple AABB's
                 //simple aabb velocity reversing, does not work with rotating shapes or non-box shapes
@@ -4996,16 +5232,24 @@ G.rgb = function(r, g, b)
 
 G.random=function(max, min)
 {
+    //optionally set custom random function (pass in arguments)
+    var ran = Math.random;
+    for(var i in arguments) if(typeof arguments[i] === "function") ran = arguments[i];
+    
     var min = typeof min === "number" ? min : 0;
     var max = typeof max === "number" ? max : 1;
-    return Math.round(min+(Math.random()*(max-min)));
+    return Math.round(min+(ran()*(max-min)));
 }
 
 G.random.float = function(max,min)
 {
+    //optionally set custom random function (pass in arguments)
+    var ran = Math.random;
+    for(var i in arguments) if(typeof arguments[i] === "function") ran = arguments[i];
+    
     var min = typeof min === "number" ? min : 0;
     var max = typeof max === "number" ? max : 1;
-    return min+(Math.random()*(max-min));
+    return min+(ran()*(max-min));
 };
 
 G.random.color = function()
@@ -5031,17 +5275,14 @@ G.Vector.prototype.dot = function(v)
     return this.x * v.x + this.y * v.y;
 };
 
-G.Vector.prototype.length = function()
+G.Vector.prototype.magnitude = function()
 {
     return Math.sqrt(this.x * this.x + this.y * this.y);
 };
 
 G.Vector.prototype.normalize = function(num)
 {
-    var s = (num || 1) / this.length();
-    this.x *= s;
-    this.y *= s;
-    return this;
+    return this.multiply((num||1)/this.magnitude());
 };
 
 G.Vector.prototype.add = function(x,y)
@@ -5072,11 +5313,23 @@ G.Vector.prototype.minus = function()
 
 G.Vector.prototype.multiply = function(s1, s2)
 {
+    if(s2) return this.set(this.x * s1, this.y * s2);
+    return this.set(this.x * s1, this.y * s1);
+};
+
+G.Vector.prototype.times = function(s1, s2)
+{
     if(s2) return new G.Vector(this.x * s1, this.y * s2);
     return new G.Vector(this.x * s1, this.y * s1);
 };
 
 G.Vector.prototype.divide = function(s1, s2)
+{
+    if(s2) return this.set(this.x / s1, this.y / s2);
+    return this.set(this.x / s1, this.y / s1);
+};
+
+G.Vector.prototype.over = function(s1, s2)
 {
     if(s2) return new G.Vector(this.x / s1, this.y / s2);
     return new G.Vector(this.x / s1, this.y / s1);
@@ -5138,7 +5391,23 @@ G.event = new Event();
 //prevent mouse and only allow touch events if on mobile, disable default browser touch events (includes annoying zooming when clicked)
 // if(G.isMobile) G.event.mouse.onlyTouch().on('touchstart,touchend,touchmove', function(e){ e.preventDefault(); })
 
-return G;
 
+//
+// Nodejs and AMD support: export the implemenation as a module using
+// either convention.
+//
 
-});
+if (typeof module === "object" && module.exports)
+{
+  module.exports = G;
+}
+else if (typeof define === "function" && define.amd)
+{
+  define(function()
+  {
+    return G;
+  });
+}
+else this.G = G;
+
+})();

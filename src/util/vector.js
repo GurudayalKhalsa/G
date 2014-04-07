@@ -10,17 +10,14 @@ G.Vector.prototype.dot = function(v)
     return this.x * v.x + this.y * v.y;
 };
 
-G.Vector.prototype.length = function()
+G.Vector.prototype.magnitude = function()
 {
     return Math.sqrt(this.x * this.x + this.y * this.y);
 };
 
 G.Vector.prototype.normalize = function(num)
 {
-    var s = (num || 1) / this.length();
-    this.x *= s;
-    this.y *= s;
-    return this;
+    return this.multiply((num||1)/this.magnitude());
 };
 
 G.Vector.prototype.add = function(x,y)
@@ -51,11 +48,23 @@ G.Vector.prototype.minus = function()
 
 G.Vector.prototype.multiply = function(s1, s2)
 {
+    if(s2) return this.set(this.x * s1, this.y * s2);
+    return this.set(this.x * s1, this.y * s1);
+};
+
+G.Vector.prototype.times = function(s1, s2)
+{
     if(s2) return new G.Vector(this.x * s1, this.y * s2);
     return new G.Vector(this.x * s1, this.y * s1);
 };
 
 G.Vector.prototype.divide = function(s1, s2)
+{
+    if(s2) return this.set(this.x / s1, this.y / s2);
+    return this.set(this.x / s1, this.y / s1);
+};
+
+G.Vector.prototype.over = function(s1, s2)
 {
     if(s2) return new G.Vector(this.x / s1, this.y / s2);
     return new G.Vector(this.x / s1, this.y / s1);

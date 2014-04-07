@@ -12,6 +12,9 @@ G.Object = G.Class.extend({
         if(this.addToStage !== false) this.add(this.addToCollection);
         delete this.addToCollection;
         delete this.addToStage;
+        
+        //default events to turned on
+        if(typeof this.events === "undefined") this.events = true;
     },
 
     mergeValues:function(obj, defaults)
@@ -146,14 +149,35 @@ G.Object = G.Class.extend({
             var success = this.stage.remove(this);
             if(typeof success === "number" && this.events) this.trigger("remove", this.stage);
         }
+        
+        return this;
 
     },
 
-    set:function(key, val)
+    set:function(key, val, copy)
     {
         var self = this;
         //handle of object passed in, set all keys in that object
-        if(typeof key === "object") { _.each(arguments[0], function(val, key){ self.set(key, val) }); return self; }
+        if(typeof key === "object") 
+        {
+            copy = val; 
+            _.each(arguments[0], function(val, key){ self.set(key, val) }); return self; 
+        }
+        
+        //handle if multiple key,val arguments passed in sequentially
+        if(arguments.length > 3)
+        {
+            var copy = typeof arguments[arguments.length-1] === "boolean" && typeof arguments[arguments.length-2] !== "string" ? arguments[arguments.length-1] : false; 
+            for(var i = 0; i < arguments.length; i += 2)
+            {
+                var key = arguments[i],
+                    val = arguments[i+1];
+                    
+                this.set(key, val, copy);
+            }
+            
+            return this;
+        }
 
         var parent = this;
         if(key.indexOf(".") !== -1)
@@ -169,15 +193,16 @@ G.Object = G.Class.extend({
         var current = parent[key];
         if((typeof val !== "object" && val !== current) || (typeof val === "object" && val !== current) )
         {
-
-            if(typeof val === "object" && !(val instanceof G.Object)) parent[key] = JSON.parse(JSON.stringify(val));
+            if(parent[key] === val) return self;
+            
+            if(copy && typeof val === "object" && !(val instanceof G.Object)) parent[key] = JSON.parse(JSON.stringify(val));
             else parent[key] = val;
 
             if(this.events)
             {
-                this.trigger("change", [current, key]);
-                this.trigger("change:"+key, [current, key]);
-                for(var i = 0; i < this.collections.length; i++) 
+                this.trigger("change", [key, current, val]);
+                this.trigger("change:"+key, [current, val]);
+                if(this.collections) for(var i = 0; i < this.collections.length; i++) 
                 { 
                     if(this.collections[i].events)
                     {
@@ -192,8 +217,6 @@ G.Object = G.Class.extend({
 
     get:function(name)
     {
-        if(typeof this[name] === "undefined") return false;
-        if(typeof this[name] === "object") return _.clone(obj);
         return this[name];
     },
     

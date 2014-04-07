@@ -1,15 +1,23 @@
 G.random=function(max, min)
 {
+    //optionally set custom random function (pass in arguments)
+    var ran = Math.random;
+    for(var i in arguments) if(typeof arguments[i] === "function") ran = arguments[i];
+    
     var min = typeof min === "number" ? min : 0;
     var max = typeof max === "number" ? max : 1;
-    return Math.round(min+(Math.random()*(max-min)));
+    return Math.round(min+(ran()*(max-min)));
 }
 
 G.random.float = function(max,min)
 {
+    //optionally set custom random function (pass in arguments)
+    var ran = Math.random;
+    for(var i in arguments) if(typeof arguments[i] === "function") ran = arguments[i];
+    
     var min = typeof min === "number" ? min : 0;
     var max = typeof max === "number" ? max : 1;
-    return min+(Math.random()*(max-min));
+    return min+(ran()*(max-min));
 };
 
 G.random.color = function()

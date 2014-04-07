@@ -13,7 +13,14 @@
         <link rel="stylesheet" href="css/style.css">
     </head>
     <body>
-        <script src="../../dist/G.js"></script>
-        <script src="js/main.js"></script>
+        <script data-main="js/main.js" src="js/lib/require.js"></script>
+        <script type="text/javascript">
+            require.config
+            ({
+                paths: {
+                   G: '../../../dist/G'
+                } 
+            });
+        </script>
     </body>
 </html>

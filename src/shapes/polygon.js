@@ -212,7 +212,8 @@ G.Polygon = Shape.extend({
         if(!ctx) return;
         
         if(this.fill) ctx.fillStyle = this.color;
-        else ctx.strokeStyle = this.strokeColor||this.color;
+        if(this.stroke) ctx.strokeStyle = this.strokeColor||this.color;
+        if(this.thickness) ctx.lineWidth = this.thickness;
 
         ctx.beginPath();
 
@@ -237,9 +238,8 @@ G.Polygon = Shape.extend({
         ctx.lineTo(x+this.vertices[0],y+this.vertices[1]);
 
 
-        if(this.thickness) ctx.lineWidth = this.thickness;
         if(this.fill) ctx.fill();
-        else ctx.stroke();
+        if(this.stroke) ctx.stroke();
 
         ctx.closePath();
     }

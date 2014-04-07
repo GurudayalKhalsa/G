@@ -256,7 +256,7 @@ var Event = G.Event = function(){
                     for(var i = 0; i < key.length; i++)
                     {
                         //fix for right meta key
-                        if(e.metaKey && key[0] !== "]") state.down[key[i]] = true;
+                        if(!e.metaKey || (e.metaKey && key[0] !== "]")) state.down[key[i]] = true;
                         state.up = {};
                     }
                     if(e.metaKey) 
@@ -329,14 +329,18 @@ var Event = G.Event = function(){
 
         function contains(arr, str)
         {
-            if(Array.isArray(str)) 
+            if(typeof arr === "string" && typeof str === "str") return arr.indexOf(str) !== -1;
+            
+            if(!_.isArr(arr)) arr = [arr];
+            
+            if(_.isArr(str)) 
             {
                 for(var i = 0; i < str.length; i++) if(contains(arr, str[i])) return true;
                 return false;
             }
             else
             {
-                return Array.isArray(arr) ? flatten(arr).indexOf(str) !== -1 : (arr[str] ? true : false);
+                return _.isArr(arr) ? flatten(arr).indexOf(str) !== -1 : (arr[str] ? true : false);
             }
         }
 
@@ -428,9 +432,9 @@ var Event = G.Event = function(){
                         if(e.keys[0] === "]") e.keys = keyMap[modifierMap["metaKey"]][0] + e.keys.substr(1);
                     }
                 }       
-                
+                                
                 var code = (e && e.metaKey && Key.toString(e.keyCode) === "]") ? keyMap[modifierMap["metaKey"]] : Key.toString(e.keyCode);    
-                                                                        
+                                                                         
                 //do not trigger if the key/s specified does not contain a modifier key, yet a modifier key is down/up
                 if(e && (e.metaKey || e.ctrlKey || e.shiftKey) && !contains(key, [keyMap[modifierMap["metaKey"]],keyMap[modifierMap["ctrlKey"]],keyMap[modifierMap["shiftKey"]]])) return false;
                                 
@@ -441,12 +445,12 @@ var Event = G.Event = function(){
                 //determine if key or keys are down/up based on state.down/up
                 if(Array.isArray(key) && key.length === 1) return is(key[0]);
                 
-                else if(typeof key === "string" && (!e || (code === key))) 
+                else if(typeof key === "string" && (!e || (contains(code, key)))) 
                 {
                     return key in state[type];
                 }
                 
-                else if(typeof key === "string" && (code !== key))
+                else if(typeof key === "string" && (!contains(code, key)))
                 {
                     return false;
                 }
@@ -497,8 +501,8 @@ var Event = G.Event = function(){
             
         }
         
-        Key.onDown = function(key, callback){ return Key.on("keydown"+(key?":"+key:""), callback); }
-        Key.onUp = function(key, callback){ return Key.on("keyup"+(key?":"+key:""), callback); }
+        Key.onDown = function(key, callback){ return Key.on("keydown"+(key?":"+key:""), callback||key); }
+        Key.onUp = function(key, callback){ return Key.on("keyup"+(key?":"+key:""), callback||key); }
 
         Key.one = function(key, callback)
         {

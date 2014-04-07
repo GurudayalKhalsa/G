@@ -11,9 +11,11 @@ G.Camera=G.Class.extend
         if(obj.stage) this.stage = obj.stage;
         else this.stage = G.stage;
         //assign parameters based on defaults and passed in object
-        var params = {pos:new G.Vector(),vel:{x:0,y:0},scrollRatio:{x:2,y:2},focus:0,frame:{left:0,right:this.stage.width,top:0,bottom:this.stage.height},bounds:{left:0,right:this.stage.width,top:0,bottom:this.stage.height}};
+        var params = {pos:new G.Vector(),vel:{x:0,y:0},scrollRatio:{x:2,y:2},focus:0,frame:{left:0,right:this.stage.width,top:0,bottom:this.stage.height},bounds:{}};
         for (i in params) this[i] = params[i];
         for (i in obj) this[i] = obj[i];
+            
+        this.ctx = (this.stage ? this.stage.ctx : (this.focus ? (this.focus.stage ? this.focus.stage.ctx : false) : (G.stage ? G.stage.ctx : false)));
     },
 
     translate:function()
@@ -34,17 +36,16 @@ G.Camera=G.Class.extend
         if(typeof this.bounds.right === "number" && this.pos.x+this.frame.right > this.bounds.right) this.pos.x = this.bounds.right-this.frame.right;
         if(typeof this.bounds.bottom === "number" && this.pos.y+this.frame.bottom > this.bounds.bottom) this.pos.y = this.bounds.bottom-this.frame.bottom;
     
-        var ctx = (this.stage ? this.stage.ctx : (this.focus ? (this.focus.stage ? this.focus.stage.ctx : false) : (G.stage ? G.stage.ctx : false)));
-        if(!ctx) return false;
+        
+        if(!this.ctx) return false;
         //apply translation of canvas to simulate camera
-        ctx.translate(-this.pos.x,-this.pos.y);
+        this.ctx.translate(-this.pos.x,-this.pos.y);
     },
 
     resetTranslation:function()
     {
-        var ctx = (this.stage ? this.stage.ctx : (this.focus ? (this.focus.stage ? this.focus.stage.ctx : false) : (G.stage ? G.stage.ctx : false)));
-        if(!ctx) return false;
+        if(!this.ctx) return false;
         //reset translation of
-        ctx.translate(this.pos.x,this.pos.y);
+        this.ctx.translate(this.pos.x,this.pos.y);
     }
 });

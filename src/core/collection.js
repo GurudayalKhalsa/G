@@ -8,7 +8,7 @@ G.Collection = G.Class.extend({
         this.objects = [];
         this._currentId = 0;
         this._length = 0;
-        this.enableVisibleHash = false;
+        this._visibleHashEnabled = false;
         this.enableZindex = false;
 
         this.addToCollections = typeof addToCollections === "boolean" ? addToCollections : ((typeof addToCollections === "object" && typeof addToCollections.addToCollections === "boolean") ? addToCollections.addToCollections : true);
@@ -78,7 +78,7 @@ G.Collection = G.Class.extend({
 
     config:function(obj)
     {
-        if(typeof obj !== "object") return false;
+        if(typeof obj !== "object") return this;
 
         //physics
         if(obj.physics) 
@@ -89,6 +89,8 @@ G.Collection = G.Class.extend({
                 else this.world.config(obj.Physics);
             }
         }
+        
+        return this;
     },
 
     update:function()
@@ -115,8 +117,8 @@ G.Collection = G.Class.extend({
         if(self.events) self.trigger("render");
 
         //retrieve all visible shapes, very efficient if thousands of static shapes
-        //only enabled if stage.enableVisibleHash is set to true
-        if(this.visibleHash && this.enableVisibleHash)
+        //only enabled if stage._visibleHashEnabled is set to true
+        if(this.visibleHash && this._visibleHashEnabled)
         {
             this.visibleHash.moving.clear().insert(this.visibleHash.moving.shapes);
             var obj = {};
@@ -243,7 +245,7 @@ G.Collection = G.Class.extend({
             }
 
             //add to visible visibleHash
-            if(this.enableVisibleHash && (this.canvas || (this.get(0) && this.get(0).stage && this.get(0).stage.canvas)) && object instanceof G.Shape)
+            if(this._visibleHashEnabled && (this.canvas || (this.get(0) && this.get(0).stage && this.get(0).stage.canvas)) && object instanceof G.Shape)
             {
                 this.addToVisibleHash(object);
             }
@@ -304,7 +306,7 @@ G.Collection = G.Class.extend({
         this._length = this._length-1;
 
         //remove from visible visibleHash
-        if(this.enableVisibleHash && object instanceof G.Shape && this.visibleHash)
+        if(this._visibleHashEnabled && object instanceof G.Shape && this.visibleHash)
         {
             this.removeFromVisibleHash(object);
         }
@@ -322,7 +324,7 @@ G.Collection = G.Class.extend({
         //remove object from all of its collections if this is root stage
         if(this === G.stage || this.queryParent === G.stage) object.remove();
 
-        return object;
+        return this;
     },
     
     sortByZindex: function()
@@ -368,7 +370,7 @@ G.Collection = G.Class.extend({
 
     enableVisibleHash:function()
     {
-        this.enableVisibleHash = true;
+        this._visibleHashEnabled = true;
         var self = this;
         this.each(function(shape)
         {
@@ -378,7 +380,7 @@ G.Collection = G.Class.extend({
 
     disableVisibleHash:function()
     {
-        this.enableVisibleHash = false;
+        this._visibleHashEnabled = false;
         var self = this;
         this.each(function(shape)
         {
@@ -445,24 +447,35 @@ G.Collection = G.Class.extend({
         return count;
     },
 
-    shapeContainingPoint:function(x,y,reverse)
+    shapeContainingPoint:function(x,y)
     {
-        var shape;
+        var shapes = [],
+            top = -1,
+            self = this;
+            
         this.each(function(s)
         {
             if(!(s instanceof G.Shape)) return;
-            if(s.posInBounds(x,y,reverse)) 
+            if(s.posInBounds(x,y)) 
+            {
+                shapes.push(s);
+            }
+        });
+        
+        var shape = false;
+        
+        //get shape on top layer of render stack (last in collection)
+        shapes.forEach(function(s)
+        {
+            var id = self.getId(s);
+            if(id > top)
             {
                 shape = s;
-                return false;
+                top = id;
             }
-            
         });
-        if(shape) 
-        {
-            return shape;
-        }
-        return false;
+        
+        return shape;
     },
 
     getIntersections:function()

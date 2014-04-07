@@ -2,7 +2,7 @@ G.Line = Shape.extend({
 
     initialize:function(obj)
     {
-        var defaults = {pos:{x1:0,y1:0,x2:0,y2:0,x:0,y:0}, thickness:1,endStyle:"butt"};
+        var defaults = {pos:{x1:0,y1:0,x2:0,y2:0,x:0,y:0}, thickness:1,lineCap:"butt"};
 
         //if not passing in object literal, assign arguments as x1,y1,x2,y2,strokeColor,thickness,vx,vy
         if(typeof obj !== "object" && arguments.length > 3)
@@ -115,7 +115,7 @@ G.Line = Shape.extend({
         //change thickness
         ctx.lineWidth = this.thickness;
         //change end style
-        ctx.lineCap = this.endStyle;
+        ctx.lineCap = this.lineCap;
 
         ctx.stroke();
         ctx.closePath();

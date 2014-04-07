@@ -43,7 +43,7 @@ G.Stage = G.Collection.extend({
         this.addToObjectCollections = false;
         this.events = true;
         this.enableZindex = true;
-        this.enableVisibleHash = false;
+        this._visibleHashEnabled = false;
 
         if(obj && typeof obj.events !== "undefined" && !obj.events) this.events = false;
 
@@ -70,11 +70,13 @@ G.Stage = G.Collection.extend({
 
         //add to stage list
         G.stages.push(this);
+        
+        return this;
     },
 
     config:function(obj)
     {
-        if(typeof obj !== "object") return false;
+        if(typeof obj !== "object") return this;
 
         //physics
         if(obj.physics) 
@@ -97,6 +99,8 @@ G.Stage = G.Collection.extend({
             if(!this.camera) this.camera = new G.Camera(_.extend(obj.camera, {stage:this}));
             else this.camera.initialize(_.extend(obj.camera, {stage:this}));
         }
+        
+        return this;
     },
 
     setCanvas:function()
@@ -198,7 +202,10 @@ G.Stage = G.Collection.extend({
 
         if(Array.prototype.indexOf.call(arguments, "lowres") === -1 && devicePixelRatio !== backingStoreRatio)
         {
-            this.setScale(ratio);
+            var w = this.canvas.width, h = this.canvas.height;
+            this.scale(ratio);
+            this.canvas.style.width = w + 'px';
+            this.canvas.style.height = h + 'px';
         }
 
         //run mouse event engine, setting root to canvas
@@ -239,31 +246,13 @@ G.Stage = G.Collection.extend({
         }
         return this;
     },
-
-    setScale:function(x, y)
+    
+    scale: function(x, y)
     {
-
-        if(this.ctx && typeof x === "number")
-        {
-            var canvas = this.canvas, ctx = this.ctx;
-            if(typeof y !== "number") var y = x;
-            var oldWidth = canvas.width;
-            var oldHeight = canvas.height;
-
-            canvas.width = oldWidth * x;
-            canvas.height = oldHeight * y;
-
-            canvas.style.width = oldWidth + 'px';
-            canvas.style.height = oldHeight + 'px';
-
-            this.width = oldWidth;
-            this.height = oldHeight;
-
-            // now scale the context to counter
-            // the fact that we've manually scaled
-            // our canvas element
-            ctx.scale(x, y);
-        }
+        if(typeof y !== "number") var y = x;
+        this.canvas.width *= x;
+        this.canvas.height *= y;
+        this.ctx.scale(x, y);
     },
 
     render:function(noClear)

@@ -39,29 +39,29 @@ G.Rect = Shape.extend({
             this.width=Math.abs(this.width);
         }
     },
-
+    
     _render:function(x,y,w,h)
     {
         var ctx = this.stage?this.stage.ctx:G.stage.ctx;
         if(!ctx) return;
 
-        if(this.thickness) ctx.lineWidth = this.thickness;
+        if(this.stroke) ctx.lineWidth = this.thickness;
 
         // //draw at new position and dimensions if specified (does not set position of object), (used in rotating)
-        //using typeof is costly, before was doing if typeof x !== "number"
+        if(w === undefined) w = this.width;
+        if(h === undefined) h = this.height;
+        if(x === undefined) x = this.pos.x-w/2;
+        if(y === undefined) y = this.pos.y-h/2;
+
         if(this.fill)
         {
             ctx.fillStyle = this.color;
-            if(x !== undefined && y !== undefined) ctx.fillRect(x-this.width/2,y-this.width/2,this.width,this.height);
-            else if(w !== undefined && h !== undefined) ctx.fillRect(x-w/2,y-h/2,w,h);
-            else ctx.fillRect(this.pos.x-this.width/2,this.pos.y-this.height/2,this.width,this.height);
+            ctx.fillRect(x,y,w,h);
         }
-        else
+        if(this.stroke)
         {
             ctx.strokeStyle = this.strokeColor||this.color;
-            if(x !== undefined && y !== undefined) ctx.strokeRect(x-this.width/2,y-this.width/2,this.width,this.height);
-            else if(w !== undefined && h !== undefined) ctx.strokeRect(x-w/2,y-h/2,w,h);
-            else ctx.strokeRect(this.pos.x-this.width/2,this.pos.y-this.height/2,this.width,this.height);
+            ctx.strokeRect(x,y,w,h);
         }
         
     }

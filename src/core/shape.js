@@ -28,6 +28,7 @@ var Shape = G.Shape = G.Object.extend
           zindex: 0,
           color: "#000",
           fill: true,
+          stroke: false,
           hidden: false
         }, defaults ||
         {});
@@ -171,8 +172,8 @@ var Shape = G.Shape = G.Object.extend
 
     posInBounds:function(x, y)
     {
-        var radius = 0.01, reverse = false;
-        for(var i = 2; i < arguments.length; i++) {if(typeof arguments[i] === "number") var radius = arguments[i]; if(typeof arguments[i] === "boolean") reverse = arguments[i]}
+        var radius = 0.01;
+        for(var i = 2; i < arguments.length; i++) {if(typeof arguments[i] === "number") var radius = arguments[i]; }
         var bounds = this.bounds();
         if(this.shape === "rect") return x > bounds.left && x < bounds.right && y > bounds.top && y < bounds.bottom;
         
@@ -186,7 +187,7 @@ var Shape = G.Shape = G.Object.extend
             hidden:true
         });
 
-        return G.Physics.intersecting(point, this, reverse);
+        return G.Physics.intersecting(point, this);
             
     },
 
