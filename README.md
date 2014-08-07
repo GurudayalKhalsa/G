@@ -17,11 +17,13 @@ G is a fast, powerful and extendable javascript-based 2D game and graphics frame
 - Sound
 - Physics
 - Cameras
-- Mobile support
+- Mobile and cross-browser support
 - Mouse/touch/keyboard handling
 - And Many More!
 
 G has a few nifty plugins, including integration with the Box2D and Chipmunk Physics engines. It is also very easy to extend so that you can make your own custom plugins!
+
+**Warning:** this library is a work in progress, has not been tested in all major browsers, and will contain many bugs. 
 
 Quick Start
 -----------------
@@ -93,4 +95,21 @@ If you would like to add a demo to the list of demos, or want to show something 
 License
 -------
 
-G is released under the [MIT License](http://opensource.org/licenses/MIT).under the [MIT License](http://opensource.org/licenses/MIT).
+G is released under the [MIT License](http://opensource.org/licenses/MIT).
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
