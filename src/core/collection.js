@@ -92,6 +92,7 @@ G.Collection = G.Class.extend({
 
     update:function()
     {
+        this.trigger("update");
         if((this.world && ((this !== G.stage && this.physics) || (this === G.stage && G.physics && this.physics)))) this.world.update();
         //prevent update from being called more than once
         else if(this.get(0) && !(this.get(0).stage && this.get(0).stage.world))
@@ -190,6 +191,8 @@ G.Collection = G.Class.extend({
 
     add:function(object)
     {
+        if(_.isArr(object)){ for(var i = 0; i < object.length; i++) this.add(object[i]); return this }
+        
         var self = this;
         //if multiple in arguments
         if(arguments.length > 1)
@@ -229,6 +232,14 @@ G.Collection = G.Class.extend({
             this.objects[id] = object;
             this._currentId++;
             this._length = this._length+1;  
+            
+            //could be slow
+            if(typeof object.zindex !== "undefined")
+            {
+                var needToSort = false;
+                for(var i = 0; i < this.objects.length; i++) if(this.objects[i] && this.objects[i].zindex !== 0) { needToSort = true; break; }
+                if(needToSort) this.sortByZindex();
+            }
 
             //add to visible visibleHash
             if(this._visibleHashEnabled && (this.canvas || (this.get(0) && this.get(0).stage && this.get(0).stage.canvas)) && object instanceof G.Shape)
@@ -251,6 +262,8 @@ G.Collection = G.Class.extend({
 
     remove:function(object, fromObject)
     {
+        if(_.isArr(object)){ for(var i = 0; i < object.length; i++) this.remove(object[i]); return this }
+
         if(this.length() === 0) return false;
         //if index, get object
         if(typeof object === "number") object = this.get(object);
@@ -304,6 +317,11 @@ G.Collection = G.Class.extend({
         if(this === G.stage || this.queryParent === G.stage) object.remove();
 
         return object;
+    },
+    
+    sortByZindex: function()
+    {
+      this.objects.sort(function(cur, next){return cur.zindex > next.zindex});
     },
 
     addToVisibleHash:function(object)
@@ -371,7 +389,12 @@ G.Collection = G.Class.extend({
         if(typeof index === "number")
         {
             if(index >= 0)return this.objects[index];
-            return this.objects[this.objects.length+index];
+            var i = 0;
+            for(i = this.objects.length-1; i > 0; i--)
+            {
+                if(this.objects[i]) break;
+            }
+            return this.objects[i+1+index];
         }
         if(this.objects.indexOf(undefined) === -1) return this.objects.slice(0);
         var objects = [];
@@ -394,7 +417,7 @@ G.Collection = G.Class.extend({
         {
             if(typeof this.objects[i] !== "undefined") 
             {
-                var res = callback.call(this, this.objects[i]);
+                var res = callback.call(this, this.objects[i], i);
                 if(res === false) break;
             }
         }
@@ -461,37 +484,68 @@ G.Collection = G.Class.extend({
     {
         if(typeof obj !== "string" && typeof obj !== "object" && typeof obj !== "function") return false;
 
-        if(typeof obj === "string") var match = obj.split(",");
+        if(typeof obj === "string") 
+        {
+            var match = obj.split(",");
+            if(typeof cb === "string") 
+            {
+                var query = cb;
+                cb = arguments[2];
+            }
+        }
         if(typeof obj === "function") var custom = obj;
-
+        
         var cb = cb || function(){};
         var collection = new G.Collection(false, false);
         collection.queryParent = this;
         var none = true;
 
         for(var i = 0; i < this.objects.length; i++)
-        {
+        {            
             if(!this.objects[i]) continue;
             var object = this.objects[i];
 
             var not = false;
             
+            
             //handle if string
             if(match) 
             {
-                for(var i = 0; i < match.length; i++)
+                _.each(match, function(key)
                 {
-                    if(typeof object[match[i]] === "undefined") not = true;
-                }
+                   var parent = object;
+                   if(key.indexOf(".") !== -1)
+                   {
+                       var depth = key.split(".");
+                       for(var i = 0; i < depth.length-1; i++)
+                       {
+                           parent = parent[depth[i]];   
+                       }
+                       key = depth.pop();
+                   }
+                   
+                   process(query, key, parent);
+                });
             }
+            
 
             //handle if obj
             else if(custom) not = custom(object) ? false : true;
 
             else _.each(obj, function(val, key)
             {
-                if(typeof val === "object") _.each(val, function(val2, key2){ process(val2, key2, object[key]) });
-                else process(val, key, object);
+                var parent = object;
+                if(key.indexOf(".") !== -1)
+                {
+                    var depth = key.split(".");
+                    for(var i = 0; i < depth.length-1; i++)
+                    {
+                        parent = parent[depth[i]];   
+                    }
+                    key = depth.pop();
+                }
+                if(typeof val === "object") _.each(val, function(val2, key2){ process(val2, key2, parent[key]) });
+                else process(val, key, parent);
             });
 
             function process(val, key, parent)
@@ -502,7 +556,7 @@ G.Collection = G.Class.extend({
                 //if number range - e.g. "range:10:20" in between 10 and 20
                 if(typeof val === "string" && val.indexOf("range") !== -1)
                 {
-                    var range = val.split("range:").join("").split(":").map(function(val){return parseFloat(val)});
+                    var range = val.split("range:").join("").split(":").map(function(val){return +val});
                     if(range && parent[key] >= range[0] && parent[key] <= range[1]) not = false;
                     else not = true; 
                 }

@@ -8,7 +8,7 @@
     var AudioContext = window.AudioContext || window.webkitAudioContext;
 
     //use WebAudio API if available
-    var context = new AudioContext();
+    var context = AudioContext ? new AudioContext() : {};
 
     var test = new Audio;
 
@@ -31,9 +31,21 @@
             var self = this;
             if (typeof src !== "string") return console.warn("Warning: A sound must have a source... ", this);
 
-            //get a playable source
-            for (var i = 0; i < extensions.length; i++) if (playable(extensions[i], audio)) { this.src = src+"."+extensions[i]; break; }
+            if(!(extensions instanceof Array))
+            {
+                this.src = src;
+            }
 
+            else
+            {
+                //get a playable source
+                for (var i = 0; i < extensions.length; i++) if (playable(extensions[i], audio)) { this.src = src+"."+extensions[i]; break; }
+            }
+
+            this.multipleChannels = true;
+            for (var i = 0; i < arguments.length; i++) if (typeof arguments[i] === "boolean") this.multipleChannels = arguments[i];
+
+            
             //create audio
             function createAudio(){
                 var audio = new Audio;
@@ -41,9 +53,12 @@
                 return audio;
             }
 
-            var audio = this.audio = createAudio();
-
-            var channels = [];
+            //create channels
+            
+            var channels = this.channels = [];
+            for(var i = 0; i < 4; i++) channels.push(createAudio());
+            this.currentChannel = 0;
+            var audio = this.audio = channels[0];
             
             //trigger when loaded
             this.loaded = false;
@@ -51,71 +66,44 @@
             this.on("load", function(){ self.loaded = true; });
 
             //BUG - Safari Mac (only tested on 7) has a major delay in playing sounds through solely html5 Audio
-            //second method is much better in Safari, but not perfect (still delay)
-            if(!context || (navigator.userAgent.match("Safari") === null || navigator.userAgent.match("Chrome") !== null))
-            {
-                //trigger playing
-                audio.addEventListener("play", function() { self.playing = true; });
-                audio.addEventListener("ended", function() { self.playing = false; });
-
-                //mobile browsers must have an input event happen to load audio
-                if(G.isMobile && G.stages[0]) G.stages[0].event.one("touchstart", window, function(){ audio.muted = true; audio.play(); audio.muted = false; }) 
-
-                this.play = function()
-                {
-                    //if currently playing, play new channel simultaneously
-                    if (this.playing) 
-                    {
-                        var n = new Audio;
-                        n.src = this.src;
-                        channels.push(n);
-                        n.play();
-                        return;
-                    }
-                    else channels = [];
-                    if (!this.loaded) return this.on("load", function() { self.play(); });
-                    channels.push(audio);
-                    return audio.play();
-                };
-                //stops all
-                this.stop = function()
-                {
-                    if (!this.loaded && !this.playing) return false;
-                    for(var i in channels) channels[i].pause();
-                };
-            }
-
-            else
+            //this method is much better in Safari than withoud using WebAudio, but not perfect (still delay)
+            if(context && (navigator.userAgent.match("Safari") !== null && navigator.userAgent.match("Chrome") === null))
             {
                 this.context = context;
-                var source = self.source = context.createMediaElementSource(audio);
-                this.playing = false;
-                source.mediaElement.addEventListener("play", function(){self.playing = true;});
-                source.mediaElement.addEventListener("ended", function(){self.playing = false;});
-
-                //mobile browsers must have an input event happen to load audio
-                if(G.isMobile && G.stages[0]) G.stages[0].event.one("touchstart", window, function(){ source.mediaElement.muted = true; source.mediaElement.play(); source.mediaElement.muted = false; }) 
-
-                this.play = function()
+                for(var i in channels)
                 {
-                    //if currently playing, play new sound simultaneously
-                    if(this.playing) 
-                    {
-                        var newSource = context.createMediaElementSource(createAudio());
-                        channels.push(newSource);
-                        return newSource.mediaElement.play();
-                    }
-                    else channels = [];
-                    if (!self.loaded) return self.on("load", function(){self.play()});
-                    channels.push(source);
-                    return source.mediaElement.play();
-                };
-                this.pause = function()
-                {
-                    if (!self.loaded) return false;
-                    for(var i in channels) channels[i].mediaElement.pause();
-                };
-            }            
+                    channels[i] = context.createMediaElementSource(channels[i]).mediaElement;
+                }
+            }      
+
+            //trigger playing
+            this.playing = false;
+            audio.addEventListener("play", function() { self.playing = true; });
+            audio.addEventListener("ended", function() { self.playing = false; });
+
+            //mobile browsers must have an input event happen to load audio
+            if(G.isMobile && G.stages[0]) G.stages[0].event.one("touchstart", window, function(){ audio.muted = true; audio.play(); audio.muted = false; })     
+        },
+        //plays all
+        play: function(t)
+        {
+            var audio = this.audio, channels = this.channels;
+            //if currently playing, play new channel simultaneously
+            if (this.playing && this.multipleChannels !== false) 
+            {
+                this.currentChannel++;
+                if(this.currentChannel > 3) this.currentChannel = 0;
+                return channels[this.currentChannel].play(t);
+            }
+            if (!this.loaded) return this.on("load", function() { self.play(t); });
+            return audio.play(t);
+        },
+        //pauses all
+        pause: function(t)
+        {
+            var audio = this.audio, channels = this.channels;
+            if (!this.loaded && !this.playing) return false;
+            for(var i in channels) channels[i].pause(t);
         }
     })
 })(G);

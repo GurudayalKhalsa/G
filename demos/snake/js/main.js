@@ -53,7 +53,7 @@ var snake = new G.Class
     },
     update:function()
     {
-        if(G.intersecting(this.cells[0], food))
+        if(G.Physics.intersecting(this.cells[0], food))
         {
             this.score++;
             var tail = this.grow();
@@ -75,7 +75,7 @@ var snake = new G.Class
         //Trigger Game Over
         
         //if snake overlaps with itself
-        if(G.intersecting(this.cells)) gameover();
+        if(G.Physics.intersecting(this.cells)) gameover();
 
         //if out of bounds
         if(this.cells[0].pos.x > stage.width || this.cells[0].pos.x < 0 || this.cells[0].pos.y > stage.height || this.cells[0].pos.y < 0) gameover();

@@ -57,7 +57,7 @@ G.animate(function()
 
         colliders.each(function(collider)
         { 
-            colliding = G.intersecting(collider, shape);
+            colliding = G.Physics.intersecting(collider, shape);
             if(colliding) return false;
         });
 

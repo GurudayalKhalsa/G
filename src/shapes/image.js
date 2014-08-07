@@ -4,7 +4,7 @@ G.Image=G.Rect.extend({
     initialize:function(obj)
     {            
         //if not passing in object literal, assign arguments as src,x,y,width,height,vx,vy,clip
-        if(arguments.length > 2)
+        if(typeof arguments[0] === "string")
         {
             var a = {};
             //necessary
@@ -34,23 +34,26 @@ G.Image=G.Rect.extend({
         if(this._super) this._super.apply(this, args); 
 
         //set values
-        this.image = new Image();
-        this.image.src = this.src;
-        this.loaded = false;
-
+        if(!obj.image)
+        {
+            this.image = new Image();
+            this.image.src = this.src;
+            this.loaded = false;
+            this.image.addEventListener("load", function(){ onload.call(self); });
+        }
+        
+        else onload(true);
+        
         var self = this;
 
-        function onload()
+        function onload(loaded)
         {
             this.loaded = true;
             if(this.width === 0) this.width = this.image.naturalWidth;
             //make sure if only width provided, to scale height according to aspect ratio
             if(this.height === 0) this.height = this.width / (this.image.naturalWidth / this.image.naturalHeight);
-            self.trigger("load");
+            if(!loaded)self.trigger("load");
         }
-
-        this.image.addEventListener("load", function(){ onload.call(self); });
-
     },
 
     _render:function(x,y,w,h)

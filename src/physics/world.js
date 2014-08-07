@@ -98,8 +98,8 @@ Physics.World = (function(){
 
         setGravity:function(gravity)
         {
-            var x = typeof gravity !== "undefined" ? (typeof gravity.x === "number" ? gravity.x : (typeof arguments[0] === number ? arguments[0] : 0)) : (typeof G.gravity !== "undefined" ? G.gravity.x : 0);
-            var y = typeof gravity !== "undefined" ? (typeof gravity.y === "number" ? gravity.y : (typeof arguments[1] === number ? arguments[1] : 0)) : (typeof G.gravity !== "undefined" ? G.gravity.y : 0);
+            var x = typeof gravity !== "undefined" ? (typeof gravity.x === "number" ? gravity.x : (typeof arguments[0] === "number" ? arguments[0] : 0)) : (typeof G.gravity !== "undefined" ? G.gravity.x : 0);
+            var y = typeof gravity !== "undefined" ? (typeof gravity.y === "number" ? gravity.y : (typeof arguments[1] === "number" ? arguments[1] : 0)) : (typeof G.gravity !== "undefined" ? G.gravity.y : 0);
             this.gravity = new G.Vector(x, y);
         },
 
@@ -313,7 +313,7 @@ Physics.World = (function(){
             if((res1 instanceof Array && res1.indexOf(false) !== -1) || (res2 instanceof Array && res2.indexOf(false) !== -1)) return true; 
 
             //TODO - add swept collisions
-            var mtv = G.intersecting(shape1, shape2);
+            var mtv = G.Physics.intersecting(shape1, shape2);
             if(!mtv) 
             {
                 return false;
