@@ -47,6 +47,9 @@ module.exports = function(grunt){
         build_dir:'dist',
         build:'<%= build_dir %>/<%= pkg.name %>.js',
         build_min:'<%= build_dir %>/<%= pkg.name %>.min.js',
+        
+        site: '../site/dist/G.js',
+        site_min: '../site/dist/G.min.js',
 
         build_banner: ['/**\n',
                 ' * <%= pkg.name %> <%= pkg.version %>, <%= grunt.template.today("yyyy-mm-dd") %>\n',
@@ -85,13 +88,13 @@ module.exports = function(grunt){
                 src: '<%= src %>',
                 dest: '<%= dev %>'
             },
-            vector: {
+            site: {
                 options:{
                     banner: '<%= dev_banner %>',
                     separator: '\n\n'
                 },
                 src: '<%= src %>',
-                dest: '../../vector/public_html/assets/js/lib/G.js'
+                dest: '<%= site %>'
             },
             build: {
                 options:{
@@ -120,12 +123,17 @@ module.exports = function(grunt){
                     '<%= dev_min %>': ['<%= dev %>']
                 }
             },
+            site: {
+                files: {
+                    '<%= site_min %>': ['<%= build %>']
+                }
+            },
         },
 
         watch: {
             js: {
                 files: '<%= src %>',
-                tasks: ['concat:dev', 'concat:vector']
+                tasks: ['concat:dev', 'concat:site', 'uglify:site']
             }
         },
 
@@ -135,9 +143,10 @@ module.exports = function(grunt){
     grunt.registerTask('dev',[
         'clean:dev',
         'concat:dev',
-        'concat:vector',
-        // 'jshint:dev',
         'uglify:dev',
+        'concat:site',
+        'uglify:site',
+        // 'jshint:dev',
         'watch'
     ]);
 
@@ -146,7 +155,9 @@ module.exports = function(grunt){
         'clean:build',
         'concat:build',
         // 'jshint:build',
-        'uglify:build'
+        'uglify:build',
+        'concat:site',
+        'uglify:site',
     ]);
 
 };
