@@ -432,8 +432,9 @@ var Event = G.Event = function(){
                         if(e.keys[0] === "]") e.keys = keyMap[modifierMap["metaKey"]][0] + e.keys.substr(1);
                     }
                 }       
-                                
-                var code = (e && e.metaKey && Key.toString(e.keyCode) === "]") ? keyMap[modifierMap["metaKey"]] : Key.toString(e.keyCode);    
+
+                //right side meta key fix                                
+                var code = e ? ((e.metaKey && Key.toString(e.keyCode) === "]") ? keyMap[modifierMap["metaKey"]] : Key.toString(e.keyCode)) : false;    
                                                                          
                 //do not trigger if the key/s specified does not contain a modifier key, yet a modifier key is down/up
                 if(e && (e.metaKey || e.ctrlKey || e.shiftKey) && !contains(key, [keyMap[modifierMap["metaKey"]],keyMap[modifierMap["ctrlKey"]],keyMap[modifierMap["shiftKey"]]])) return false;

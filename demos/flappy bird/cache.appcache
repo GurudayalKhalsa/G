@@ -11,11 +11,10 @@ icon.png
 
 css/style.css
 
-../plugins/box2d/box2d.js
-../../plugins/box2d/box2d-G.js
 ../../dist/G.js
 js/main.js
 
+assets/bird.png 
 assets/ceiling.png 
 assets/score_0.png 
 assets/score_1.png 
