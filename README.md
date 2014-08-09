@@ -23,6 +23,8 @@ G is a fast, powerful and extendable javascript-based 2D game and graphics frame
 
 G has a few nifty plugins, including integration with the Box2D and Chipmunk Physics engines. It is also very easy to extend so that you can make your own custom plugins!
 
+Warning: this library is a work in progress, has not been tested in all major browsers, and will contain many bugs.
+
 Quick Start
 -----------------
 
