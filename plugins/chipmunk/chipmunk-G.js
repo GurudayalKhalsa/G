@@ -232,9 +232,9 @@ if (typeof G !== "undefined" && typeof cp !== "undefined")
     {
         if (shape.cp && shape.cp.body)
         {
+            if (shape.cp.body.a) shape.rotation = shape.cp.body.a;
             shape.pos.x = shape.cp.body.getPos().x;
             shape.pos.y = shape.cp.body.getPos().y;
-            if (shape.cp.body.a) shape.rotation = shape.cp.body.a;
         }
     });
 }
