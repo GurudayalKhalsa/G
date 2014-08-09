@@ -34,7 +34,7 @@ G.Circle = Shape.extend({
 
         if(this.fill) ctx.fillStyle = this.color;
         else ctx.strokeStyle = this.strokeColor||this.color;
-        if(this.thickness) ctx.lineWidth = this.thickness;
+        if(this.lineWidth) ctx.lineWidth = this.lineWidth;
         
         //draw at specified position and dimensions if specified (does not set position of object), (used in rotating)
         if(x === undefined) var x = this.pos.x;

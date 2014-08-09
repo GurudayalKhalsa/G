@@ -45,7 +45,7 @@ G.Rect = Shape.extend({
         var ctx = this.stage?this.stage.ctx:G.stage.ctx;
         if(!ctx) return;
 
-        if(this.thickness) ctx.lineWidth = this.thickness;
+        if(this.lineWidth) ctx.lineWidth = this.lineWidth;
 
         // //draw at new position and dimensions if specified (does not set position of object), (used in rotating)
         //using typeof is costly, before was doing if typeof x !== "number"

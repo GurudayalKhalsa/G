@@ -22,7 +22,7 @@ var Asteroid = G.Polygon.extend
         //create asteroid
         this._super(x,y,vertices,"white",vx,vy);
         this.fill = false;
-        this.thickness = 2;
+        this.lineWidth = 2;
         this.rotationInc = G.random.float(0.01, -0.01);
 
         //do not detect collisions with other asteroids

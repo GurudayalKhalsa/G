@@ -237,7 +237,7 @@ G.Polygon = Shape.extend({
         ctx.lineTo(x+this.vertices[0],y+this.vertices[1]);
 
 
-        if(this.thickness) ctx.lineWidth = this.thickness;
+        if(this.lineWidth) ctx.lineWidth = this.lineWidth;
         if(this.fill) ctx.fill();
         else ctx.stroke();
 

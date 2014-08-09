@@ -2,9 +2,9 @@ G.Line = Shape.extend({
 
     initialize:function(obj)
     {
-        var defaults = {pos:{x1:0,y1:0,x2:0,y2:0,x:0,y:0}, thickness:1,endStyle:"butt"};
+        var defaults = {pos:{x1:0,y1:0,x2:0,y2:0,x:0,y:0}, lineWidth:1,lineCap:"butt"};
 
-        //if not passing in object literal, assign arguments as x1,y1,x2,y2,strokeColor,thickness,vx,vy
+        //if not passing in object literal, assign arguments as x1,y1,x2,y2,strokeColor,lineWidth,vx,vy
         if(typeof obj !== "object" && arguments.length > 3)
         {
             var a = {};
@@ -13,7 +13,7 @@ G.Line = Shape.extend({
 
             //optional
             if(typeof arguments[4] === "string") a.color = arguments[4];
-            if(typeof arguments[5] === "number") a.thickness = arguments[5];
+            if(typeof arguments[5] === "number") a.lineWidth = arguments[5];
             if(typeof arguments[6] === "number") a.vel = {x:arguments[6]};
             if(typeof arguments[7] === "number" && a.vel) a.vel.y = arguments[7];
             if(Array.prototype.indexOf.call(arguments, false) !== -1) a.addToStage = false;
@@ -112,10 +112,10 @@ G.Line = Shape.extend({
 
         //change color
         ctx.strokeStyle = this.color;
-        //change thickness
-        ctx.lineWidth = this.thickness;
+        //change lineWidth
+        ctx.lineWidth = this.lineWidth;
         //change end style
-        ctx.lineCap = this.endStyle;
+        ctx.lineCap = this.lineCap;
 
         ctx.stroke();
         ctx.closePath();
