@@ -1,5 +1,5 @@
 /**
- * G 0.2-dev, 2014-02-22
+ * G 0.2.0, 2014-08-09
  * A fast, powerful and extendable HTML5 game framework
  *
  * Copyright (c) 2014 Gurudayal Khalsa, gurudayalkhalsa@gmail.com
@@ -1523,11 +1523,8 @@ G.Object = G.Class.extend({
 });
 
 
-/**
- * [poop description]
- * @param  {[type]} arg
- * @return {[type]}
- */
+//Camera Module
+//-------------
 
 G.Camera=G.Class.extend
 ({
@@ -1584,7 +1581,7 @@ G.Collection = G.Class.extend({
         this.objects = [];
         this._currentId = 0;
         this._length = 0;
-        this.enableVisibleHash = false;
+        this.visibleHashEnabled = false;
         this.enableZindex = false;
 
         this.addToCollections = typeof addToCollections === "boolean" ? addToCollections : ((typeof addToCollections === "object" && typeof addToCollections.addToCollections === "boolean") ? addToCollections.addToCollections : true);
@@ -1692,7 +1689,7 @@ G.Collection = G.Class.extend({
 
         //retrieve all visible shapes, very efficient if thousands of static shapes
         //only enabled if stage.enableVisibleHash is set to true
-        if(this.visibleHash && this.enableVisibleHash)
+        if(this.visibleHash && this.visibleHashEnabled)
         {
             this.visibleHash.moving.clear().insert(this.visibleHash.moving.shapes);
             var obj = {};
@@ -1819,7 +1816,7 @@ G.Collection = G.Class.extend({
             }
 
             //add to visible visibleHash
-            if(this.enableVisibleHash && (this.canvas || (this.get(0) && this.get(0).stage && this.get(0).stage.canvas)) && object instanceof G.Shape)
+            if(this.visibleHashEnabled && (this.canvas || (this.get(0) && this.get(0).stage && this.get(0).stage.canvas)) && object instanceof G.Shape)
             {
                 this.addToVisibleHash(object);
             }
@@ -1880,7 +1877,7 @@ G.Collection = G.Class.extend({
         this._length = this._length-1;
 
         //remove from visible visibleHash
-        if(this.enableVisibleHash && object instanceof G.Shape && this.visibleHash)
+        if(this.visibleHashEnabled && object instanceof G.Shape && this.visibleHash)
         {
             this.removeFromVisibleHash(object);
         }
@@ -1944,7 +1941,7 @@ G.Collection = G.Class.extend({
 
     enableVisibleHash:function()
     {
-        this.enableVisibleHash = true;
+        this.visibleHashEnabled = true;
         var self = this;
         this.each(function(shape)
         {
@@ -1954,7 +1951,7 @@ G.Collection = G.Class.extend({
 
     disableVisibleHash:function()
     {
-        this.enableVisibleHash = false;
+        this.visibleHashEnabled = false;
         var self = this;
         this.each(function(shape)
         {
@@ -2720,7 +2717,7 @@ G.Stage = G.Collection.extend({
         this.addToObjectCollections = false;
         this.events = true;
         this.enableZindex = true;
-        this.enableVisibleHash = false;
+        this.visibleHashEnabled = false;
 
         if(obj && typeof obj.events !== "undefined" && !obj.events) this.events = false;
 
@@ -4014,6 +4011,11 @@ function rotatePoint(point, origin, angle)
 return function(shape1, shape2, reverseVertices)
 {
     var onlyAABB = false;
+    if(typeof reverseVertices === "boolean")
+    {
+        reverseVertices = false;
+        onlyAABB = true;
+    }
     if(Array.prototype.indexOf.call(arguments, true) !== -1) onlyAABB = true;
     if(shape2 instanceof G.Vector) shape2 = new G.Circle(shape2.x,shape2.y,0.1,false);
     if ((shape1 instanceof G.Collection)) 
@@ -4049,10 +4051,7 @@ return function(shape1, shape2, reverseVertices)
     var aabbmtv = aabb(shape1, shape2);
     if(!aabbmtv) return false;
     
-    if(onlyAABB) 
-    {
-        return aabbmtv;
-    }
+    if(onlyAABB || (shape1.type==="rect" && shape2.type==="rect" && !shape1.rotation && !shape2.rotation)) return aabbmtv;
 
     //if one is static, return mtv for other one, defaults to returning shape1's mtv from shape2
     if(shape2.shape === "static"){ var temp = shape2; shape2 = shape1; shape1 = temp;}
@@ -4074,31 +4073,32 @@ return function(shape1, shape2, reverseVertices)
     //simple broad phase check
     function aabb(shape1, shape2)
     {
-        var top, bottom, left, right, b1 = {}, b2 = {};
+        var a = shape1,
+            b = shape2,
+            hw1 = shape1.width/2,
+            hh1 = shape1.height/2,
+            hw2 = shape2.width/2,
+            hh2 = shape2.height/2,
+            x1 = shape1.pos.x,
+            y1 = shape1.pos.y,
+            x2 = shape2.pos.x,
+            y2 = shape2.pos.y;
         
-        //if simple shapes
-        if((shape1.shape === "circle" || shape1.shape === "rect") && (shape2.shape === "circle" || shape2.shape === "rect")) 
+        //TODO - get bounds for rotated rect
+        //if rotated or special shape, compute xy projections
+        if((shape1.shape !== "circle" || shape2.shape !== "circle") && (shape1.shape !== "rect" && shape2.shape !== "rect" || ((shape1.rotation || shape2.rotation))) )
         {
-            b1 = shape1.bounds(), b2 = shape2.bounds();
+            var b1 = shape1.bounds(), b2 = shape2.bounds();
+            hw1 = (b1.right - b1.left) / 2;
+            hw2 = (b2.right - b2.left) / 2;
+            hh1 = (b1.bottom - b1.top) / 2;
+            hh2 = (b2.bottom - b2.top) / 2;
         }
+                
+        //intersecting if distance between two shape's xy positions is less than combined half-widths && half-heights 
+        if(! (Math.abs(x2-x1) < (hw2 + hw1) && Math.abs(y2-y1) < (hh2 + hh1)) ) return false;
         
-        //if complex shapes
-        else
-        {
-            b1 = shape1.bounds(), b2 = shape2.bounds();
-        }
-        
-        //collision detection
-        var top = b1.top<b2.bottom && b1.top>b2.top && b1.right>b2.left && b1.left<b2.right,
-            left = b1.left<b2.right && b1.left>b2.left && b1.bottom>b2.top && b1.top<b2.bottom,
-            bottom = b1.bottom>b2.top && b1.bottom<b2.bottom && b1.right>b2.left && b1.left<b2.right,
-            right = b1.right>b2.left && b1.right<b2.right && b1.bottom>b2.top && b1.top<b2.bottom;
-    
-        //exit if not intersecting
-        if(!top && !bottom && !left && !right) return false;
-
-        //return mtv if intersecting
-        return shape1.shape === "rect" && shape2.shape === "rect" && onlyAABB ? polygon2polygon(shape1, shape2) : new G.Vector();
+        return onlyAABB ? G.Physics.intersecting(a,b) : true;
     }
 
     function circle2circle(circle1, circle2)
@@ -4356,7 +4356,6 @@ return function(shape1, shape2, reverseVertices)
 }
 
 })();
-
 
 var SpatialHash = Physics.SpatialHash = (function(){
 
