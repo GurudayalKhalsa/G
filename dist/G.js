@@ -1,5 +1,5 @@
 /**
- * G 0.2-dev, 2014-02-12
+ * G 0.2-dev, 2014-02-22
  * A fast, powerful and extendable HTML5 game framework
  *
  * Copyright (c) 2014 Gurudayal Khalsa, gurudayalkhalsa@gmail.com
@@ -67,7 +67,7 @@ var G = {};
  * based on Emit -> https://github.com/jeromeetienne/Emit.js
  * From Emit -> changed bind and unbind events to on and off, added one event
  */
-var Emit = G.Emit = (function(){
+this.Emit = G.Emit = (function(){
 
     var Emit = function() {};
     Emit.prototype = {
@@ -76,14 +76,50 @@ var Emit = G.Emit = (function(){
             this._events = this._events || {};
             this._events[event] = this._events[event] || [];
             this._events[event].push(fct);
-            return this;
+            return {
+                context:this,
+                event:event,
+                type:"on",
+                callback: fct,
+                makeOne: function()
+                {
+                    this.off();
+                    var res = this.context.one(this.event, this.callback);
+                    for(var i in res)
+                    {
+                        this[i] = res[i];
+                    }    
+                },
+                off: function()
+                {
+                    this.context.off(this.event, this.callback);
+                }
+            };
         },
         one:function(event, fct)
         {
             this._events = this._events || {};
             this._events[event] = this._events[event] || [];
             this._events[event].push(["one", fct]);
-            return this;
+            return {
+                context:this,
+                event:event,
+                type:"off",
+                callback: fct,
+                makeOn: function()
+                {
+                    this.off();
+                    var res = this.context.on(this.event, this.callback);
+                    for(var i in res)
+                    {
+                        this[i] = res[i];
+                    }    
+                },
+                off: function()
+                {
+                    this.context.off(this.event, this.callback);
+                }
+            };
         },
         off: function(event, fct)
         {
@@ -174,7 +210,7 @@ var Emit = G.Emit = (function(){
         if(typeof arguments[0] === "undefined") return false;
         if(typeof callback === "undefined") 
         {
-            console.warn("No callback specified. Not listening for event.");   
+            console.trace("No callback specified. Not listening for event.");   
             return false;
         }     
         if(typeof el.addEventListener === "undefined") 
@@ -253,6 +289,13 @@ var Emit = G.Emit = (function(){
         if(!obj) return false;
         
         obj.run("addEventListener", "on", obj.event, obj.el, obj.callback, obj.useCapture);
+        
+        return {
+            off: function()
+            {
+                root.off(obj.event, obj.el, obj.callback);
+            }
+        }
     }
 
     /**
@@ -266,8 +309,14 @@ var Emit = G.Emit = (function(){
         var obj = get.apply(this, arguments);
         if(!obj) return false;
 
-
         obj.run("addEventListener", "one", obj.event, obj.el, obj.callback, obj.useCapture);
+        
+        return {
+            off: function()
+            {
+                root.off(obj.event, obj.el, obj.callback);
+            }
+        }
     }
 
     /**
@@ -282,6 +331,8 @@ var Emit = G.Emit = (function(){
         if(!obj) return false;
 
         obj.run("removeEventListener", "off", obj.event, obj.el, obj.callback);
+        
+        return root;
     }
 
     root.key = (function()
@@ -581,11 +632,18 @@ var Emit = G.Emit = (function(){
             {
                 var type = key.split(":").length === 1 ? (key === "keyup" ? "keyup" : "keydown") : key.split(":")[0];
                 var keys = key.split(":").length > 1 ? key.split(":")[1] : (key === "keydown" || key === "keyup" ? false : key);
-                root.addEventListener(type, function(e)
+                function listener(e)
                 {
                     var triggered = type === "keydown" ? Key.isDown(keys, e) : Key.isUp(keys, e);
                     if(triggered) callback(e);
-                });
+                }
+                root.addEventListener(type, listener);
+                return {
+                    off: function()
+                    {
+                        Key.off(type, listener);
+                    }    
+                };
             }
             
         }
@@ -614,6 +672,12 @@ var Emit = G.Emit = (function(){
                         root.removeEventListener(type, func);
                     }
                 }
+                return {
+                    off: function()
+                    {
+                        Key.off(type, func);
+                    }    
+                };
             }
         }
 
@@ -855,9 +919,9 @@ var Emit = G.Emit = (function(){
             return args;
         }
 
-        Mouse.on = function(){ self.on.apply(Mouse, getArgs(arguments)); return Mouse; };
-        Mouse.one = function(){ self.one.apply(Mouse, getArgs(arguments)); return Mouse; };
-        Mouse.off = function(){ self.off.apply(Mouse, getArgs(arguments)); return Mouse; };
+        Mouse.on = function(){ return self.on.apply(Mouse, getArgs(arguments)); };
+        Mouse.one = function(){ return self.one.apply(Mouse, getArgs(arguments)); };
+        Mouse.off = function(){ return self.off.apply(Mouse, getArgs(arguments)); };
 
         return Mouse;
   
@@ -1061,6 +1125,10 @@ var Stats = function()
   // Delegates to **ECMAScript 5**'s native `forEach` if available.
   _.each = function(obj, iterator, context) {
     if (obj == null) return;
+    if(typeof obj === "number")
+    {
+      for(var i = 0; i < obj; i++) iterator(i);
+    }
     if (Array.prototype.forEach && obj.forEach === Array.prototype.forEach) {
       obj.forEach(iterator, context);
     } else if (obj.length === +obj.length) {
@@ -1373,6 +1441,8 @@ G.Object = G.Class.extend({
 
     remove:function(collection)
     {        
+        if(typeof collection === "boolean") collection = undefined;
+        
         var self = this;  
         //delete collection specified if specified
         if(collection && collection instanceof G.Collection)
@@ -1447,7 +1517,9 @@ G.Object = G.Class.extend({
         if(typeof this[name] === "undefined") return false;
         if(typeof this[name] === "object") return _.clone(obj);
         return this[name];
-    }
+    },
+    
+    update: function(){}
 });
 
 
@@ -1512,7 +1584,8 @@ G.Collection = G.Class.extend({
         this.objects = [];
         this._currentId = 0;
         this._length = 0;
-        this._visibleHashEnabled = false;
+        this.enableVisibleHash = false;
+        this.enableZindex = false;
 
         this.addToCollections = typeof addToCollections === "boolean" ? addToCollections : ((typeof addToCollections === "object" && typeof addToCollections.addToCollections === "boolean") ? addToCollections.addToCollections : true);
         this.addToObjectCollections = typeof addToObjectCollections === "boolean" ? addToObjectCollections : ((typeof addToSCollections === "object" && typeof addToCollections.addToObjectCollections === "boolean") ? addToCollections.addToObjectCollections : true);
@@ -1597,15 +1670,15 @@ G.Collection = G.Class.extend({
     update:function()
     {
         this.trigger("update");
+        //update physics world if exists
         if((this.world && ((this !== G.stage && this.physics) || (this === G.stage && G.physics && this.physics)))) this.world.update();
-        //prevent update from being called more than once
-        else if(this.get(0) && !(this.get(0).stage && this.get(0).stage.world))
+        
+        //update each shape
+        this.each(function(shape)
         {
-            this.each(function(shape)
-            {
-                if(shape.update) shape.update();
-            });
-        }
+            if(shape.update) shape.update();
+        });
+        
         return this;
     },
 
@@ -1618,8 +1691,8 @@ G.Collection = G.Class.extend({
         if(self.events) self.trigger("render");
 
         //retrieve all visible shapes, very efficient if thousands of static shapes
-        //only enabled if stage._visibleHashEnabled is set to true
-        if(this.visibleHash && this._visibleHashEnabled)
+        //only enabled if stage.enableVisibleHash is set to true
+        if(this.visibleHash && this.enableVisibleHash)
         {
             this.visibleHash.moving.clear().insert(this.visibleHash.moving.shapes);
             var obj = {};
@@ -1738,7 +1811,7 @@ G.Collection = G.Class.extend({
             this._length = this._length+1;  
             
             //could be slow
-            if(typeof object.zindex !== "undefined")
+            if(typeof object.zindex !== "undefined" && this.enableZindex)
             {
                 var needToSort = false;
                 for(var i = 0; i < this.objects.length; i++) if(this.objects[i] && this.objects[i].zindex !== 0) { needToSort = true; break; }
@@ -1746,7 +1819,7 @@ G.Collection = G.Class.extend({
             }
 
             //add to visible visibleHash
-            if(this._visibleHashEnabled && (this.canvas || (this.get(0) && this.get(0).stage && this.get(0).stage.canvas)) && object instanceof G.Shape)
+            if(this.enableVisibleHash && (this.canvas || (this.get(0) && this.get(0).stage && this.get(0).stage.canvas)) && object instanceof G.Shape)
             {
                 this.addToVisibleHash(object);
             }
@@ -1781,13 +1854,15 @@ G.Collection = G.Class.extend({
         {
             var index = 0;
             var objects = [];
-            this.each(function(object)
+            for(var i = 0, j = this.objects.length; i < j; i++)
             {
+                var object = this.objects[i];
                 objects.push(object);
                 self.remove(object);
                 //force removal
                 if(object) object.remove();
-            });
+            }
+                
             return objects;
         }
 
@@ -1798,7 +1873,10 @@ G.Collection = G.Class.extend({
         if(this.events) this.trigger("remove", arguments);
         if(this.events) this.trigger("change", arguments);
 
-        delete this.objects[index];
+        this.objects.splice(index, 1);
+        // delete this.objects[index];
+        
+        this._currentId = this.objects.length;
         this._length = this._length-1;
 
         //remove from visible visibleHash
@@ -1825,7 +1903,10 @@ G.Collection = G.Class.extend({
     
     sortByZindex: function()
     {
-      this.objects.sort(function(cur, next){return cur.zindex > next.zindex});
+        this.objects.sort(function(cur, next)
+        {
+            return (cur.zindex > next.zindex ? 1 : (cur.zindex === next.zindex ? 0 : -1));
+        });
     },
 
     addToVisibleHash:function(object)
@@ -1863,7 +1944,7 @@ G.Collection = G.Class.extend({
 
     enableVisibleHash:function()
     {
-        this._visibleHashEnabled = true;
+        this.enableVisibleHash = true;
         var self = this;
         this.each(function(shape)
         {
@@ -1873,7 +1954,7 @@ G.Collection = G.Class.extend({
 
     disableVisibleHash:function()
     {
-        this._visibleHashEnabled = false;
+        this.enableVisibleHash = false;
         var self = this;
         this.each(function(shape)
         {
@@ -1893,12 +1974,7 @@ G.Collection = G.Class.extend({
         if(typeof index === "number")
         {
             if(index >= 0)return this.objects[index];
-            var i = 0;
-            for(i = this.objects.length-1; i > 0; i--)
-            {
-                if(this.objects[i]) break;
-            }
-            return this.objects[i+1+index];
+            return this.objects[this.objects.length+index];
         }
         if(this.objects.indexOf(undefined) === -1) return this.objects.slice(0);
         var objects = [];
@@ -1917,11 +1993,11 @@ G.Collection = G.Class.extend({
 
     each:function(callback)
     {
-        for(var i = 0; i < this.objects.length; i++)
+        for(var i = 0, j = this.objects.length; i < j; i++)
         {
             if(typeof this.objects[i] !== "undefined") 
             {
-                var res = callback.call(this, this.objects[i], i);
+                var res = callback.call(this.objects[i], this.objects[i], i);
                 if(res === false) break;
             }
         }
@@ -2069,7 +2145,7 @@ G.Collection = G.Class.extend({
 
             if(!not) 
             {
-                cb(object, obj);
+                cb.call(object, object, obj);
                 collection.add(object);
                 none = false;
             }
@@ -2138,26 +2214,78 @@ var Shape = G.Shape = G.Object.extend
           zindex: 0,
           color: "#000",
           fill: true,
-          hidden: false,
-          _bounds:
-          {
-            top: 1,
-            left: 1,
-            right: 1,
-            bottom: 1
-          }
+          hidden: false
         }, defaults ||
         {});
                 
         this._super(obj, defaults);
         
+        var self = this;
+        
         //define custom properties
         //------------------------
+        
+        //zindex
+        (function()
+        {
+            
+            var zindex = this.zindex;
+            Object.defineProperty(this, "zindex", 
+            {
+                get: function(){ return zindex },
+                set: function(z)
+                { 
+                    zindex = z; 
+                    if(this.stage) this.stage.sortByZindex();
+                    _.each(this.collections, function(collection)
+                    {
+                        collection.sortByZindex();
+                    })
+                }.bind(this)
+            })
+            
+        }).bind(this)();
+        
+        //bounds
+        (function(){
+            
+            if(typeof this.width === "undefined" || typeof this.height === "undefined" || typeof this.pos.x === "undefined" || typeof this.pos.y === "undefined") return;
+            
+            if(typeof this.bounds.left !== "undefined") return;
+            
+            Object.defineProperty(this.bounds, "top",
+            {
+                set: function(val){ this.pos.y=val+this.height/2; }.bind(this),
+                get: function(){ return this.pos.y-this.height/2; }.bind(this)
+            });
+            
+            Object.defineProperty(this.bounds, "left",
+            {
+                set: function(val){ this.pos.x=val+this.width/2; }.bind(this),
+                get: function(){ return this.pos.x-this.width/2; }.bind(this)
+            });
+            
+            Object.defineProperty(this.bounds, "bottom",
+            {
+                set: function(val){ this.pos.y=val-this.height/2; }.bind(this),
+                get: function(){ return this.pos.y+this.height/2; }.bind(this)
+            });
+            
+            Object.defineProperty(this.bounds, "right",
+            {
+                set: function(val){ this.pos.x=val-this.width/2; }.bind(this),
+                get: function(){ return this.pos.x+this.width/2; }.bind(this)
+            });
+            
+        }).bind(this)();
         
         //physics
         (function(){
                         
             var physics = this.physics;
+            
+            var d = Object.getOwnPropertyDescriptor(this, "physics");
+            if(d && d.configurable === false) return false;
             
             Object.defineProperty(this, "physics",
             {
@@ -2193,22 +2321,18 @@ var Shape = G.Shape = G.Object.extend
                 if(key==="top") 
                 {
                     this.pos.y=bounds[key]+this.height/2;
-                    this._bounds[key] = bounds[key];
                 }
                 else if(key==="bottom") 
                 {
                     this.pos.y=bounds[key]-this.height/2;
-                    this._bounds[key] = bounds[key];
                 }
                 else if(key==="left") 
                 {
                     this.pos.x=bounds[key]+this.width/2;
-                    this._bounds[key] = bounds[key];
                 }
                 else if(key==="right") 
                 {
                     this.pos.x=bounds[key]-this.width/2;
-                    this._bounds[key] = bounds[key];                    
                 }
             }
             
@@ -2220,12 +2344,13 @@ var Shape = G.Shape = G.Object.extend
             //if doesn't have bounds, return
             if(!this.width) return false;
             var w = this.width/2, h = this.height/2;
+            var bounds = {};
 
-            this._bounds.left = this.pos.x-w;
-            this._bounds.right = this.pos.x+w;
-            this._bounds.top = this.pos.y-h;
-            this._bounds.bottom = this.pos.y+h;
-            return this._bounds;
+            bounds.left = this.pos.x-w;
+            bounds.right = this.pos.x+w;
+            bounds.top = this.pos.y-h;
+            bounds.bottom = this.pos.y+h;
+            return bounds;
         }
         
     },
@@ -2594,7 +2719,8 @@ G.Stage = G.Collection.extend({
         this.addToCollections = false;
         this.addToObjectCollections = false;
         this.events = true;
-        this._visibleHashEnabled = false;
+        this.enableZindex = true;
+        this.enableVisibleHash = false;
 
         if(obj && typeof obj.events !== "undefined" && !obj.events) this.events = false;
 
@@ -2683,6 +2809,8 @@ G.Stage = G.Collection.extend({
                 else
                 {
                     this.canvas = document.body.appendChild(document.createElement('canvas'));
+                    this.canvas.width = window.innerWidth;
+                    this.canvas.height = window.innerHeight;
                 }
 
                 //get canvas's 2d context
@@ -2745,7 +2873,7 @@ G.Stage = G.Collection.extend({
                                 this.ctx.backingStorePixelRatio || 1,
             ratio = devicePixelRatio / backingStoreRatio;
 
-        if(args.indexOf("lowres") === -1 && devicePixelRatio !== backingStoreRatio)
+        if(Array.prototype.indexOf.call(arguments, "lowres") === -1 && devicePixelRatio !== backingStoreRatio)
         {
             this.setScale(ratio);
         }
@@ -2870,12 +2998,12 @@ G.Stage = G.Collection.extend({
         {
             //framerate gets wonky sometimes while using requestanimframe in browsers other than chrome.... :| (dissatisfied face)
             //TODO - fix ^
-            if(this.desiredFramerate === 60) this._frameId = window.requestAnimationFrame(function(time){ self.animate.call(self, time) });
+            if(this.desiredFramerate === 60) this._animFrameId = window.requestAnimationFrame(function(time){ self.animate.call(self, time) });
             else 
             {
                 var currTime = (new Date).getTime();
                 var timeToCall = Math.max(0, 1000/this.desiredFramerate - (currTime - this.time));
-                this._frameId = window.setTimeout(function() {
+                this._animFrameId = window.setTimeout(function() {
                     self.animate.call(self, currTime + timeToCall)
                 }, timeToCall);
             }
@@ -2885,7 +3013,7 @@ G.Stage = G.Collection.extend({
     pause:function()
     {
         this.isPaused = true;  
-        this.desiredFramerate === 60 ? window.cancelAnimationFrame(this._frameId) : window.clearTimeout(this._frameId);       
+        this.desiredFramerate === 60 ? window.cancelAnimationFrame(this._animFrameId) : window.clearTimeout(this._animFrameId);       
         this.trigger("pause", arguments);
         return this;
     },
@@ -3109,6 +3237,21 @@ G.Image=G.Rect.extend({
             if(this.height === 0) this.height = this.width / (this.image.naturalWidth / this.image.naturalHeight);
             if(!loaded)self.trigger("load");
         }
+        
+        //reset image on src change
+        var src = this.src;
+        Object.defineProperty(this, "src", 
+        {
+            get: function(){ return src },
+            set: function(n)
+            {
+                src = n;
+                this.image = new Image();
+                this.image.src = src;
+                this.loaded = false;
+                this.image.addEventListener("load", function(){ onload.call(self); });
+            }
+        }) 
     },
 
     _render:function(x,y,w,h)
@@ -3824,7 +3967,8 @@ G.Text = Shape.extend({
         for(var i in defaults) this[i] = defaults[i];
         for(var i in arguments[0]) this[i] = typeof arguments[0][i] === "object" ? _.clone(arguments[0][i]) : arguments[0][i];
 
-            if(arguments[0].addToStage !== false) this.add();
+        if(arguments[0].addToStage !== false) this.add();
+        delete this.addToStage;
     },
 
     bounds:function()
@@ -3853,6 +3997,9 @@ G.Text = Shape.extend({
 
 var Physics = G.Physics = {};
 
+//Returns intersection of two G.Shape instances
+//If not intersecting, returns false
+//if intersecting, returns the xy vector of the minimum distance shape2 must go to not be intersecting with shape1
 G.Physics.intersecting = (function()
 {
 
@@ -3866,6 +4013,8 @@ function rotatePoint(point, origin, angle)
 
 return function(shape1, shape2, reverseVertices)
 {
+    var onlyAABB = false;
+    if(Array.prototype.indexOf.call(arguments, true) !== -1) onlyAABB = true;
     if(shape2 instanceof G.Vector) shape2 = new G.Circle(shape2.x,shape2.y,0.1,false);
     if ((shape1 instanceof G.Collection)) 
     {
@@ -3897,32 +4046,59 @@ return function(shape1, shape2, reverseVertices)
     if(shape1 === shape2) return false;
 
     //detect simple aabb collision, saves compute time for complex shapes
-    if(!aabb(shape1, shape2)) return false;
+    var aabbmtv = aabb(shape1, shape2);
+    if(!aabbmtv) return false;
+    
+    if(onlyAABB) 
+    {
+        return aabbmtv;
+    }
 
     //if one is static, return mtv for other one, defaults to returning shape1's mtv from shape2
     if(shape2.shape === "static"){ var temp = shape2; shape2 = shape1; shape1 = temp;}
 
     //circle vs circle
-    if(shape1.shape === "circle" && shape2.shape === "circle") return circle2circle(shape1, shape2);
+    if(shape1.shape === "circle" && shape2.shape === "circle") res = circle2circle(shape1, shape2);
 
     //if no circles, do SAT (separating axis test) polygon against polygon
-    else if(shape1.shape !== "circle" && shape2.shape !== "circle") return polygon2polygon(shape1, shape2);
+    else if(shape1.shape !== "circle" && shape2.shape !== "circle") res = polygon2polygon(shape1, shape2);
 
-    //if one circle and one polygon, do SAT (separating axis test) polygon against circle (different from above)
-    else if(shape1.shape === "circle" || shape2.shape === "circle") return polygon2circle(shape1, shape2);
+    //if one circle and one polygon, do SAT (separating axis test) polygon against circle
+    else if(shape1.shape === "circle" || shape2.shape === "circle") res = polygon2circle(shape1, shape2);
 
     //otherwise, not objects able to be tested
-    else return false;
+    else res = false;
+    
+    return res;
 
     //simple broad phase check
     function aabb(shape1, shape2)
     {
-        //quick method
-        if(shape1.shape === "circle" || shape1.shape === "rect") return shape2.pos.x-shape2.width/2<shape1.pos.x+shape1.width/2&&shape2.pos.x+shape2.width/2>shape1.pos.x-shape1.width/2&&shape2.pos.y-shape2.height/2<shape1.pos.y+shape1.height/2&&shape2.pos.y+shape2.height/2>shape2.pos.y-shape2.height/2;
+        var top, bottom, left, right, b1 = {}, b2 = {};
+        
+        //if simple shapes
+        if((shape1.shape === "circle" || shape1.shape === "rect") && (shape2.shape === "circle" || shape2.shape === "rect")) 
+        {
+            b1 = shape1.bounds(), b2 = shape2.bounds();
+        }
+        
+        //if complex shapes
+        else
+        {
+            b1 = shape1.bounds(), b2 = shape2.bounds();
+        }
+        
+        //collision detection
+        var top = b1.top<b2.bottom && b1.top>b2.top && b1.right>b2.left && b1.left<b2.right,
+            left = b1.left<b2.right && b1.left>b2.left && b1.bottom>b2.top && b1.top<b2.bottom,
+            bottom = b1.bottom>b2.top && b1.bottom<b2.bottom && b1.right>b2.left && b1.left<b2.right,
+            right = b1.right>b2.left && b1.right<b2.right && b1.bottom>b2.top && b1.top<b2.bottom;
+    
+        //exit if not intersecting
+        if(!top && !bottom && !left && !right) return false;
 
-        //slow method, for other shapes like polygon and line
-        var b1 = shape1.bounds(), b2 = shape2.bounds();
-        return b2.left<b1.right&&b2.right>b1.left&&b2.top<b1.bottom&&b2.bottom>b2.top;
+        //return mtv if intersecting
+        return shape1.shape === "rect" && shape2.shape === "rect" && onlyAABB ? polygon2polygon(shape1, shape2) : new G.Vector();
     }
 
     function circle2circle(circle1, circle2)
@@ -4111,7 +4287,7 @@ return function(shape1, shape2, reverseVertices)
         else if(shape.shape === "polygon") 
         {
             for(var i = 0; i < shape.vertices.length-1; i += 2) vertices.push((shape.pos.x||0)+shape.vertices[i], (shape.pos.y||0)+shape.vertices[i+1]);
-            if(reverseVertices)
+            if(_.isArr(reverseVertices))
             {
                 var n = [], arr = vertices;
                 for(var i = arr.length-1; i > 0; i -= 2)
@@ -4131,7 +4307,7 @@ return function(shape1, shape2, reverseVertices)
         }
 
         //if invalid shape
-        else throw new Error("Shape does not contain vertices");
+        else return console.trace("Shape does not contain vertices");
 
         //convert to vectors
         var vecVertices = [];
@@ -4347,42 +4523,6 @@ Physics.World = (function(){
             restitution:0,
             friction:0,
             mass:1
-        },
-        fn,
-        update = 
-        {
-            update: function()
-            {
-                if (fn && fn !== update.update) fn.apply(this, arguments);
-                if (this.type === "kinematic") update.kinematic.apply(this, arguments);
-                else if (this.type === "dynamic") update.dynamic.apply(this, arguments)
-            },
-            kinematic:function()
-            {
-                var shape = this;
-                //make sure pos, vel, and acc are all vectors
-                if(!(shape.pos instanceof G.Vector) || !(shape.vel instanceof G.Vector))
-                {
-                    shape.pos = new G.Vector(shape.pos ? shape.pos.x : 0, shape.pos ? shape.pos.y : 0);
-                    shape.vel = new G.Vector(shape.vel ? shape.vel.x : 0, shape.vel ? shape.vel.y : 0);
-                }
-                //perform euler integration - ish - (pos = pos + vel)
-                shape.pos.add(shape.vel.multiply(shape.stage?shape.stage.deltaFramerate:1));
-            },
-            dynamic:function()
-            {
-                var shape = this;
-                //make sure pos, vel, and acc are all vectors
-                if(!(shape.pos instanceof G.Vector) || !(shape.vel instanceof G.Vector) || !(shape.acc instanceof G.Vector))
-                {
-                    shape.pos = new G.Vector(shape.pos ? shape.pos.x : 0, shape.pos ? shape.pos.y : 0);
-                    shape.vel = new G.Vector(shape.vel ? shape.vel.x : 0, shape.vel ? shape.vel.y : 0);
-                    shape.acc = new G.Vector(shape.acc ? shape.acc.x : 0, shape.acc ? shape.acc.y : 0);
-                }
-                //perform euler integration - ish - (acc = gravity + force, vel = vel + acc, pos = pos + vel)
-                shape.vel.add(shape.acc);
-                shape.pos.add(shape.vel.multiply(shape.stage?shape.stage.deltaFramerate:1));
-            }
         };
 
     return G.Class.extend
@@ -4418,10 +4558,6 @@ Physics.World = (function(){
             this.shapes.kinematic.name = "Kinematic Collision Shapes";
             this.shapes.dynamic.name = "Dynamic Collision Shapes";
             this.shapes.all.name = "All Collision Shapes";
-
-            //set update functions
-            fn = G.Shape.prototype.update;
-            if(fn !== update.update) G.Shape.prototype.update = update.update;
         },
 
         setCellSize:function(cellSize)
@@ -4461,6 +4597,11 @@ Physics.World = (function(){
                     });
                 }
             }
+            
+            this.enableHash = typeof obj.enableHash === "boolean" ? obj.enableHash : true;
+            this.onlyAABB = typeof obj.onlyAABB === "boolean" ? obj.onlyAABB : false;
+            this.framerateVel = typeof obj.framerateVel === "boolean" ? obj.framerateVel : true;
+
         },
 
         add:function(shape)
@@ -4533,10 +4674,13 @@ Physics.World = (function(){
             var self = this;
 
             //with hash
-            if(this.collisions.dynamicstatic !== false && self.staticHash.length !== self.shapes.static.length()) self.staticHash.clear().insert(self.shapes.static);
-            if(this.collisions.dynamickinematic !== false) self.kinematicHash.clear().insert(self.shapes.kinematic);
-            if(this.collisions.dynamicdynamic !== false || this.collisions.dynamicstatic !== false) self.dynamicHash.clear().insert(self.shapes.dynamic);
-
+            if(this.enableHash !== false)
+            {
+                if(this.collisions.dynamicstatic !== false && self.staticHash.length !== self.shapes.static.length()) self.staticHash.clear().insert(self.shapes.static);
+                if(this.collisions.dynamickinematic !== false) self.kinematicHash.clear().insert(self.shapes.kinematic);
+                if(this.collisions.dynamicdynamic !== false || this.collisions.dynamicstatic !== false) self.dynamicHash.clear().insert(self.shapes.dynamic);
+            }
+            
             //resolve collisions
             if(self.collisions.dynamicstatic && self.collisions !== false && self.shapes.dynamic.length() >= self.shapes.static.length())
             {
@@ -4545,11 +4689,22 @@ Physics.World = (function(){
                     shape.colliding = false;
                     if(shape.enableCollisions === false || shape.physics === false) return;
                     //retrieve shapes in position range
-                    _.each(self.dynamicHash.retrieve(shape), function(shape2)
+                    if(self.enableHash !== false)
                     {
-                        if(shape2.physics === false || shape2.enableCollisions === false) return;
-                        self.handleCollisions(shape, shape2);
-                    });
+                        _.each(self.dynamicHash.retrieve(shape), function(shape2)
+                        {
+                            if(shape2.physics === false || shape2.enableCollisions === false) return;
+                            self.handleCollisions(shape, shape2);
+                        });
+                    }
+                    else
+                    {
+                        self.shapes.dynamic.each(function(shape2)
+                        {
+                            if(shape2.physics === false || shape2.enableCollisions === false) return;
+                            self.handleCollisions(shape, shape2);
+                        });
+                    }
                 });
             }
 
@@ -4560,19 +4715,41 @@ Physics.World = (function(){
 
                 //don't do physics if shape says so
                 if(shape.physics === false) return;
-
-                shape.update();
-
-                if(self.collisions !== false && shape.enableCollisions !== false && self.collisions.dynamickinematic && self.shapes.dynamic.length() >= self.shapes.kinematic.length()) 
+                
+                shape.one("update", function()
                 {
-                    shape.colliding = false;
-                    //retrieve shapes in position range
-                    _.each(self.dynamicHash.retrieve(shape), function(shape2)
+                    //make sure pos, vel, and acc are all vectors
+                    if(!(shape.pos instanceof G.Vector) || !(shape.vel instanceof G.Vector))
                     {
-                        if(shape2.physics === false || shape2.enableCollisions === false) return;
-                        self.handleCollisions(shape, shape2);
-                    });
-                }
+                        shape.pos = new G.Vector(shape.pos ? shape.pos.x : 0, shape.pos ? shape.pos.y : 0);
+                        shape.vel = new G.Vector(shape.vel ? shape.vel.x : 0, shape.vel ? shape.vel.y : 0);
+                    }
+
+                    if(self.collisions !== false && shape.enableCollisions !== false && self.collisions.dynamickinematic && self.shapes.dynamic.length() >= self.shapes.kinematic.length()) 
+                    {
+                        shape.colliding = false;
+                        //retrieve shapes in position range
+                        if(self.enableHash !== false)
+                        {
+                            _.each(self.dynamicHash.retrieve(shape), function(shape2)
+                            {
+                                if(shape2.physics === false || shape2.enableCollisions === false) return;
+                                self.handleCollisions(shape, shape2);
+                            });
+                        }
+                        else
+                        {
+                            self.shapes.dynamic.each(function(shape2)
+                            {
+                                if(shape2.physics === false || shape2.enableCollisions === false) return;
+                                self.handleCollisions(shape, shape2);
+                            });
+                        }
+                    }
+                    
+                    //perform euler integration - ish - (pos = pos + vel)
+                    shape.pos.add(shape.vel.multiply(shape.stage && (shape.framerateVel !== false && self.framerateVel !== false) ? shape.stage.deltaFramerate:1));     
+                });
             });
 
             self.shapes.dynamic.each(function(shape)
@@ -4583,44 +4760,65 @@ Physics.World = (function(){
                 //don't do physics if shape says so
                 if(shape.physics === false) return;
 
-                if(shape.gravity !== false) shape.acc = self.gravity;
-
-                shape.update();
-
-                //resolve collisions
-                if(self.collisions !== false && shape.enableCollisions !== false)
+                shape.one("update", function()
                 {
-                    shape.colliding = false;
-                    if(self.collisions.dynamicstatic && self.shapes.dynamic.length() < self.shapes.static.length()) 
+                    //make sure pos, vel, and acc are all vectors
+                    if(!(shape.pos instanceof G.Vector) || !(shape.vel instanceof G.Vector) || !(shape.acc instanceof G.Vector))
                     {
-                        //retrieve shapes in position range
-                        _.each(self.staticHash.retrieve(shape), function(shape2)
-                        {
-                            if(shape2.physics === false || shape2.enableCollisions === false) return;
-                            self.handleCollisions(shape, shape2);
-                        });
+                        shape.pos = new G.Vector(shape.pos ? shape.pos.x : 0, shape.pos ? shape.pos.y : 0);
+                        shape.vel = new G.Vector(shape.vel ? shape.vel.x : 0, shape.vel ? shape.vel.y : 0);
+                        shape.acc = new G.Vector(shape.acc ? shape.acc.x : 0, shape.acc ? shape.acc.y : 0);
                     }
+                                                                       
+                    //resolve collisions
+                    if(self.collisions !== false && shape.enableCollisions !== false)
+                    {
+                        shape.colliding = false;
+                        if(self.collisions.dynamicstatic && self.shapes.dynamic.length() < self.shapes.static.length()) 
+                        {
+                            function handle(shape2)
+                            {
+                                if(shape2.physics === false || shape2.enableCollisions === false) return;
+                                self.handleCollisions(shape, shape2);
+                            }
+                            
+                            //retrieve shapes in position range
+                            if(self.enableHash !== false) _.each(self.staticHash.retrieve(shape), handle);
+                            else self.shapes.static.each(handle);
+                           
+                        }
 
-                    if(self.collisions.dynamickinematic && self.shapes.dynamic.length() < self.shapes.kinematic.length()) 
-                    {
-                        //retrieve shapes in position range
-                        _.each(self.kinematicHash.retrieve(shape), function(shape2)
+                        if(self.collisions.dynamickinematic && self.shapes.dynamic.length() < self.shapes.kinematic.length()) 
                         {
-                            if(shape2.physics === false || shape2.enableCollisions === false) return;
-                            self.handleCollisions(shape, shape2);
-                        });
-                    }
+                            //retrieve shapes in position range
+                            if(self.enableHash !== false) _.each(self.kinematicHash.retrieve(shape), handle);
+                            else self.shapes.kinematic.each(handle);
+                        }
 
-                    if(self.collisions.dynamicdynamic) 
-                    {
-                        //retrieve shapes in position range
-                        _.each(self.dynamicHash.retrieve(shape), function(shape2)
+                        if(self.collisions.dynamicdynamic) 
                         {
-                            if(shape2.physics === false || shape2.enableCollisions === false) return;
-                            self.handleCollisions(shape, shape2);
-                        });
+                            //retrieve shapes in position range
+                            if(self.enableHash !== false) _.each(self.dynamicHash.retrieve(shape), handle);
+                            else self.shapes.dynamic.each(handle);
+                        }
                     }
-                }
+                    
+                    if(shape.stage && shape.stage.world)
+                    {
+                        if(shape.gravity !== false && shape.colliding !== true) 
+                        {
+                            shape.acc = shape.stage.world.gravity;
+                        }
+                        else if(shape.colliding)
+                        {
+                            shape.acc = new G.Vector();                    
+                        }
+                    }
+                    
+                    //perform euler integration - ish - (acc = gravity + force, vel = vel + acc, pos = pos + vel)
+                    shape.vel.add(shape.acc);
+                    shape.pos.add(shape.vel.multiply(shape.stage && (shape.framerateVel !== false && self.framerateVel !== false) ? shape.stage.deltaFramerate : 1));
+                });
             });
 
             //debug
@@ -4649,12 +4847,12 @@ Physics.World = (function(){
             if((res1 instanceof Array && res1.indexOf(false) !== -1) || (res2 instanceof Array && res2.indexOf(false) !== -1)) return true; 
 
             //TODO - add swept collisions
-            var mtv = G.Physics.intersecting(shape1, shape2);
+            var mtv = G.Physics.intersecting(shape1, shape2, this.onlyAABB);
             if(!mtv) 
             {
                 return false;
             }
-
+            
             //trigger collision event on shapes
             if(shape1.type !== "dynamic")
             {
@@ -4680,6 +4878,7 @@ Physics.World = (function(){
             if(shape1.type !== "dynamic")
             {
                 if(shape2.vel.y > 0 && mtv.y > 0 || shape2.vel.y < 0 && mtv.y < 0) return;
+                
                 //push shape2's position to be outside of shape1
                 shape2.pos.add(mtv);
 
@@ -4764,6 +4963,9 @@ Physics.World = (function(){
                     }
                 }
             }
+            
+            if(shape1.events) var res1 = shape1.trigger("collisionResolved", [shape2, mtv]);
+            if(shape2.events) var res2 = shape2.trigger("collisionResolved", [shape1, mtv]);
         }
 
     });
@@ -4780,6 +4982,17 @@ G.toRadians = function(degrees)
     return degrees * (Math.PI / 180);
 }
 
+
+G.rgb = function(r, g, b)
+{
+  if(_.isArr(r))
+  {
+    var arr = r;
+    r = arr[0], g = arr[1], b = arr[2];
+  }
+  
+  return "rgb("+r+","+g+","+b+")";
+}
 
 G.random=function(max, min)
 {
@@ -4917,6 +5130,7 @@ G.stages = [];
 G.collections = [];
 
 G.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+G.touchEnabled = "ontouchstart" in window;
 
 //add root stage events
 G.event = new Event();

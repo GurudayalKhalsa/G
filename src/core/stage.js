@@ -42,7 +42,8 @@ G.Stage = G.Collection.extend({
         this.addToCollections = false;
         this.addToObjectCollections = false;
         this.events = true;
-        this._visibleHashEnabled = false;
+        this.enableZindex = true;
+        this.enableVisibleHash = false;
 
         if(obj && typeof obj.events !== "undefined" && !obj.events) this.events = false;
 
@@ -131,6 +132,8 @@ G.Stage = G.Collection.extend({
                 else
                 {
                     this.canvas = document.body.appendChild(document.createElement('canvas'));
+                    this.canvas.width = window.innerWidth;
+                    this.canvas.height = window.innerHeight;
                 }
 
                 //get canvas's 2d context
@@ -193,7 +196,7 @@ G.Stage = G.Collection.extend({
                                 this.ctx.backingStorePixelRatio || 1,
             ratio = devicePixelRatio / backingStoreRatio;
 
-        if(args.indexOf("lowres") === -1 && devicePixelRatio !== backingStoreRatio)
+        if(Array.prototype.indexOf.call(arguments, "lowres") === -1 && devicePixelRatio !== backingStoreRatio)
         {
             this.setScale(ratio);
         }
@@ -318,12 +321,12 @@ G.Stage = G.Collection.extend({
         {
             //framerate gets wonky sometimes while using requestanimframe in browsers other than chrome.... :| (dissatisfied face)
             //TODO - fix ^
-            if(this.desiredFramerate === 60) this._frameId = window.requestAnimationFrame(function(time){ self.animate.call(self, time) });
+            if(this.desiredFramerate === 60) this._animFrameId = window.requestAnimationFrame(function(time){ self.animate.call(self, time) });
             else 
             {
                 var currTime = (new Date).getTime();
                 var timeToCall = Math.max(0, 1000/this.desiredFramerate - (currTime - this.time));
-                this._frameId = window.setTimeout(function() {
+                this._animFrameId = window.setTimeout(function() {
                     self.animate.call(self, currTime + timeToCall)
                 }, timeToCall);
             }
@@ -333,7 +336,7 @@ G.Stage = G.Collection.extend({
     pause:function()
     {
         this.isPaused = true;  
-        this.desiredFramerate === 60 ? window.cancelAnimationFrame(this._frameId) : window.clearTimeout(this._frameId);       
+        this.desiredFramerate === 60 ? window.cancelAnimationFrame(this._animFrameId) : window.clearTimeout(this._animFrameId);       
         this.trigger("pause", arguments);
         return this;
     },

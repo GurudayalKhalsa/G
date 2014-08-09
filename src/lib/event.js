@@ -22,7 +22,7 @@
         if(typeof arguments[0] === "undefined") return false;
         if(typeof callback === "undefined") 
         {
-            console.warn("No callback specified. Not listening for event.");   
+            console.trace("No callback specified. Not listening for event.");   
             return false;
         }     
         if(typeof el.addEventListener === "undefined") 
@@ -101,6 +101,13 @@
         if(!obj) return false;
         
         obj.run("addEventListener", "on", obj.event, obj.el, obj.callback, obj.useCapture);
+        
+        return {
+            off: function()
+            {
+                root.off(obj.event, obj.el, obj.callback);
+            }
+        }
     }
 
     /**
@@ -114,8 +121,14 @@
         var obj = get.apply(this, arguments);
         if(!obj) return false;
 
-
         obj.run("addEventListener", "one", obj.event, obj.el, obj.callback, obj.useCapture);
+        
+        return {
+            off: function()
+            {
+                root.off(obj.event, obj.el, obj.callback);
+            }
+        }
     }
 
     /**
@@ -130,6 +143,8 @@
         if(!obj) return false;
 
         obj.run("removeEventListener", "off", obj.event, obj.el, obj.callback);
+        
+        return root;
     }
 
     root.key = (function()
@@ -429,11 +444,18 @@
             {
                 var type = key.split(":").length === 1 ? (key === "keyup" ? "keyup" : "keydown") : key.split(":")[0];
                 var keys = key.split(":").length > 1 ? key.split(":")[1] : (key === "keydown" || key === "keyup" ? false : key);
-                root.addEventListener(type, function(e)
+                function listener(e)
                 {
                     var triggered = type === "keydown" ? Key.isDown(keys, e) : Key.isUp(keys, e);
                     if(triggered) callback(e);
-                });
+                }
+                root.addEventListener(type, listener);
+                return {
+                    off: function()
+                    {
+                        Key.off(type, listener);
+                    }    
+                };
             }
             
         }
@@ -462,6 +484,12 @@
                         root.removeEventListener(type, func);
                     }
                 }
+                return {
+                    off: function()
+                    {
+                        Key.off(type, func);
+                    }    
+                };
             }
         }
 
@@ -703,9 +731,9 @@
             return args;
         }
 
-        Mouse.on = function(){ self.on.apply(Mouse, getArgs(arguments)); return Mouse; };
-        Mouse.one = function(){ self.one.apply(Mouse, getArgs(arguments)); return Mouse; };
-        Mouse.off = function(){ self.off.apply(Mouse, getArgs(arguments)); return Mouse; };
+        Mouse.on = function(){ return self.on.apply(Mouse, getArgs(arguments)); };
+        Mouse.one = function(){ return self.one.apply(Mouse, getArgs(arguments)); };
+        Mouse.off = function(){ return self.off.apply(Mouse, getArgs(arguments)); };
 
         return Mouse;
   

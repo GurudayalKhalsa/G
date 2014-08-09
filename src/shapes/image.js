@@ -54,6 +54,21 @@ G.Image=G.Rect.extend({
             if(this.height === 0) this.height = this.width / (this.image.naturalWidth / this.image.naturalHeight);
             if(!loaded)self.trigger("load");
         }
+        
+        //reset image on src change
+        var src = this.src;
+        Object.defineProperty(this, "src", 
+        {
+            get: function(){ return src },
+            set: function(n)
+            {
+                src = n;
+                this.image = new Image();
+                this.image.src = src;
+                this.loaded = false;
+                this.image.addEventListener("load", function(){ onload.call(self); });
+            }
+        }) 
     },
 
     _render:function(x,y,w,h)

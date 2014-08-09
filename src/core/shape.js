@@ -28,26 +28,78 @@ var Shape = G.Shape = G.Object.extend
           zindex: 0,
           color: "#000",
           fill: true,
-          hidden: false,
-          _bounds:
-          {
-            top: 1,
-            left: 1,
-            right: 1,
-            bottom: 1
-          }
+          hidden: false
         }, defaults ||
         {});
                 
         this._super(obj, defaults);
         
+        var self = this;
+        
         //define custom properties
         //------------------------
+        
+        //zindex
+        (function()
+        {
+            
+            var zindex = this.zindex;
+            Object.defineProperty(this, "zindex", 
+            {
+                get: function(){ return zindex },
+                set: function(z)
+                { 
+                    zindex = z; 
+                    if(this.stage) this.stage.sortByZindex();
+                    _.each(this.collections, function(collection)
+                    {
+                        collection.sortByZindex();
+                    })
+                }.bind(this)
+            })
+            
+        }).bind(this)();
+        
+        //bounds
+        (function(){
+            
+            if(typeof this.width === "undefined" || typeof this.height === "undefined" || typeof this.pos.x === "undefined" || typeof this.pos.y === "undefined") return;
+            
+            if(typeof this.bounds.left !== "undefined") return;
+            
+            Object.defineProperty(this.bounds, "top",
+            {
+                set: function(val){ this.pos.y=val+this.height/2; }.bind(this),
+                get: function(){ return this.pos.y-this.height/2; }.bind(this)
+            });
+            
+            Object.defineProperty(this.bounds, "left",
+            {
+                set: function(val){ this.pos.x=val+this.width/2; }.bind(this),
+                get: function(){ return this.pos.x-this.width/2; }.bind(this)
+            });
+            
+            Object.defineProperty(this.bounds, "bottom",
+            {
+                set: function(val){ this.pos.y=val-this.height/2; }.bind(this),
+                get: function(){ return this.pos.y+this.height/2; }.bind(this)
+            });
+            
+            Object.defineProperty(this.bounds, "right",
+            {
+                set: function(val){ this.pos.x=val-this.width/2; }.bind(this),
+                get: function(){ return this.pos.x+this.width/2; }.bind(this)
+            });
+            
+        }).bind(this)();
         
         //physics
         (function(){
                         
             var physics = this.physics;
+            
+            var d = Object.getOwnPropertyDescriptor(this, "physics");
+            if(d && d.configurable === false) return false;
             
             Object.defineProperty(this, "physics",
             {
@@ -83,22 +135,18 @@ var Shape = G.Shape = G.Object.extend
                 if(key==="top") 
                 {
                     this.pos.y=bounds[key]+this.height/2;
-                    this._bounds[key] = bounds[key];
                 }
                 else if(key==="bottom") 
                 {
                     this.pos.y=bounds[key]-this.height/2;
-                    this._bounds[key] = bounds[key];
                 }
                 else if(key==="left") 
                 {
                     this.pos.x=bounds[key]+this.width/2;
-                    this._bounds[key] = bounds[key];
                 }
                 else if(key==="right") 
                 {
                     this.pos.x=bounds[key]-this.width/2;
-                    this._bounds[key] = bounds[key];                    
                 }
             }
             
@@ -110,12 +158,13 @@ var Shape = G.Shape = G.Object.extend
             //if doesn't have bounds, return
             if(!this.width) return false;
             var w = this.width/2, h = this.height/2;
+            var bounds = {};
 
-            this._bounds.left = this.pos.x-w;
-            this._bounds.right = this.pos.x+w;
-            this._bounds.top = this.pos.y-h;
-            this._bounds.bottom = this.pos.y+h;
-            return this._bounds;
+            bounds.left = this.pos.x-w;
+            bounds.right = this.pos.x+w;
+            bounds.top = this.pos.y-h;
+            bounds.bottom = this.pos.y+h;
+            return bounds;
         }
         
     },

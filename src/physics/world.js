@@ -11,42 +11,6 @@ Physics.World = (function(){
             restitution:0,
             friction:0,
             mass:1
-        },
-        fn,
-        update = 
-        {
-            update: function()
-            {
-                if (fn && fn !== update.update) fn.apply(this, arguments);
-                if (this.type === "kinematic") update.kinematic.apply(this, arguments);
-                else if (this.type === "dynamic") update.dynamic.apply(this, arguments)
-            },
-            kinematic:function()
-            {
-                var shape = this;
-                //make sure pos, vel, and acc are all vectors
-                if(!(shape.pos instanceof G.Vector) || !(shape.vel instanceof G.Vector))
-                {
-                    shape.pos = new G.Vector(shape.pos ? shape.pos.x : 0, shape.pos ? shape.pos.y : 0);
-                    shape.vel = new G.Vector(shape.vel ? shape.vel.x : 0, shape.vel ? shape.vel.y : 0);
-                }
-                //perform euler integration - ish - (pos = pos + vel)
-                shape.pos.add(shape.vel.multiply(shape.stage?shape.stage.deltaFramerate:1));
-            },
-            dynamic:function()
-            {
-                var shape = this;
-                //make sure pos, vel, and acc are all vectors
-                if(!(shape.pos instanceof G.Vector) || !(shape.vel instanceof G.Vector) || !(shape.acc instanceof G.Vector))
-                {
-                    shape.pos = new G.Vector(shape.pos ? shape.pos.x : 0, shape.pos ? shape.pos.y : 0);
-                    shape.vel = new G.Vector(shape.vel ? shape.vel.x : 0, shape.vel ? shape.vel.y : 0);
-                    shape.acc = new G.Vector(shape.acc ? shape.acc.x : 0, shape.acc ? shape.acc.y : 0);
-                }
-                //perform euler integration - ish - (acc = gravity + force, vel = vel + acc, pos = pos + vel)
-                shape.vel.add(shape.acc);
-                shape.pos.add(shape.vel.multiply(shape.stage?shape.stage.deltaFramerate:1));
-            }
         };
 
     return G.Class.extend
@@ -82,10 +46,6 @@ Physics.World = (function(){
             this.shapes.kinematic.name = "Kinematic Collision Shapes";
             this.shapes.dynamic.name = "Dynamic Collision Shapes";
             this.shapes.all.name = "All Collision Shapes";
-
-            //set update functions
-            fn = G.Shape.prototype.update;
-            if(fn !== update.update) G.Shape.prototype.update = update.update;
         },
 
         setCellSize:function(cellSize)
@@ -125,6 +85,11 @@ Physics.World = (function(){
                     });
                 }
             }
+            
+            this.enableHash = typeof obj.enableHash === "boolean" ? obj.enableHash : true;
+            this.onlyAABB = typeof obj.onlyAABB === "boolean" ? obj.onlyAABB : false;
+            this.framerateVel = typeof obj.framerateVel === "boolean" ? obj.framerateVel : true;
+
         },
 
         add:function(shape)
@@ -197,10 +162,13 @@ Physics.World = (function(){
             var self = this;
 
             //with hash
-            if(this.collisions.dynamicstatic !== false && self.staticHash.length !== self.shapes.static.length()) self.staticHash.clear().insert(self.shapes.static);
-            if(this.collisions.dynamickinematic !== false) self.kinematicHash.clear().insert(self.shapes.kinematic);
-            if(this.collisions.dynamicdynamic !== false || this.collisions.dynamicstatic !== false) self.dynamicHash.clear().insert(self.shapes.dynamic);
-
+            if(this.enableHash !== false)
+            {
+                if(this.collisions.dynamicstatic !== false && self.staticHash.length !== self.shapes.static.length()) self.staticHash.clear().insert(self.shapes.static);
+                if(this.collisions.dynamickinematic !== false) self.kinematicHash.clear().insert(self.shapes.kinematic);
+                if(this.collisions.dynamicdynamic !== false || this.collisions.dynamicstatic !== false) self.dynamicHash.clear().insert(self.shapes.dynamic);
+            }
+            
             //resolve collisions
             if(self.collisions.dynamicstatic && self.collisions !== false && self.shapes.dynamic.length() >= self.shapes.static.length())
             {
@@ -209,11 +177,22 @@ Physics.World = (function(){
                     shape.colliding = false;
                     if(shape.enableCollisions === false || shape.physics === false) return;
                     //retrieve shapes in position range
-                    _.each(self.dynamicHash.retrieve(shape), function(shape2)
+                    if(self.enableHash !== false)
                     {
-                        if(shape2.physics === false || shape2.enableCollisions === false) return;
-                        self.handleCollisions(shape, shape2);
-                    });
+                        _.each(self.dynamicHash.retrieve(shape), function(shape2)
+                        {
+                            if(shape2.physics === false || shape2.enableCollisions === false) return;
+                            self.handleCollisions(shape, shape2);
+                        });
+                    }
+                    else
+                    {
+                        self.shapes.dynamic.each(function(shape2)
+                        {
+                            if(shape2.physics === false || shape2.enableCollisions === false) return;
+                            self.handleCollisions(shape, shape2);
+                        });
+                    }
                 });
             }
 
@@ -224,19 +203,41 @@ Physics.World = (function(){
 
                 //don't do physics if shape says so
                 if(shape.physics === false) return;
-
-                shape.update();
-
-                if(self.collisions !== false && shape.enableCollisions !== false && self.collisions.dynamickinematic && self.shapes.dynamic.length() >= self.shapes.kinematic.length()) 
+                
+                shape.one("update", function()
                 {
-                    shape.colliding = false;
-                    //retrieve shapes in position range
-                    _.each(self.dynamicHash.retrieve(shape), function(shape2)
+                    //make sure pos, vel, and acc are all vectors
+                    if(!(shape.pos instanceof G.Vector) || !(shape.vel instanceof G.Vector))
                     {
-                        if(shape2.physics === false || shape2.enableCollisions === false) return;
-                        self.handleCollisions(shape, shape2);
-                    });
-                }
+                        shape.pos = new G.Vector(shape.pos ? shape.pos.x : 0, shape.pos ? shape.pos.y : 0);
+                        shape.vel = new G.Vector(shape.vel ? shape.vel.x : 0, shape.vel ? shape.vel.y : 0);
+                    }
+
+                    if(self.collisions !== false && shape.enableCollisions !== false && self.collisions.dynamickinematic && self.shapes.dynamic.length() >= self.shapes.kinematic.length()) 
+                    {
+                        shape.colliding = false;
+                        //retrieve shapes in position range
+                        if(self.enableHash !== false)
+                        {
+                            _.each(self.dynamicHash.retrieve(shape), function(shape2)
+                            {
+                                if(shape2.physics === false || shape2.enableCollisions === false) return;
+                                self.handleCollisions(shape, shape2);
+                            });
+                        }
+                        else
+                        {
+                            self.shapes.dynamic.each(function(shape2)
+                            {
+                                if(shape2.physics === false || shape2.enableCollisions === false) return;
+                                self.handleCollisions(shape, shape2);
+                            });
+                        }
+                    }
+                    
+                    //perform euler integration - ish - (pos = pos + vel)
+                    shape.pos.add(shape.vel.multiply(shape.stage && (shape.framerateVel !== false && self.framerateVel !== false) ? shape.stage.deltaFramerate:1));     
+                });
             });
 
             self.shapes.dynamic.each(function(shape)
@@ -247,44 +248,65 @@ Physics.World = (function(){
                 //don't do physics if shape says so
                 if(shape.physics === false) return;
 
-                if(shape.gravity !== false) shape.acc = self.gravity;
-
-                shape.update();
-
-                //resolve collisions
-                if(self.collisions !== false && shape.enableCollisions !== false)
+                shape.one("update", function()
                 {
-                    shape.colliding = false;
-                    if(self.collisions.dynamicstatic && self.shapes.dynamic.length() < self.shapes.static.length()) 
+                    //make sure pos, vel, and acc are all vectors
+                    if(!(shape.pos instanceof G.Vector) || !(shape.vel instanceof G.Vector) || !(shape.acc instanceof G.Vector))
                     {
-                        //retrieve shapes in position range
-                        _.each(self.staticHash.retrieve(shape), function(shape2)
-                        {
-                            if(shape2.physics === false || shape2.enableCollisions === false) return;
-                            self.handleCollisions(shape, shape2);
-                        });
+                        shape.pos = new G.Vector(shape.pos ? shape.pos.x : 0, shape.pos ? shape.pos.y : 0);
+                        shape.vel = new G.Vector(shape.vel ? shape.vel.x : 0, shape.vel ? shape.vel.y : 0);
+                        shape.acc = new G.Vector(shape.acc ? shape.acc.x : 0, shape.acc ? shape.acc.y : 0);
                     }
+                                                                       
+                    //resolve collisions
+                    if(self.collisions !== false && shape.enableCollisions !== false)
+                    {
+                        shape.colliding = false;
+                        if(self.collisions.dynamicstatic && self.shapes.dynamic.length() < self.shapes.static.length()) 
+                        {
+                            function handle(shape2)
+                            {
+                                if(shape2.physics === false || shape2.enableCollisions === false) return;
+                                self.handleCollisions(shape, shape2);
+                            }
+                            
+                            //retrieve shapes in position range
+                            if(self.enableHash !== false) _.each(self.staticHash.retrieve(shape), handle);
+                            else self.shapes.static.each(handle);
+                           
+                        }
 
-                    if(self.collisions.dynamickinematic && self.shapes.dynamic.length() < self.shapes.kinematic.length()) 
-                    {
-                        //retrieve shapes in position range
-                        _.each(self.kinematicHash.retrieve(shape), function(shape2)
+                        if(self.collisions.dynamickinematic && self.shapes.dynamic.length() < self.shapes.kinematic.length()) 
                         {
-                            if(shape2.physics === false || shape2.enableCollisions === false) return;
-                            self.handleCollisions(shape, shape2);
-                        });
-                    }
+                            //retrieve shapes in position range
+                            if(self.enableHash !== false) _.each(self.kinematicHash.retrieve(shape), handle);
+                            else self.shapes.kinematic.each(handle);
+                        }
 
-                    if(self.collisions.dynamicdynamic) 
-                    {
-                        //retrieve shapes in position range
-                        _.each(self.dynamicHash.retrieve(shape), function(shape2)
+                        if(self.collisions.dynamicdynamic) 
                         {
-                            if(shape2.physics === false || shape2.enableCollisions === false) return;
-                            self.handleCollisions(shape, shape2);
-                        });
+                            //retrieve shapes in position range
+                            if(self.enableHash !== false) _.each(self.dynamicHash.retrieve(shape), handle);
+                            else self.shapes.dynamic.each(handle);
+                        }
                     }
-                }
+                    
+                    if(shape.stage && shape.stage.world)
+                    {
+                        if(shape.gravity !== false && shape.colliding !== true) 
+                        {
+                            shape.acc = shape.stage.world.gravity;
+                        }
+                        else if(shape.colliding)
+                        {
+                            shape.acc = new G.Vector();                    
+                        }
+                    }
+                    
+                    //perform euler integration - ish - (acc = gravity + force, vel = vel + acc, pos = pos + vel)
+                    shape.vel.add(shape.acc);
+                    shape.pos.add(shape.vel.multiply(shape.stage && (shape.framerateVel !== false && self.framerateVel !== false) ? shape.stage.deltaFramerate : 1));
+                });
             });
 
             //debug
@@ -313,12 +335,12 @@ Physics.World = (function(){
             if((res1 instanceof Array && res1.indexOf(false) !== -1) || (res2 instanceof Array && res2.indexOf(false) !== -1)) return true; 
 
             //TODO - add swept collisions
-            var mtv = G.Physics.intersecting(shape1, shape2);
+            var mtv = G.Physics.intersecting(shape1, shape2, this.onlyAABB);
             if(!mtv) 
             {
                 return false;
             }
-
+            
             //trigger collision event on shapes
             if(shape1.type !== "dynamic")
             {
@@ -344,6 +366,7 @@ Physics.World = (function(){
             if(shape1.type !== "dynamic")
             {
                 if(shape2.vel.y > 0 && mtv.y > 0 || shape2.vel.y < 0 && mtv.y < 0) return;
+                
                 //push shape2's position to be outside of shape1
                 shape2.pos.add(mtv);
 
@@ -428,6 +451,9 @@ Physics.World = (function(){
                     }
                 }
             }
+            
+            if(shape1.events) var res1 = shape1.trigger("collisionResolved", [shape2, mtv]);
+            if(shape2.events) var res2 = shape2.trigger("collisionResolved", [shape1, mtv]);
         }
 
     });

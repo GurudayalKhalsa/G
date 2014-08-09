@@ -1,3 +1,6 @@
+//Returns intersection of two G.Shape instances
+//If not intersecting, returns false
+//if intersecting, returns the xy vector of the minimum distance shape2 must go to not be intersecting with shape1
 G.Physics.intersecting = (function()
 {
 
@@ -11,6 +14,8 @@ function rotatePoint(point, origin, angle)
 
 return function(shape1, shape2, reverseVertices)
 {
+    var onlyAABB = false;
+    if(Array.prototype.indexOf.call(arguments, true) !== -1) onlyAABB = true;
     if(shape2 instanceof G.Vector) shape2 = new G.Circle(shape2.x,shape2.y,0.1,false);
     if ((shape1 instanceof G.Collection)) 
     {
@@ -42,32 +47,59 @@ return function(shape1, shape2, reverseVertices)
     if(shape1 === shape2) return false;
 
     //detect simple aabb collision, saves compute time for complex shapes
-    if(!aabb(shape1, shape2)) return false;
+    var aabbmtv = aabb(shape1, shape2);
+    if(!aabbmtv) return false;
+    
+    if(onlyAABB) 
+    {
+        return aabbmtv;
+    }
 
     //if one is static, return mtv for other one, defaults to returning shape1's mtv from shape2
     if(shape2.shape === "static"){ var temp = shape2; shape2 = shape1; shape1 = temp;}
 
     //circle vs circle
-    if(shape1.shape === "circle" && shape2.shape === "circle") return circle2circle(shape1, shape2);
+    if(shape1.shape === "circle" && shape2.shape === "circle") res = circle2circle(shape1, shape2);
 
     //if no circles, do SAT (separating axis test) polygon against polygon
-    else if(shape1.shape !== "circle" && shape2.shape !== "circle") return polygon2polygon(shape1, shape2);
+    else if(shape1.shape !== "circle" && shape2.shape !== "circle") res = polygon2polygon(shape1, shape2);
 
-    //if one circle and one polygon, do SAT (separating axis test) polygon against circle (different from above)
-    else if(shape1.shape === "circle" || shape2.shape === "circle") return polygon2circle(shape1, shape2);
+    //if one circle and one polygon, do SAT (separating axis test) polygon against circle
+    else if(shape1.shape === "circle" || shape2.shape === "circle") res = polygon2circle(shape1, shape2);
 
     //otherwise, not objects able to be tested
-    else return false;
+    else res = false;
+    
+    return res;
 
     //simple broad phase check
     function aabb(shape1, shape2)
     {
-        //quick method
-        if(shape1.shape === "circle" || shape1.shape === "rect") return shape2.pos.x-shape2.width/2<shape1.pos.x+shape1.width/2&&shape2.pos.x+shape2.width/2>shape1.pos.x-shape1.width/2&&shape2.pos.y-shape2.height/2<shape1.pos.y+shape1.height/2&&shape2.pos.y+shape2.height/2>shape2.pos.y-shape2.height/2;
+        var top, bottom, left, right, b1 = {}, b2 = {};
+        
+        //if simple shapes
+        if((shape1.shape === "circle" || shape1.shape === "rect") && (shape2.shape === "circle" || shape2.shape === "rect")) 
+        {
+            b1 = shape1.bounds(), b2 = shape2.bounds();
+        }
+        
+        //if complex shapes
+        else
+        {
+            b1 = shape1.bounds(), b2 = shape2.bounds();
+        }
+        
+        //collision detection
+        var top = b1.top<b2.bottom && b1.top>b2.top && b1.right>b2.left && b1.left<b2.right,
+            left = b1.left<b2.right && b1.left>b2.left && b1.bottom>b2.top && b1.top<b2.bottom,
+            bottom = b1.bottom>b2.top && b1.bottom<b2.bottom && b1.right>b2.left && b1.left<b2.right,
+            right = b1.right>b2.left && b1.right<b2.right && b1.bottom>b2.top && b1.top<b2.bottom;
+    
+        //exit if not intersecting
+        if(!top && !bottom && !left && !right) return false;
 
-        //slow method, for other shapes like polygon and line
-        var b1 = shape1.bounds(), b2 = shape2.bounds();
-        return b2.left<b1.right&&b2.right>b1.left&&b2.top<b1.bottom&&b2.bottom>b2.top;
+        //return mtv if intersecting
+        return shape1.shape === "rect" && shape2.shape === "rect" && onlyAABB ? polygon2polygon(shape1, shape2) : new G.Vector();
     }
 
     function circle2circle(circle1, circle2)
@@ -256,7 +288,7 @@ return function(shape1, shape2, reverseVertices)
         else if(shape.shape === "polygon") 
         {
             for(var i = 0; i < shape.vertices.length-1; i += 2) vertices.push((shape.pos.x||0)+shape.vertices[i], (shape.pos.y||0)+shape.vertices[i+1]);
-            if(reverseVertices)
+            if(_.isArr(reverseVertices))
             {
                 var n = [], arr = vertices;
                 for(var i = arr.length-1; i > 0; i -= 2)
@@ -276,7 +308,7 @@ return function(shape1, shape2, reverseVertices)
         }
 
         //if invalid shape
-        else throw new Error("Shape does not contain vertices");
+        else return console.trace("Shape does not contain vertices");
 
         //convert to vectors
         var vecVertices = [];

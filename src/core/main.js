@@ -10,6 +10,7 @@ G.stages = [];
 G.collections = [];
 
 G.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+G.touchEnabled = "ontouchstart" in window;
 
 //add root stage events
 G.event = new Event();

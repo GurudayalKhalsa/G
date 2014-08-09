@@ -8,7 +8,8 @@ G.Collection = G.Class.extend({
         this.objects = [];
         this._currentId = 0;
         this._length = 0;
-        this._visibleHashEnabled = false;
+        this.enableVisibleHash = false;
+        this.enableZindex = false;
 
         this.addToCollections = typeof addToCollections === "boolean" ? addToCollections : ((typeof addToCollections === "object" && typeof addToCollections.addToCollections === "boolean") ? addToCollections.addToCollections : true);
         this.addToObjectCollections = typeof addToObjectCollections === "boolean" ? addToObjectCollections : ((typeof addToSCollections === "object" && typeof addToCollections.addToObjectCollections === "boolean") ? addToCollections.addToObjectCollections : true);
@@ -93,15 +94,15 @@ G.Collection = G.Class.extend({
     update:function()
     {
         this.trigger("update");
+        //update physics world if exists
         if((this.world && ((this !== G.stage && this.physics) || (this === G.stage && G.physics && this.physics)))) this.world.update();
-        //prevent update from being called more than once
-        else if(this.get(0) && !(this.get(0).stage && this.get(0).stage.world))
+        
+        //update each shape
+        this.each(function(shape)
         {
-            this.each(function(shape)
-            {
-                if(shape.update) shape.update();
-            });
-        }
+            if(shape.update) shape.update();
+        });
+        
         return this;
     },
 
@@ -114,8 +115,8 @@ G.Collection = G.Class.extend({
         if(self.events) self.trigger("render");
 
         //retrieve all visible shapes, very efficient if thousands of static shapes
-        //only enabled if stage._visibleHashEnabled is set to true
-        if(this.visibleHash && this._visibleHashEnabled)
+        //only enabled if stage.enableVisibleHash is set to true
+        if(this.visibleHash && this.enableVisibleHash)
         {
             this.visibleHash.moving.clear().insert(this.visibleHash.moving.shapes);
             var obj = {};
@@ -234,7 +235,7 @@ G.Collection = G.Class.extend({
             this._length = this._length+1;  
             
             //could be slow
-            if(typeof object.zindex !== "undefined")
+            if(typeof object.zindex !== "undefined" && this.enableZindex)
             {
                 var needToSort = false;
                 for(var i = 0; i < this.objects.length; i++) if(this.objects[i] && this.objects[i].zindex !== 0) { needToSort = true; break; }
@@ -242,7 +243,7 @@ G.Collection = G.Class.extend({
             }
 
             //add to visible visibleHash
-            if(this._visibleHashEnabled && (this.canvas || (this.get(0) && this.get(0).stage && this.get(0).stage.canvas)) && object instanceof G.Shape)
+            if(this.enableVisibleHash && (this.canvas || (this.get(0) && this.get(0).stage && this.get(0).stage.canvas)) && object instanceof G.Shape)
             {
                 this.addToVisibleHash(object);
             }
@@ -277,13 +278,15 @@ G.Collection = G.Class.extend({
         {
             var index = 0;
             var objects = [];
-            this.each(function(object)
+            for(var i = 0, j = this.objects.length; i < j; i++)
             {
+                var object = this.objects[i];
                 objects.push(object);
                 self.remove(object);
                 //force removal
                 if(object) object.remove();
-            });
+            }
+                
             return objects;
         }
 
@@ -294,7 +297,10 @@ G.Collection = G.Class.extend({
         if(this.events) this.trigger("remove", arguments);
         if(this.events) this.trigger("change", arguments);
 
-        delete this.objects[index];
+        this.objects.splice(index, 1);
+        // delete this.objects[index];
+        
+        this._currentId = this.objects.length;
         this._length = this._length-1;
 
         //remove from visible visibleHash
@@ -321,7 +327,10 @@ G.Collection = G.Class.extend({
     
     sortByZindex: function()
     {
-      this.objects.sort(function(cur, next){return cur.zindex > next.zindex});
+        this.objects.sort(function(cur, next)
+        {
+            return (cur.zindex > next.zindex ? 1 : (cur.zindex === next.zindex ? 0 : -1));
+        });
     },
 
     addToVisibleHash:function(object)
@@ -359,7 +368,7 @@ G.Collection = G.Class.extend({
 
     enableVisibleHash:function()
     {
-        this._visibleHashEnabled = true;
+        this.enableVisibleHash = true;
         var self = this;
         this.each(function(shape)
         {
@@ -369,7 +378,7 @@ G.Collection = G.Class.extend({
 
     disableVisibleHash:function()
     {
-        this._visibleHashEnabled = false;
+        this.enableVisibleHash = false;
         var self = this;
         this.each(function(shape)
         {
@@ -389,12 +398,7 @@ G.Collection = G.Class.extend({
         if(typeof index === "number")
         {
             if(index >= 0)return this.objects[index];
-            var i = 0;
-            for(i = this.objects.length-1; i > 0; i--)
-            {
-                if(this.objects[i]) break;
-            }
-            return this.objects[i+1+index];
+            return this.objects[this.objects.length+index];
         }
         if(this.objects.indexOf(undefined) === -1) return this.objects.slice(0);
         var objects = [];
@@ -413,11 +417,11 @@ G.Collection = G.Class.extend({
 
     each:function(callback)
     {
-        for(var i = 0; i < this.objects.length; i++)
+        for(var i = 0, j = this.objects.length; i < j; i++)
         {
             if(typeof this.objects[i] !== "undefined") 
             {
-                var res = callback.call(this, this.objects[i], i);
+                var res = callback.call(this.objects[i], this.objects[i], i);
                 if(res === false) break;
             }
         }
@@ -565,7 +569,7 @@ G.Collection = G.Class.extend({
 
             if(!not) 
             {
-                cb(object, obj);
+                cb.call(object, object, obj);
                 collection.add(object);
                 none = false;
             }

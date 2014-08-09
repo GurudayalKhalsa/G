@@ -32,7 +32,8 @@ G.Text = Shape.extend({
         for(var i in defaults) this[i] = defaults[i];
         for(var i in arguments[0]) this[i] = typeof arguments[0][i] === "object" ? _.clone(arguments[0][i]) : arguments[0][i];
 
-            if(arguments[0].addToStage !== false) this.add();
+        if(arguments[0].addToStage !== false) this.add();
+        delete this.addToStage;
     },
 
     bounds:function()
