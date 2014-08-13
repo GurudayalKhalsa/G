@@ -3156,7 +3156,7 @@ G.Rect = Shape.extend({
         var ctx = this.stage?this.stage.ctx:G.stage.ctx;
         if(!ctx) return;
 
-        if(this.thickness) ctx.lineWidth = this.thickness;
+        if(this.lineWidth) ctx.lineWidth = this.lineWidth;
 
         // //draw at new position and dimensions if specified (does not set position of object), (used in rotating)
         //using typeof is costly, before was doing if typeof x !== "number"
@@ -3281,11 +3281,11 @@ G.Bounds = (function(){
 
 return G.Collection.extend
 ({
-    initialize:function(x1,y1,x2,y2,restitution,friction,thickness)
+    initialize:function(x1,y1,x2,y2,restitution,friction,lineWidth)
     {
         this._super(false, true);
 
-        this.thickness = thickness || 2;
+        this.lineWidth = lineWidth || 2;
 
         var hidden = typeof hidden === "boolean" ? hidden : true;
         this.friction = typeof friction === "number" ? friction : 0;
@@ -3295,7 +3295,7 @@ return G.Collection.extend
         if(arguments.length < 4)
         {
             //set if no defaults
-            if(arguments[2]) this.thickness = arguments[2] || this.thickness;
+            if(arguments[2]) this.lineWidth = arguments[2] || this.lineWidth;
             if(arguments[1]) this.friction = arguments[1] || this.friction;
             if(arguments[0]) this.restitution = arguments[0] || this.restitution;
 
@@ -3314,7 +3314,7 @@ return G.Collection.extend
                 y:y1
             },
             width:x2-x1,
-            height:this.thickness,
+            height:this.lineWidth,
             type:"static",
             hidden:hidden,
             friction: this.friction,
@@ -3328,13 +3328,13 @@ return G.Collection.extend
         //in order of top, left, bottom, right
         if(!rejections || rejections.indexOf("top") === -1) a = new G.Rect(line);
         
-        line.pos.x = x1, line.pos.y = (y2+y1)/2, line.width = this.thickness, line.height = y2-y1;
+        line.pos.x = x1, line.pos.y = (y2+y1)/2, line.width = this.lineWidth, line.height = y2-y1;
         if(!rejections || rejections.indexOf("left") === -1) b = new G.Rect(line);
 
-        line.pos.x = (x2+x1)/2, line.pos.y = y2, line.width = x2-x1, line.height = this.thickness;
+        line.pos.x = (x2+x1)/2, line.pos.y = y2, line.width = x2-x1, line.height = this.lineWidth;
         if(!rejections || rejections.indexOf("bottom") === -1) c = new G.Rect(line);
 
-        line.pos.x = x2, line.pos.y = (y2+y1)/2, line.width = this.thickness, line.height = y2-y1;
+        line.pos.x = x2, line.pos.y = (y2+y1)/2, line.width = this.lineWidth, line.height = y2-y1;
         if(!rejections || rejections.indexOf("right") === -1) d = new G.Rect(line);
 
         this.add(a,b,c,d);
@@ -3399,7 +3399,7 @@ G.Circle = Shape.extend({
 
         if(this.fill) ctx.fillStyle = this.color;
         else ctx.strokeStyle = this.strokeColor||this.color;
-        if(this.thickness) ctx.lineWidth = this.thickness;
+        if(this.lineWidth) ctx.lineWidth = this.lineWidth;
         
         //draw at specified position and dimensions if specified (does not set position of object), (used in rotating)
         if(x === undefined) var x = this.pos.x;
@@ -3417,9 +3417,9 @@ G.Line = Shape.extend({
 
     initialize:function(obj)
     {
-        var defaults = {pos:{x1:0,y1:0,x2:0,y2:0,x:0,y:0}, thickness:1,endStyle:"butt"};
+        var defaults = {pos:{x1:0,y1:0,x2:0,y2:0,x:0,y:0}, lineWidth:1,lineCap:"butt"};
 
-        //if not passing in object literal, assign arguments as x1,y1,x2,y2,strokeColor,thickness,vx,vy
+        //if not passing in object literal, assign arguments as x1,y1,x2,y2,strokeColor,lineWidth,vx,vy
         if(typeof obj !== "object" && arguments.length > 3)
         {
             var a = {};
@@ -3428,7 +3428,7 @@ G.Line = Shape.extend({
 
             //optional
             if(typeof arguments[4] === "string") a.color = arguments[4];
-            if(typeof arguments[5] === "number") a.thickness = arguments[5];
+            if(typeof arguments[5] === "number") a.lineWidth = arguments[5];
             if(typeof arguments[6] === "number") a.vel = {x:arguments[6]};
             if(typeof arguments[7] === "number" && a.vel) a.vel.y = arguments[7];
             if(Array.prototype.indexOf.call(arguments, false) !== -1) a.addToStage = false;
@@ -3527,10 +3527,10 @@ G.Line = Shape.extend({
 
         //change color
         ctx.strokeStyle = this.color;
-        //change thickness
-        ctx.lineWidth = this.thickness;
+        //change lineWidth
+        ctx.lineWidth = this.lineWidth;
         //change end style
-        ctx.lineCap = this.endStyle;
+        ctx.lineCap = this.lineCap;
 
         ctx.stroke();
         ctx.closePath();
@@ -3776,7 +3776,7 @@ G.Polygon = Shape.extend({
         ctx.lineTo(x+this.vertices[0],y+this.vertices[1]);
 
 
-        if(this.thickness) ctx.lineWidth = this.thickness;
+        if(this.lineWidth) ctx.lineWidth = this.lineWidth;
         if(this.fill) ctx.fill();
         else ctx.stroke();
 

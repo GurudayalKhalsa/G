@@ -18,11 +18,15 @@
     addCircles();
     stage.event.on('up', window, function(e){ addCircles(e.clientX, e.clientY) })
 
-    stage.animate(function()
-    {
-        stage.update();
-        stage.render();
-    })
+    stage.update();
+    stage.render();
+
+    //don't actually start animation, just render first frame
+    // stage.animate(function()
+    // {
+    //     stage.update();
+    //     stage.render();
+    // })
 
 })();
 

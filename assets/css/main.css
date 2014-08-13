@@ -7,6 +7,13 @@ body{
   background-color: rgba(240, 255, 249, 1);
 }
 
+.animation-toggle.button{
+  position: absolute;
+  width: 25px;
+  top: 0;
+  right: 0;
+}
+
 #canvas{
   top:0;
   left:0;
