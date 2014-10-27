@@ -1,8 +1,8 @@
 //G Main / initialize
 
 //add event methods to G
-Emit.mixin(G);
-Emit.mixin(G.Class);
+G.Emit.mixin(G);
+G.Emit.mixin(G.Class);
 
 G.events = true;
 

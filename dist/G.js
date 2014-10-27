@@ -1,5 +1,5 @@
 /**
- * G 0.2.0, 2014-08-09
+ * G 0.1.0, 2014-10-26
  * A fast, powerful and extendable HTML5 game framework
  *
  * Copyright (c) 2014 Gurudayal Khalsa, gurudayalkhalsa@gmail.com
@@ -5120,8 +5120,8 @@ G.toVectors = function(vertices)
 //G Main / initialize
 
 //add event methods to G
-Emit.mixin(G);
-Emit.mixin(G.Class);
+G.Emit.mixin(G);
+G.Emit.mixin(G.Class);
 
 G.events = true;
 
