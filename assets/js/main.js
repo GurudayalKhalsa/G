@@ -18,10 +18,10 @@
     addCircles();
     stage.event.on('up', window, function(e){ addCircles(e.clientX, e.clientY) })
 
+    //don't actually start animation, just render first frame
     stage.update();
     stage.render();
 
-    //don't actually start animation, just render first frame
     // stage.animate(function()
     // {
     //     stage.update();
@@ -43,7 +43,7 @@
     getJSONP('https://api.github.com/repos/GurudayalKhalsa/G/tags', function(data)
     {
         var tags = data.data;
-        var latest = tags[tags.length-1];
+        var latest = tags[0];
         var name = latest.name;
         var url = 'https://github.com/GurudayalKhalsa/G/releases/download/' + name + '/';
         latest.production_url = url + 'G.min.js';
